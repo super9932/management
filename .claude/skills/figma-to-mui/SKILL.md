@@ -1,11 +1,12 @@
 ---
-description: Figma 디자인 URL을 받아 Figma MCP로 디자인 데이터를 가져오고 React + MUI 컴포넌트로 구현한다
+description: Figma 디자인 URL을 받아 Figma MCP로 디자인 데이터를 가져오고 React + MUI 컴포넌트로 구현한다. 구현 후 반드시 컴포넌트 단위로 파일 분리까지 완료한다.
 ---
 
 # figma-to-mui
 
 Figma 화면 URL을 입력받아 Figma Dev Mode MCP Server에서 디자인 데이터를 가져오고,
 이 프로젝트(Vite + React + TypeScript + MUI v5)의 스타일 컨벤션에 맞게 페이지 컴포넌트를 생성한다.
+**구현 후 반드시 컴포넌트 단위 파일 분리까지 완료한다 — 파일 분리 없이 완료 보고하지 않는다.**
 
 ## Input
 
@@ -88,28 +89,89 @@ for m in matches[:5]:
 - **간격**: padding, gap, border-radius 수치 (Figma 단위 → MUI sx px/숫자 변환: 4px = 0.5, 8px = 1)
 - **상태**: hover, active, disabled, selected 스타일
 
-## Step 4 — 컴포넌트 구현
+## Step 4 — 컴포넌트 구현 + 파일 분리
 
-### 파일 위치
+### 폴더 구조 (필수)
 
-`src/pages/<ComponentName>.tsx`
+페이지 단위 화면은 반드시 폴더로 분리한다:
+
+```
+src/pages/<PageName>/
+  index.tsx          메인 페이지 (상태 관리 + 레이아웃 조립만)
+  constants.ts       색상 상수 (PRIMARY_ORANGE, DARK, SECONDARY 등) + 공용 sx
+  types.ts           인터페이스 + 목업 데이터
+  <Name>Tabs.tsx     탭 영역
+  <Name>Filter.tsx   필터/검색 영역
+  <Name>Table.tsx    결과 바 + 테이블 (빈 상태 포함)
+  <Name>Pagination.tsx 페이지네이션
+  <Name>EmptyState.tsx 데이터 없음 상태 (테이블 내 colSpan 방식)
+```
+
+공통 컴포넌트는 `src/components/`에 위치한다:
+- `Sidebar.tsx` — 이미 존재, `NavSection[]` props로 재사용
+- `Header.tsx` — 페이지별 헤더가 동일하면 공통으로 추출
+
+### 분리 기준
+
+| 기준 | 분리 여부 |
+|---|---|
+| 탭 영역 | 항상 분리 |
+| 필터/검색 영역 | 항상 분리 |
+| 결과 바 + 테이블 | 항상 분리 (EmptyState 포함) |
+| 페이지네이션 | 항상 분리 |
+| 색상 상수 | 항상 `constants.ts`로 분리 |
+| 타입 + 목업 데이터 | 항상 `types.ts`로 분리 |
+| Sidebar / Header | 여러 페이지에서 공유 시 `src/components/`로 분리 |
+| 다이얼로그/모달 | `src/components/`에 별도 파일로 분리 |
+
+### index.tsx 역할
+
+`index.tsx`는 상태(useState)와 레이아웃 조립만 담당한다. 렌더링 로직은 서브 컴포넌트에 위임한다:
+
+```tsx
+export default function PageName() {
+  const [tabValue, setTabValue] = useState(0);
+  // ... 기타 상태
+
+  return (
+    <Box sx={{ display: 'flex', height: '100vh' }}>
+      <Sidebar open={sidebarOpen} onToggle={...} sections={NAV_SECTIONS} />
+      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <Header />
+        <Box sx={{ flex: 1, overflow: 'auto', px: 5, pb: 11 }}>
+          {/* Breadcrumb + Title */}
+          <Card sx={{ borderRadius: 4, boxShadow: CARD_SHADOW }}>
+            <PageTabs value={tabValue} onChange={setTabValue} />
+            <PageFilter ... />
+            <PageTable rows={rows} total={TOTAL} pageSize={PAGE_SIZE} />
+            <PagePagination page={page} onChange={setPage} />
+          </Card>
+        </Box>
+      </Box>
+      {/* FAB */}
+    </Box>
+  );
+}
+```
 
 ### 이 프로젝트의 코딩 컨벤션
 
 ```tsx
-// 색상은 파일 상단 const로 선언
-const PRIMARY_ORANGE = '#fa6600';
-const DARK = '#272b2f';
-const SECONDARY = '#737c85';
-const DIVIDER = 'rgba(145,158,171,0.2)';
-const PAGE_BG = '#f5f6f7';
-const CARD_SHADOW = '0px 0px 2px 0px rgba(25,28,31,0.08), 0px 12px 24px -4px rgba(25,28,31,0.06)';
+// 색상은 constants.ts에 선언
+export const PRIMARY_ORANGE = '#fa6600';
+export const DARK = '#272b2f';
+export const SECONDARY = '#737c85';
+export const DISABLED = '#8c959d';
+export const DIVIDER = 'rgba(145,158,171,0.2)';
+export const CARD_SHADOW = '0px 0px 2px 0px rgba(25,28,31,0.08), 0px 12px 24px -4px rgba(25,28,31,0.06)';
+export const FIELD_SX = { /* 공용 TextField/Select sx */ } as const;
 
 // MUI sx prop으로 스타일, 별도 styled() 사용 안 함
-// 반복 컴포넌트는 함수로 분리 (예: statusChip)
-// 상태는 useState, 목업 데이터는 파일 상단 const 배열
+// 반복 컴포넌트는 함수로 분리
 // 횡스크롤이 필요한 테이블: TableContainer에 overflowX:'auto', Table에 minWidth 지정
+// Pagination은 Card 안에 위치
 // 고정 액션 버튼: position:'fixed', bottom:32, right:32, zIndex:1200
+// 빈 상태: rows.length === 0 이면 TableBody 안에 colSpan으로 EmptyState 렌더링
 ```
 
 ### MUI import 패턴
@@ -124,25 +186,18 @@ import {
 import SomeIcon from '@mui/icons-material/SomeName';
 ```
 
-### App.tsx 연결 (필요 시)
-
-생성 후 사용자에게 `src/App.tsx`에서 import하는 방법을 안내한다.
-
 ## Step 5 — 검증
 
 ```bash
 # TypeScript 에러 확인
 npx tsc --noEmit 2>&1 | head -30
-
-# 개발 서버 기동 확인 (이미 실행 중이면 생략)
-# npm run dev
 ```
 
-에러가 있으면 수정 후 재검증한다.
+에러가 있으면 수정 후 재검증한다. App.tsx의 기존 미사용 import 에러는 무시한다.
 
 ## 완료 보고
 
-- 생성된 파일 경로
-- 주요 컴포넌트 목록
-- `App.tsx`에서 연결하는 방법 (현재 연결 여부 포함)
+- 생성된 파일 목록 (폴더 트리 형태)
+- 각 파일의 역할 한 줄 요약
+- `App.tsx`에서 연결하는 방법
 - Figma와 다르게 구현된 부분이 있으면 이유와 함께 명시

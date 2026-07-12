@@ -135,5 +135,10 @@
     "terser": "^5.25.0",
     "typescript": "^5.2.2",
     "vite": "^4.3.9"
+  },
+  "msw": {
+    "workerDirectory": [
+      "public"
+    ]
   }
 }
