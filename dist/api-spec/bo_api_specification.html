@@ -1,0 +1,3071 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>상담AI BE — API 명세서 (v1.0)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+<style>
+  :root {
+    --bg: #fafaf7;
+    --paper: #ffffff;
+    --ink: #1a1a1a;
+    --ink-soft: #3d3d3d;
+    --ink-muted: #6b6b6b;
+    --line: #e5e3dc;
+    --line-strong: #c9c5b8;
+    --accent: #c4471c;
+    --accent-soft: #fef2ec;
+    --highlight: #f5f1e8;
+    --code-bg: #f4f2ec;
+    --blue: #1e4d7b;
+    --blue-soft: #eaf1f7;
+    --green: #2d6a4f;
+    --green-soft: #e7f0eb;
+    --purple: #6b3a8e;
+    --purple-soft: #f0e8f5;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Pretendard', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    padding: 40px 20px;
+  }
+
+  /* layout — left sticky TOC sidebar + paper container */
+  .layout {
+    display: grid;
+    grid-template-columns: 240px minmax(0, 1040px);
+    gap: 24px;
+    max-width: 1320px;
+    margin: 0 auto;
+    align-items: start;
+  }
+  .toc-sidebar {
+    position: sticky;
+    top: 40px;
+    align-self: start;
+    max-height: calc(100vh - 80px);
+    overflow-y: auto;
+    background: var(--highlight);
+    padding: 18px 20px 22px;
+    border-left: 3px solid var(--ink);
+    font-size: 13px;
+    border-radius: 0 4px 4px 0;
+  }
+  .toc-sidebar .toc-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    color: var(--ink-muted);
+    font-weight: 700;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+  }
+  .toc-sidebar a {
+    color: var(--ink-soft);
+    text-decoration: none;
+    padding: 4px 0;
+    display: flex;
+    gap: 8px;
+    line-height: 1.45;
+  }
+  .toc-sidebar a:hover { color: var(--accent); }
+  .toc-sidebar a .n {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--accent);
+    font-weight: 600;
+    min-width: 32px;
+  }
+  /* thin scrollbar inside sticky sidebar */
+  .toc-sidebar::-webkit-scrollbar { width: 6px; }
+  .toc-sidebar::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: 3px; }
+  /* sidebar TOC: single column override (defeats the 2-col grid used by the legacy in-page TOC) */
+  .toc-sidebar .toc-grid { display: block; }
+
+  /* 1.1 category endpoint list — compact, one line per endpoint */
+  .ep-list { display: block; }
+  .ep-list .row {
+    display: grid;
+    grid-template-columns: 48px 60px 1fr;
+    gap: 6px 10px;
+    align-items: baseline;
+    padding: 3px 0;
+    font-size: 12px;
+    line-height: 1.5;
+    border-bottom: 1px dotted var(--line);
+  }
+  .ep-list .row:last-child { border-bottom: none; }
+  .ep-list .row .no,
+  .ep-list .row a.no {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent);
+    width: auto;
+    text-decoration: none;
+    border-bottom: 1px dotted transparent;
+    transition: border-color 120ms ease, color 120ms ease;
+  }
+  .ep-list .row a.no:hover {
+    color: #8a2f12;
+    border-bottom-color: var(--accent);
+  }
+  /* scroll-margin so anchor target doesn't hide under sticky header */
+  .api[id^="api-"] {
+    scroll-margin-top: 16px;
+  }
+  .ep-list .row .badge.method {
+    font-size: 9.5px;
+    padding: 1px 6px;
+    align-self: center;
+    justify-self: start;
+  }
+  .ep-list .row .ep-path {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    color: var(--ink);
+    background: var(--code-bg);
+    padding: 1px 6px;
+    border-radius: 3px;
+    display: inline-block;
+    margin-right: 6px;
+  }
+  .ep-list .row .ep-name {
+    color: var(--ink-soft);
+    font-size: 12px;
+  }
+  .ep-list .row .badge.core,
+  .ep-list .row .badge.admin,
+  .ep-list .row .badge.jwt,
+  .ep-list .row .badge.ott,
+  .ep-list .row .badge.public {
+    font-size: 9px;
+    padding: 0 5px;
+    vertical-align: 1px;
+  }
+  /* sub-section link inside sidebar — indented, smaller, muted */
+  .toc-sidebar a.sub {
+    padding: 2px 0 2px 14px;
+    font-size: 11.5px;
+    color: var(--ink-muted);
+    line-height: 1.4;
+  }
+  .toc-sidebar a.sub:hover { color: var(--accent); }
+  .toc-sidebar a.sub .n {
+    color: var(--ink-muted);
+    font-size: 10px;
+    font-weight: 500;
+    min-width: 26px;
+  }
+  /* API endpoint sub-link inside sidebar — deepest indent, dotted leader */
+  .toc-sidebar a.api-link {
+    padding: 1px 0 1px 28px;
+    font-size: 10.5px;
+    color: #8a857a;
+    line-height: 1.35;
+    position: relative;
+  }
+  .toc-sidebar a.api-link::before {
+    content: "";
+    position: absolute;
+    left: 18px;
+    top: 50%;
+    width: 5px;
+    height: 1px;
+    background: var(--line-strong);
+  }
+  .toc-sidebar a.api-link:hover { color: var(--accent); }
+  .toc-sidebar a.api-link .n {
+    color: var(--accent);
+    font-size: 9.5px;
+    font-weight: 600;
+    min-width: 36px;
+    opacity: 0.85;
+  }
+  .toc-sidebar a.api-link:hover .n { opacity: 1; }
+
+  .container {
+    background: var(--paper);
+    padding: 56px 72px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.06);
+    border-top: 4px solid var(--accent);
+    overflow-x: hidden;
+    min-width: 0;
+  }
+  /* prevent inline long content (pre, code, long path) from inflating
+     section / .api cards beyond container — keeps everything bounded
+     by the paper width regardless of payload length */
+  section, .api, .api .sec, .api .flow, .flow {
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+  .api pre, .api code { max-width: 100%; }
+
+  /* Document Header */
+  .doc-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding-bottom: 24px;
+    margin-bottom: 36px;
+    border-bottom: 1px solid var(--line-strong);
+  }
+  .doc-header .label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    color: var(--accent);
+    font-weight: 600;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .doc-header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.25;
+    color: var(--ink);
+  }
+  .doc-header h1 .sub {
+    display: block;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--ink-muted);
+    margin-top: 6px;
+    letter-spacing: -0.01em;
+  }
+  .doc-meta {
+    text-align: right;
+    font-size: 12px;
+    color: var(--ink-muted);
+    font-family: 'JetBrains Mono', monospace;
+    line-height: 1.8;
+    white-space: nowrap;
+  }
+  .doc-meta strong { color: var(--ink); font-weight: 600; }
+  .doc-meta a { color: var(--accent); text-decoration: none; }
+  .doc-meta a:hover { text-decoration: underline; }
+
+  /* TOC */
+  .toc {
+    background: var(--highlight);
+    padding: 16px 22px;
+    margin-bottom: 40px;
+    border-left: 3px solid var(--ink);
+    font-size: 13px;
+  }
+  .toc-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    color: var(--ink-muted);
+    font-weight: 700;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+  .toc-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 4px 24px;
+  }
+  .toc-grid a {
+    color: var(--ink-soft);
+    text-decoration: none;
+    padding: 3px 0;
+    display: flex;
+    gap: 8px;
+  }
+  .toc-grid a:hover { color: var(--accent); }
+  .toc-grid a .n {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--accent);
+    font-weight: 600;
+    min-width: 32px;
+  }
+
+  /* Section */
+  section { margin-bottom: 56px; }
+  .section-head {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--ink);
+  }
+  .section-head .num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--accent);
+    letter-spacing: 0.05em;
+  }
+  .section-head h2 {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    color: var(--ink);
+  }
+  .section-head .right {
+    margin-left: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    color: var(--ink-muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  h3 {
+    font-size: 15.5px;
+    font-weight: 700;
+    color: var(--ink);
+    margin: 28px 0 10px;
+    letter-spacing: -0.01em;
+  }
+  h3 .step {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--accent);
+    font-size: 12px;
+    font-weight: 600;
+    margin-right: 8px;
+    letter-spacing: 0.05em;
+  }
+  h3 .core-tag {
+    display: inline-block;
+    margin-left: 8px;
+    padding: 1px 7px;
+    border-radius: 3px;
+    background: var(--purple-soft);
+    color: var(--purple);
+    border: 1px solid #c4a5e0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    font-weight: 700;
+    vertical-align: middle;
+  }
+  p { font-size: 14px; color: var(--ink-soft); margin-bottom: 10px; }
+  ul, ol { margin: 6px 0 10px 20px; }
+  ul li, ol li { font-size: 13.5px; color: var(--ink-soft); padding: 2px 0; }
+  hr { border: none; border-top: 1px solid var(--line); margin: 28px 0; }
+
+  code, .mono {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12.5px;
+    background: var(--code-bg);
+    padding: 1px 6px;
+    border-radius: 3px;
+    color: var(--ink);
+    font-weight: 500;
+  }
+  strong { color: var(--ink); font-weight: 700; }
+
+  /* Code blocks — dark with prism-tomorrow token colors,
+     tuned slightly for warmer paper-doc palette */
+  pre[class*="language-"], pre {
+    background: #1d1f24 !important;
+    border-radius: 4px;
+    padding: 16px 20px !important;
+    overflow-x: auto;
+    margin: 8px 0 12px;
+    font-size: 13px !important;
+    line-height: 1.65 !important;
+    text-shadow: none !important;
+  }
+  pre code, pre code[class*="language-"] {
+    font-family: 'JetBrains Mono', SF Mono, Menlo, Consolas, monospace !important;
+    background: transparent !important;
+    padding: 0 !important;
+    font-size: 13px !important;
+    text-shadow: none !important;
+    color: #e8e6df;
+  }
+  /* prism-tomorrow token overrides — higher contrast on #1d1f24 bg */
+  pre .token.comment,
+  pre .token.prolog,
+  pre .token.doctype,
+  pre .token.cdata        { color: #7a8595; font-style: italic; }
+  pre .token.punctuation  { color: #c9c5b8; }
+  pre .token.property,
+  pre .token.tag,
+  pre .token.constant,
+  pre .token.symbol,
+  pre .token.deleted      { color: #ff9d7a; }                /* key — warm orange */
+  pre .token.boolean,
+  pre .token.number       { color: #d9a86d; }                /* number/boolean — amber */
+  pre .token.selector,
+  pre .token.attr-name,
+  pre .token.string,
+  pre .token.char,
+  pre .token.builtin,
+  pre .token.inserted     { color: #b8e0a4; }                /* string — soft green */
+  pre .token.operator,
+  pre .token.entity,
+  pre .token.url,
+  pre .language-css .token.string,
+  pre .style .token.string,
+  pre .token.variable     { color: #e8c884; }
+  pre .token.atrule,
+  pre .token.attr-value,
+  pre .token.function,
+  pre .token.class-name   { color: #82c4e6; }                /* function — sky blue */
+  pre .token.keyword      { color: #c79bff; }                /* keyword — soft purple */
+  pre .token.regex,
+  pre .token.important    { color: #ffcc66; }
+  pre .token.important,
+  pre .token.bold         { font-weight: 700; }
+
+  /* Tables */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0 16px;
+    font-size: 13px;
+    background: var(--paper);
+    border: 1px solid var(--line-strong);
+  }
+  th {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 9px 12px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 12px;
+    letter-spacing: 0.02em;
+  }
+  td {
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+    color: var(--ink-soft);
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #fbfaf5; }
+  td code { background: var(--code-bg); padding: 1px 5px; }
+  table a { color: var(--accent); text-decoration: none; font-weight: 600; }
+  table a:hover { text-decoration: underline; }
+
+  /* table.map — categorical mapping table */
+  table.map .cat {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+  }
+  table.map .no {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    color: var(--ink);
+    width: 36px;
+  }
+
+  /* Sequence step list */
+  ol.seq {
+    list-style: none;
+    counter-reset: seq-counter;
+    margin: 8px 0 12px;
+    padding: 0;
+  }
+  ol.seq li {
+    counter-increment: seq-counter;
+    position: relative;
+    padding: 10px 0 10px 40px;
+    border-bottom: 1px dashed var(--line);
+    font-size: 13.5px;
+    color: var(--ink-soft);
+  }
+  ol.seq li:last-child { border-bottom: none; }
+  ol.seq li::before {
+    content: counter(seq-counter);
+    position: absolute;
+    left: 0;
+    top: 9px;
+    width: 26px;
+    height: 26px;
+    background: var(--ink);
+    color: var(--paper);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+  }
+  ol.seq li strong { color: var(--ink); font-weight: 700; }
+
+  /* DB hit tags */
+  .db-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    margin: 8px 0 4px;
+    font-size: 12px;
+  }
+  .db-row .lbl {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.08em;
+    color: var(--ink-muted);
+    text-transform: uppercase;
+    font-weight: 700;
+    padding: 3px 0;
+    margin-right: 4px;
+  }
+  .db-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    background: var(--paper);
+    border: 1px solid var(--line-strong);
+    padding: 2px 8px;
+    border-radius: 3px;
+    color: var(--ink);
+  }
+  .db-tag.w { border-color: var(--accent); color: var(--accent); }
+  .db-tag.r { border-color: var(--blue);   color: var(--blue);   }
+
+  /* Cards */
+  .card {
+    background: var(--highlight);
+    border-left: 3px solid var(--accent);
+    padding: 14px 18px;
+    margin: 12px 0;
+    border-radius: 0 4px 4px 0;
+    font-size: 13.5px;
+    color: var(--ink-soft);
+  }
+  .card.blue   { background: var(--blue-soft);   border-left-color: var(--blue);   }
+  .card.green  { background: var(--green-soft);  border-left-color: var(--green);  }
+  .card.purple { background: var(--purple-soft); border-left-color: var(--purple); }
+  .card-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 6px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .card.blue   .card-title { color: var(--blue);   }
+  .card.green  .card-title { color: var(--green);  }
+  .card.purple .card-title { color: var(--purple); }
+
+  /* note (legacy support) */
+  .note {
+    background: var(--highlight);
+    border-left: 3px solid var(--accent);
+    padding: 10px 14px;
+    margin: 10px 0;
+    border-radius: 0 4px 4px 0;
+    font-size: 13px;
+    color: var(--ink-soft);
+  }
+
+  /* Legend strip */
+  .legend {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    padding: 12px 16px;
+    background: var(--highlight);
+    border-left: 3px solid var(--ink);
+    margin: 12px 0 20px;
+    font-size: 13px;
+  }
+  .legend > span { color: var(--ink-soft); }
+
+  /* API card — sub-flow 베이스 */
+  .api {
+    background: var(--paper);
+    border: 1px solid var(--line-strong);
+    padding: 18px 22px;
+    margin: 14px 0;
+    border-radius: 4px;
+    position: relative;
+  }
+  .api > header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 10px;
+    margin-bottom: 6px;
+    padding-bottom: 10px;
+    border-bottom: 1px dashed var(--line-strong);
+  }
+  .api .no {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    color: var(--accent);
+    font-weight: 700;
+    letter-spacing: 0.05em;
+  }
+  .api .path {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    background: var(--code-bg);
+    color: var(--ink);
+    padding: 3px 8px;
+    border-radius: 3px;
+  }
+  .api h3.api-title {
+    font-size: 14.5px;
+    font-weight: 700;
+    color: var(--ink);
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+  .api .desc {
+    font-size: 13px;
+    color: var(--ink-muted);
+    margin: 8px 0 6px;
+  }
+  .api .sec { margin: 10px 0 6px; }
+  .api .sec-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.08em;
+    color: var(--ink-muted);
+    text-transform: uppercase;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .api ul { margin: 4px 0 6px 18px; }
+  .api ul li { font-size: 13px; }
+
+  /* Badges (chip 형태) */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    border-radius: 3px;
+    border: 1px solid;
+    vertical-align: middle;
+    line-height: 1.4;
+  }
+  .badge.public { color: var(--ink-muted); background: var(--highlight); border-color: var(--line-strong); }
+  .badge.ott    { color: var(--accent);    background: var(--accent-soft); border-color: #f0b08a; }
+  .badge.jwt    { color: var(--blue);      background: var(--blue-soft);   border-color: #a7c1d8; }
+  .badge.admin  { color: #b91c1c;          background: #fee2e2;             border-color: #fca5a5; }
+  .badge.core   { color: var(--purple);    background: var(--purple-soft); border-color: #c4a5e0; }
+  .badge.method { color: var(--paper); border: none; padding: 2px 8px; }
+  .method.GET    { background: #1e4d7b; }
+  .method.POST   { background: #2d6a4f; }
+  .method.DELETE { background: var(--accent); }
+  .method.PUT    { background: #b46618; }
+
+  /* Flow box */
+  .flow {
+    background: #fbfaf5;
+    border: 1px solid var(--line);
+    padding: 22px 24px 18px;
+    margin: 14px 0 4px;
+    border-radius: 4px;
+    position: relative;
+  }
+  .flow-label {
+    position: absolute;
+    top: -10px;
+    left: 20px;
+    background: var(--paper);
+    padding: 0 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--ink);
+    letter-spacing: 0.06em;
+  }
+  .flow .mermaid {
+    background: transparent;
+    text-align: center;
+    font-family: 'Pretendard', -apple-system, sans-serif;
+  }
+  .flow .mermaid svg { max-width: 100%; height: auto; display: inline-block; }
+
+  /* Footer */
+  .doc-footer {
+    margin-top: 56px;
+    padding-top: 18px;
+    border-top: 1px solid var(--line);
+    display: flex;
+    justify-content: space-between;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-muted);
+  }
+
+  /* Print */
+  @media print {
+    body { padding: 0; background: white; }
+    .layout { display: block; }
+    .toc-sidebar { display: none; }
+    .container { box-shadow: none; padding: 30px; max-width: none; }
+    section { page-break-inside: avoid; }
+    .flow { page-break-inside: avoid; }
+  }
+  /* Narrow viewport — collapse sidebar to a top band */
+  @media (max-width: 1100px) {
+    .layout { grid-template-columns: 1fr; max-width: 1040px; }
+    .toc-sidebar {
+      position: static;
+      max-height: none;
+      overflow: visible;
+    }
+    .toc-sidebar .toc-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px 24px; }
+  }
+  @media (max-width: 760px) {
+    body { padding: 16px 8px; }
+    .container { padding: 32px 22px; }
+    .doc-header { flex-direction: column; align-items: flex-start; gap: 16px; }
+    .doc-meta { text-align: left; }
+    .toc-sidebar .toc-grid { grid-template-columns: 1fr; }
+  }
+
+/* ── API 카드 탭 (개요 / Request / Response) ───────────────────────────── */
+.api-tabs { display:flex; gap:2px; border-bottom:2px solid var(--line-strong); margin:14px 0 0; }
+.api-tab {
+  font-family:'JetBrains Mono', monospace; font-size:11.5px; font-weight:700; letter-spacing:0.03em;
+  color:var(--ink-muted); background:none; border:none; padding:9px 16px; cursor:pointer;
+  border-bottom:2px solid transparent; margin-bottom:-2px; transition:color .15s, border-color .15s, background .15s;
+}
+.api-tab:hover { color:var(--ink); background:var(--highlight); }
+.api-tab[aria-selected="true"] { color:var(--accent); border-bottom-color:var(--accent); }
+.api-tab:focus-visible { outline:2px solid var(--blue); outline-offset:2px; border-radius:2px; }
+.api-tabpanel { padding-top:6px; }
+.api-tabpanel[hidden] { display:none; }
+@media print {
+  .api-tabs { display:none; }
+  .api-tabpanel[hidden] { display:block !important; }
+  .api-tabpanel::before {
+    content:attr(data-tab-label); display:block; font-family:'JetBrains Mono', monospace;
+    font-weight:700; color:var(--accent); font-size:11px; letter-spacing:0.05em; margin:14px 0 4px;
+  }
+}
+
+/* ── 문서 검색 (좌측 목차 상단 · 숨은 탭 포함 전체 검색) ─────────────────── */
+.toc-search { margin-bottom: 12px; }
+.toc-search input {
+  width: 100%; box-sizing: border-box; font-family: 'JetBrains Mono', monospace; font-size: 11.5px;
+  padding: 7px 10px 7px 26px; border: 1px solid var(--line-strong); border-radius: 5px;
+  background: var(--paper) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b6b6b' stroke-width='2.2'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='M21 21l-4.3-4.3'/%3E%3C/svg%3E") no-repeat 7px center / 13px 13px;
+  color: var(--ink);
+}
+.toc-search input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
+.toc-search input::placeholder { color: var(--ink-muted); }
+.toc-search-results { display: flex; flex-direction: column; gap: 1px; max-height: 64vh; overflow: auto; margin-top: 8px; }
+.toc-search-results[hidden] { display: none; }
+.ts-item { display: flex; align-items: baseline; gap: 7px; text-align: left; width: 100%;
+  background: none; border: none; border-radius: 4px; padding: 6px 8px; cursor: pointer; font: inherit; }
+.ts-item:hover, .ts-item:focus-visible { background: var(--accent-soft); outline: none; }
+.ts-no { font-family:'JetBrains Mono', monospace; font-size: 10px; font-weight: 700; color: var(--accent); flex: 0 0 auto; }
+.ts-title { font-size: 12px; line-height: 1.35; color: var(--ink); flex: 1 1 auto; }
+.ts-tab { font-family:'JetBrains Mono', monospace; font-size: 9px; color: var(--ink-muted);
+  border: 1px solid var(--line-strong); border-radius: 3px; padding: 0 4px; flex: 0 0 auto; }
+.ts-empty { font-size: 11.5px; color: var(--ink-muted); padding: 8px; }
+mark.search-hit { background: #ffe58a; color: inherit; border-radius: 2px; padding: 0 1px; }
+@media print { .toc-search { display: none; } mark.search-hit { background: none; } }
+</style>
+
+</head>
+<body>
+<div class="layout">
+  <nav class="toc-sidebar">
+    <div class="toc-title">BACKOFFICE APIs</div>
+    <div class="toc-grid">
+      <a href="#cat-chatbo"><span class="n">06</span> 백오피스 · 챗봇</a>
+      <a class="api-link" href="#api-21"><span class="n">No.21</span> 전체 대화 목록</a>
+      <a class="api-link" href="#api-22"><span class="n">No.22</span> 전체 메시지</a>
+      <a class="api-link" href="#api-23"><span class="n">No.23</span> 키워드 검색</a>
+      <a class="api-link" href="#api-24"><span class="n">No.24</span> 대화이력 영구삭제</a>
+      <a href="#bo-docs"><span class="n">07</span> 백오피스 · 문서 관리</a>
+      <a class="api-link" href="#api-25"><span class="n">No.25</span> 문서 등록</a>
+      <a class="api-link" href="#api-26"><span class="n">No.26</span> 작업 상태</a>
+      <a class="api-link" href="#api-27"><span class="n">No.27</span> 상품 Sync</a>
+      <a class="api-link" href="#api-28"><span class="n">No.28</span> 임베딩 콜백 (Internal)</a>
+      <a class="api-link" href="#api-29"><span class="n">No.29</span> 문서 조회</a>
+      <a class="api-link" href="#api-30"><span class="n">No.30</span> 문서 다운로드</a>
+      <a class="api-link" href="#api-31"><span class="n">No.31</span> 결재 승인</a>
+      <a href="#bo-perms"><span class="n">08</span> 백오피스 · 권한 관리</a>
+      <a class="api-link" href="#api-32"><span class="n">No.32</span> 사용자 조회</a>
+      <a class="api-link" href="#api-33"><span class="n">No.33</span> 권한 목록</a>
+      <a class="api-link" href="#api-34"><span class="n">No.34</span> 설정 조회</a>
+      <a class="api-link" href="#api-35"><span class="n">No.35</span> 설정 변경</a>
+      <a href="#bo-stats"><span class="n">09</span> 백오피스 · 통계</a>
+      <a class="api-link" href="#api-36"><span class="n">No.36</span> 사용자 통계</a>
+      <a class="api-link" href="#api-37"><span class="n">No.37</span> 질의 통계</a>
+      <a class="api-link" href="#api-38"><span class="n">No.38</span> 피드백 집계</a>
+      <a class="api-link" href="#api-39"><span class="n">No.39</span> 피드백 상세</a>
+      <a class="api-link" href="#api-40"><span class="n">No.40</span> 토큰 사용량</a>
+      <a href="#bo-prompts"><span class="n">10</span> 백오피스 · 프롬프트</a>
+      <a class="api-link" href="#api-41"><span class="n">No.41</span> 유형 조회</a>
+      <a class="api-link" href="#api-42"><span class="n">No.42</span> 등록/수정</a>
+      <a href="#permission"><span class="n">11</span> 권한·보안 정리</a>
+    </div>
+  </nav>
+
+  <div class="container">
+    <header class="doc-header">
+      <div>
+        <div class="label">Technical Doc · API 명세서 (백오피스 전용)</div>
+        <h1>
+          상담AI BE — 백오피스 API 명세서
+          <span class="sub">v1.0 · No.21~42 · §06 챗봇 · §07 문서 관리 · §08 권한 관리 · §09 통계 · §10 프롬프트</span>
+        </h1>
+      </div>
+      <div class="doc-meta">
+        <div><strong>참조 문서</strong></div>
+        <div><a href="./api_specification.html">전체 API 명세서 ↗</a></div>
+        <div><a href="./database_schema.html">DB 스키마 ↗</a></div>
+        <div style="margin-top:8px">v1.0 · 2026-05-28</div>
+      </div>
+    </header>
+
+<section id="cat-chatbo">
+  <div class="section-head">
+    <span class="num">06</span>
+    <h2>백오피스 · 챗봇 (운영자 대화 열람)</h2>
+    <span class="right">4 ENDPOINTS · BO · ADMIN</span>
+  </div>
+
+<div class="api" id="api-21">
+<header>
+    <span class="no">No.21</span>
+    <span class="badge method GET">GET</span>
+    <code class="path">/api/counsel/bo/v1/chat/conversations</code>
+    <span class="badge admin">JWT+ADMIN</span>
+    <h3 class="api-title">전체 대화 목록 조회</h3>
+  </header>
+  <div class="api-tabs" role="tablist" aria-label="api-21 섹션">
+    <button class="api-tab" role="tab" id="api-21-tab-overview" aria-controls="api-21-panel-overview" aria-selected="true" tabindex="0">개요</button>
+    <button class="api-tab" role="tab" id="api-21-tab-request" aria-controls="api-21-panel-request" aria-selected="false" tabindex="-1">Request</button>
+    <button class="api-tab" role="tab" id="api-21-tab-response" aria-controls="api-21-panel-response" aria-selected="false" tabindex="-1">Response</button>
+  </div>
+  <div class="api-tabpanel" role="tabpanel" id="api-21-panel-overview" aria-labelledby="api-21-tab-overview" data-tab-label="개요">
+<p class="desc">백오피스 운영자가 전체 FP 의 대화 세션 목록을 조회한다 (<code>is_active=&#39;Y&#39;</code>). 운영·감사 목적의 열람이며 FP 소유 제한이 없다.</p>
+<div class="flow"><span class="flow-label">Flow · 시퀀스</span>
+<svg viewBox="0 0 720 260" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="No.21 전체 대화 목록 (Admin)">
+  <defs>
+    <marker id="n21A" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#c4471c"/></marker>
+    <marker id="n21B" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#1e4d7b"/></marker>
+  </defs>
+  <rect x="20" y="10" width="170" height="46" rx="3" fill="#fee2e2" stroke="#b91c1c" stroke-width="1.5"/>
+  <text x="105" y="28" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9" letter-spacing="0.1em" fill="#b91c1c">CLIENT · ADMIN</text>
+  <text x="105" y="46" text-anchor="middle" font-family="Pretendard, sans-serif" font-size="13" font-weight="700">Admin</text>
+  <rect x="220" y="10" width="170" height="46" rx="3" fill="#1a1a1a" stroke="#1a1a1a" stroke-width="1.5"/>
+  <text x="305" y="28" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9" letter-spacing="0.1em" fill="#c9c5b8">NAB · BO</text>
+  <text x="305" y="46" text-anchor="middle" font-family="Pretendard, sans-serif" font-size="13" font-weight="700" fill="#ffffff">상담AI BE</text>
+  <rect x="420" y="10" width="170" height="46" rx="3" fill="#1a1a1a" stroke="#1a1a1a" stroke-width="1.5"/>
+  <text x="505" y="28" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9" letter-spacing="0.1em" fill="#c9c5b8">NAB · STORAGE</text>
+  <text x="505" y="46" text-anchor="middle" font-family="Pretendard, sans-serif" font-size="13" font-weight="700" fill="#ffffff">DB</text>
+  <line x1="105" y1="60" x2="105" y2="235" stroke="#c9c5b8" stroke-width="1" stroke-dasharray="3 4"/>
+  <line x1="305" y1="60" x2="305" y2="235" stroke="#c9c5b8" stroke-width="1" stroke-dasharray="3 4"/>
+  <line x1="505" y1="60" x2="505" y2="235" stroke="#c9c5b8" stroke-width="1" stroke-dasharray="3 4"/>
+  <text x="110" y="92" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="700" fill="#c4471c">①</text>
+  <text x="125" y="92" font-family="Pretendard, sans-serif" font-size="12" font-weight="600">GET /bo/chat/conversations?fpId=&amp;serviceType=&amp;fromDate=&amp;toDate=</text>
+  <line x1="105" y1="104" x2="303" y2="104" stroke="#c4471c" stroke-width="1.5" marker-end="url(#n21A)"/>
+  <rect x="220" y="118" width="170" height="22" rx="2" fill="#fee2e2" stroke="#b91c1c" stroke-width="0.8"/>
+  <text x="305" y="132" text-anchor="middle" font-family="Pretendard, sans-serif" font-size="11" font-weight="600" fill="#b91c1c">ADMIN role 검증 · @PreAuthorize</text>
+  <text x="310" y="162" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="700" fill="#c4471c">②</text>
+  <text x="325" y="162" font-family="Pretendard, sans-serif" font-size="12" font-weight="600" fill="#1e4d7b">SELECT counsel_conversation (전체)</text>
+  <line x1="305" y1="174" x2="503" y2="174" stroke="#1e4d7b" stroke-width="1.5" marker-end="url(#n21B)"/>
+  <text x="110" y="208" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="700" fill="#c4471c">③</text>
+  <text x="125" y="208" font-family="Pretendard, sans-serif" font-size="12" font-weight="600">200 [{ conversationId, fpId, ... }]</text>
+  <line x1="303" y1="220" x2="107" y2="220" stroke="#c4471c" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#n21A)"/>
+</svg>
+  </div>
+  </div>
+  <div class="api-tabpanel" role="tabpanel" id="api-21-panel-request" aria-labelledby="api-21-tab-request" data-tab-label="Request" hidden>
+<div class="sec"><div class="sec-title">Request Headers</div>
+  <table class="map">
+  <thead><tr><th style="width:22%">헤더</th><th style="width:14%">필수</th><th>설명</th></tr></thead>
+  <tbody>
+    <tr><td><code>Authorization</code></td><td>O</td><td><code>Bearer &lt;accessToken&gt;</code> — JWT Access Token · <b>ADMIN 권한 필요</b> (백오피스). 토큰 발급·검증은 <a href="#cat-auth">§03 인증 OAuth2</a>, 권한(RBAC) 매트릭스는 <a href="#permission">§12 권한·보안</a> 참조</td></tr>
+    <tr><td><code>X-Request-Id</code></td><td>—</td><td>요청 상관관계(Correlation) 추적용 UUID. 미전송 시 BE 가 생성하여 응답 헤더로 반환</td></tr>
+  </tbody>
+  </table></div>
+<div class="sec"><div class="sec-title">Query Parameters</div>
+<pre><code class="language-http">?page=1&amp;limit=20&amp;fpId=FP001234&amp;serviceType=CUSTOMER_MGMT&amp;fromDate=2026-01-01&amp;toDate=2026-05-27</code></pre>
+  <table class="map">
+  <thead><tr><th style="width:18%">파라미터</th><th style="width:28%">타입 · 필수</th><th>설명</th></tr></thead>
+  <tbody>
+    <tr><td><code>page</code></td><td>integer · optional · default <code>1</code></td><td>1-based 페이지 번호</td></tr>
+    <tr><td><code>limit</code></td><td>integer · optional · default <code>20</code></td><td>페이지 크기</td></tr>
+    <tr><td><code>fpId</code></td><td>string · optional</td><td>FP ID 필터 — 특정 FP 의 대화만 조회 (미지정 시 전체 FP)</td></tr>
+    <tr><td><code>serviceType</code></td><td>string · optional</td><td>Enum: <code>CUSTOMER_MGMT</code> / <code>NEW_CONTRACT</code> / <code>PROSPECT</code></td></tr>
+    <tr><td><code>fromDate</code></td><td>string · optional</td><td>조회 기간 시작일 (<code>yyyy-MM-dd</code>)</td></tr>
+    <tr><td><code>toDate</code></td><td>string · optional</td><td>조회 기간 종료일 (<code>yyyy-MM-dd</code>)</td></tr>
+  </tbody>
+  </table></div>
+  </div>
+  <div class="api-tabpanel" role="tabpanel" id="api-21-panel-response" aria-labelledby="api-21-tab-response" data-tab-label="Response" hidden>
+<div class="sec"><div class="sec-title">Response 200</div>
+<pre><code class="language-json">{
+  "success": true,
+  "data":    [
+    {
+      "conversationId": "4f3c9a2e-7b10-4d8e-9c3a-1f2e3d4c5b6a",
+      "fpId":           "FP001234",
+      "serviceType":    "CUSTOMER_MGMT",
+      "title":          "홍*동 (42세)",
+      "lastMessageAt":  "2026-05-14 08:42:11"
+    }
+  ],
+  "meta":    {
+    "page":  1,
+    "limit": 20,
+    "total": 1842
+  }
+}</code></pre>
+  <p class="note"><a href="#api-12">No.12 (나의 대화 목록)</a> 와 동일한 스키마 + <code>fpId</code> 필드 노출 (FP 소유 제한 없이 ADMIN 전체 조회).</p></div>
+<div class="sec"><div class="sec-title">Response Fields (No.12 동일 + fpId)</div>
+  <table class="map">
+  <thead><tr><th style="width:24%">필드</th><th style="width:18%">타입</th><th>비고</th></tr></thead>
+  <tbody>
+    <tr><td><code>data[]</code></td><td>array&lt;object&gt;</td><td>대화 세션 배열 (<code>is_active='Y'</code> 만) · <code>last_message_at</code> DESC 정렬</td></tr>
+    <tr><td><code>data[].conversationId</code></td><td>string</td><td>UUID — 대화 세션 식별자</td></tr>
+    <tr><td><code>data[].fpId</code></td><td>string</td><td>대화 소유 FP ID — <strong>No.12 대비 추가 노출 필드</strong> (BO 운영자 식별용)</td></tr>
+    <tr><td><code>data[].serviceType</code></td><td>string</td><td>Enum: <code>CUSTOMER_MGMT</code> / <code>NEW_CONTRACT</code> / <code>PROSPECT</code></td></tr>
+    <tr><td><code>data[].title</code></td><td>string</td><td>자동 생성된 대화 제목 (마스킹 적용 · 예: "홍*동 (42세)")</td></tr>
+    <tr><td><code>data[].lastMessageAt</code></td><td>string</td><td>마지막 메시지 시각 — <code>yyyy-MM-dd HH:mm:ss</code></td></tr>
+    <tr><td><code>meta.page</code></td><td>integer</td><td>현재 페이지 (1-based)</td></tr>
+    <tr><td><code>meta.limit</code></td><td>integer</td><td>페이지 크기</td></tr>
+    <tr><td><code>meta.total</code></td><td>integer</td><td>전체 대화 건수 (필터 적용 후)</td></tr>
+  </tbody>
+  </table></div>
+  </div>
+</div>
+
+<div class="api" id="api-22">
+<header>
+    <span class="no">No.22</span>
+    <span class="badge method GET">GET</span>
+    <code class="path">/api/counsel/bo/v1/chat/conversations/session</code>
+    <span class="badge admin">JWT+ADMIN</span>
+    <h3 class="api-title">전체 메시지 목록 조회</h3>
+  </header>
+  <div class="api-tabs" role="tablist" aria-label="api-22 섹션">
+    <button class="api-tab" role="tab" id="api-22-tab-overview" aria-controls="api-22-panel-overview" aria-selected="true" tabindex="0">개요</button>
+    <button class="api-tab" role="tab" id="api-22-tab-request" aria-controls="api-22-panel-request" aria-selected="false" tabindex="-1">Request</button>
+    <button class="api-tab" role="tab" id="api-22-tab-response" aria-controls="api-22-panel-response" aria-selected="false" tabindex="-1">Response</button>
+  </div>
+  <div class="api-tabpanel" role="tabpanel" id="api-22-panel-overview" aria-labelledby="api-22-tab-overview" data-tab-label="개요">
+<p class="desc">특정 대화 세션의 전체 메시지를 백오피스에서 조회한다 — FP 소유 제한 없이 운영자가 열람하는 <a href="#api-13">No.13 (대화 세션 조회)</a> 의 운영자 버전.</p>
+<div class="flow"><span class="flow-label">Flow · 시퀀스</span>
+<svg viewBox="0 0 720 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="No.22 전체 메시지 (Admin)">
+  <defs>
+    <marker id="n22A" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#c4471c"/></marker>
+    <marker id="n22B" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#1e4d7b"/></marker>
+  </defs>
+  <rect x="20" y="10" width="170" height="46" rx="3" fill="#fee2e2" stroke="#b91c1c" stroke-width="1.5"/>
+  <text x="105" y="28" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9" letter-spacing="0.1em" fill="#b91c1c">CLIENT · ADMIN</text>
+  <text x="105" y="46" text-anchor="middle" font-family="Pretendard, sans-serif" font-size="13" font-weight="700">Admin</text>
+  <rect x="220" y="10" width="170" height="46" rx="3" fill="#1a1a1a" stroke="#1a1a1a" stroke-width="1.5"/>
+  <text x="305" y="28" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9" letter-spacing="0.1em" fill="#c9c5b8">NAB · BO</text>
+  <text x="305" y="46" text-anchor="middle" font-family="Pretendard, sans-serif" font-size="13" font-weight="700" fill="#ffffff">상담AI BE</text>
+  <rect x="420" y="10" width="170" height="46" rx="3" fill="#1a1a1a" stroke="#1a1a1a" stroke-width="1.5"/>
+  <text x="505" y="28" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9" letter-spacing="0.1em" fill="#c9c5b8">NAB · STORAGE</text>
+  <text x="505" y="46" text-anchor="middle" font-family="Pretendard, sans-serif" font-size="13" font-weight="700" fill="#ffffff">DB</text>
+  <line x1="105" y1="60" x2="105" y2="195" stroke="#c9c5b8" stroke-width="1" stroke-dasharray="3 4"/>
+  <line x1="305" y1="60" x2="305" y2="195" stroke="#c9c5b8" stroke-width="1" stroke-dasharray="3 4"/>
+  <line x1="505" y1="60" x2="505" y2="195" stroke="#c9c5b8" stroke-width="1" stroke-dasharray="3 4"/>
+  <text x="110" y="92" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="700" fill="#c4471c">①</text>
+  <text x="125" y="92" font-family="Pretendard, sans-serif" font-size="12" font-weight="600">GET /bo/chat/conversations/session?conversationId=</text>
+  <line x1="105" y1="104" x2="303" y2="104" stroke="#c4471c" stroke-width="1.5" marker-end="url(#n22A)"/>
+  <text x="310" y="134" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="700" fill="#c4471c">②</text>
+  <text x="325" y="134" font-family="Pretendard, sans-serif" font-size="12" font-weight="600" fill="#1e4d7b">SELECT counsel_message + counsel_message_source</text>
+  <line x1="305" y1="146" x2="503" y2="146" stroke="#1e4d7b" stroke-width="1.5" marker-end="url(#n22B)"/>
+  <text x="110" y="178" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="700" fill="#c4471c">③</text>
+  <text x="125" y="178" font-family="Pretendard, sans-serif" font-size="12" font-weight="600">200 { messages: [...] }</text>
+  <line x1="303" y1="190" x2="107" y2="190" stroke="#c4471c" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#n22A)"/>
+</svg>
+  </div>
+  </div>
+  <div class="api-tabpanel" role="tabpanel" id="api-22-panel-request" aria-labelledby="api-22-tab-request" data-tab-label="Request" hidden>
+<div class="sec"><div class="sec-title">Request Headers</div>
+  <table class="map">
+  <thead><tr><th style="width:22%">헤더</th><th style="width:14%">필수</th><th>설명</th></tr></thead>
+  <tbody>
+    <tr><td><code>Authorization</code></td><td>O</td><td><code>Bearer &lt;accessToken&gt;</code> — JWT Access Token · <b>ADMIN 권한 필요</b> (백오피스). 토큰 발급·검증은 <a href="#cat-auth">§03 인증 OAuth2</a>, 권한(RBAC) 매트릭스는 <a href="#permission">§12 권한·보안</a> 참조</td></tr>
+    <tr><td><code>X-Request-Id</code></td><td>—</td><td>요청 상관관계(Correlation) 추적용 UUID. 미전송 시 BE 가 생성하여 응답 헤더로 반환</td></tr>
+  </tbody>
+  </table></div>
+<div class="sec"><div class="sec-title">Query Parameters</div>
+<pre><code class="language-http">?conversationId=4f3c9a2e-7b10-4d8e-9c3a-1f2e3d4c5b6a</code></pre>
+  <table class="map">
+  <thead><tr><th style="width:22%">파라미터</th><th style="width:20%">타입 · 필수</th><th>설명</th></tr></thead>
+  <tbody>
+    <tr><td><code>conversationId</code></td><td>string (UUID) · required</td><td>조회할 대화 세션 식별자. <strong>FP 소유 제한 없음</strong> — ADMIN 권한으로 임의 세션 열람 (No.13 의 운영자 버전)</td></tr>
+  </tbody>
+  </table></div>
+  </div>
+  <div class="api-tabpanel" role="tabpanel" id="api-22-panel-response" aria-labelledby="api-22-tab-response" data-tab-label="Response" hidden>
+<div class="sec"><div class="sec-title">Response 200</div>
+<pre><code class="language-json">{
+  "success": true,
+  "data":    {
+    "conversationId": "4f3c9a2e-7b10-4d8e-9c3a-1f2e3d4c5b6a",
+    "messages":       [
+      {
+        "messageId": "a1b2c3d4-0001-4a7e-9f10-aaaa11112222",
+        "seqNo":     1,
+        "role":      "USER",
+        "content":   "홍*동 고객님이 암 진단을 받으면 받을 수 있는 보장과 진단금이 궁금합니다.",
+        "createdAt": "2026-05-20 14:32:05"
+      },
+      {
+        "messageId": "a1b2c3d4-0002-4a7e-9f10-bbbb33334444",
+        "seqNo":     2,
+        "role":      "ASSISTANT",
+        "content":   "## 안내\n본 답변은 고객님이 가입하신 약관을 근거로 제공되며 ...",
+        "sources":   [
+          {
+            "documentId": "d7e8f9a0-1122-4c33-8d44-555566667777",
+            "fileId":     "the-signature-terms-20241101",
+            "sourceType": "TERMS",
+            "section":    "DETAIL",
+            "page":       12
+          }
+        ],
+        "createdAt": "2026-05-20 14:32:11"
+      }
+    ]
+  }
+}</code></pre></div>
+<div class="sec"><div class="sec-title">Response Fields</div>
+  <table class="map">
+  <thead><tr><th style="width:30%">필드</th><th style="width:18%">타입</th><th>비고</th></tr></thead>
+  <tbody>
+    <tr><td><code>data.conversationId</code></td><td>string</td><td>UUID — 요청 <code>conversationId</code> 와 동일 (echo)</td></tr>
+    <tr><td><code>data.messages[]</code></td><td>array&lt;object&gt;</td><td>메시지 배열 — <code>seq_no</code> ASC 정렬 (No.13 과 동일 구조)</td></tr>
+    <tr><td><code>data.messages[].messageId</code></td><td>string</td><td>UUID — 메시지 식별자</td></tr>
+    <tr><td><code>data.messages[].seqNo</code></td><td>integer</td><td>대화 내 순번 (1-based)</td></tr>
+    <tr><td><code>data.messages[].role</code></td><td>string</td><td>Enum: <code>USER</code> / <code>ASSISTANT</code> / <code>SYSTEM</code></td></tr>
+    <tr><td><code>data.messages[].content</code></td><td>string</td><td>메시지 본문 — <code>counsel_message.content_masked</code> 직접 반환 (마스킹 적용 상태 · ADMIN 도 unmask 미수행)</td></tr>
+    <tr><td><code>data.messages[].createdAt</code></td><td>string</td><td>메시지 생성 시각 — <code>yyyy-MM-dd HH:mm:ss</code></td></tr>
+    <tr><td><code>data.messages[].sources[]</code></td><td>array&lt;object&gt;</td><td>ASSISTANT 메시지의 출처 메타 배열 (<code>counsel_message_source</code>) · USER 메시지는 미존재</td></tr>
+    <tr><td><code>data.messages[].sources[].documentId</code></td><td>string</td><td>UUID — <code>product_document.document_id</code></td></tr>
+    <tr><td><code>data.messages[].sources[].fileId</code></td><td>string</td><td>파일 버전 식별자</td></tr>
+    <tr><td><code>data.messages[].sources[].sourceType</code></td><td>string</td><td>Enum 2종: <code>TERMS</code> / <code>MANUAL</code></td></tr>
+    <tr><td><code>data.messages[].sources[].section</code></td><td>string</td><td>Enum 4종: <code>DISCLAIMER</code> / <code>SUMMARY</code> / <code>DETAIL</code> / <code>CAUTION</code> (nullable)</td></tr>
+    <tr><td><code>data.messages[].sources[].page</code></td><td>integer</td><td>PDF 페이지 번호 (1-based)</td></tr>
+  </tbody>
+  </table></div>
+<div class="sec"><div class="sec-title">DB</div><ul><li><code>counsel_message</code> + <code>counsel_message_source</code></li></ul></div>
+<div class="sec"><div class="sec-title">마스킹 정책 v1.0 (영속화 시점 적용)</div>
+  <ul>
+    <li>응답의 <code>content</code> 필드는 <code>counsel_message.content_masked</code> 컬럼 직접 반환 — <a href="#api-16">No.16</a> 답변 생성 시점에 <a href="privacy_v1.0.md">v1.0 §1.1 ~ §1.7</a> 모드 A 정규식 마스킹이 이미 적용된 상태</li>
+    <li>BO admin 응답에서도 마스킹 해제 (unmask) 미수행 — Admin 권한이 있어도 본 endpoint 는 마스킹된 본문만 노출</li>
+  </ul>
+  <p class="note">전체 정책 — <a href="privacy_v1.0.md"><code>docs/counsel/privacy_v1.0.md</code></a> 참조.</p></div>
+  </div>
+</div>
+
+<div class="api" id="api-23">
+<header>
+    <span class="no">No.23</span>
+    <span class="badge method GET">GET</span>
+    <code class="path">/api/counsel/bo/v1/chat/conversations/search</code>
+    <span class="badge admin">JWT+ADMIN</span>
+    <h3 class="api-title">전체 메시지 키워드 검색</h3>
+  </header>
+  <div class="api-tabs" role="tablist" aria-label="api-23 섹션">
+    <button class="api-tab" role="tab" id="api-23-tab-overview" aria-controls="api-23-panel-overview" aria-selected="true" tabindex="0">개요</button>
+    <button class="api-tab" role="tab" id="api-23-tab-request" aria-controls="api-23-panel-request" aria-selected="false" tabindex="-1">Request</button>
+    <button class="api-tab" role="tab" id="api-23-tab-response" aria-controls="api-23-panel-response" aria-selected="false" tabindex="-1">Response</button>
+  </div>
+  <div class="api-tabpanel" role="tabpanel" id="api-23-panel-overview" aria-labelledby="api-23-tab-overview" data-tab-label="개요">
+<p class="desc">백오피스에서 대화 메시지 본문을 키워드로 전문 검색한다 (운영·감사용).</p>
+<div class="flow"><span class="flow-label">Flow · 시퀀스</span>
+<svg viewBox="0 0 720 250" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="No.23 키워드 검색 (Admin)">
+  <defs>
+    <marker id="n23A" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#c4471c"/></marker>
+    <marker id="n23B" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#1e4d7b"/></marker>
+  </defs>
+  <rect x="20" y="10" width="170" height="46" rx="3" fill="#fee2e2" stroke="#b91c1c" stroke-width="1.5"/>
+  <text x="105" y="28" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9" letter-spacing="0.1em" fill="#b91c1c">CLIENT · ADMIN</text>
+  <text x="105" y="46" text-anchor="middle" font-family="Pretendard, sans-serif" font-size="13" font-weight="700">Admin</text>
+  <rect x="220" y="10" width="170" height="46" rx="3" fill="#1a1a1a" stroke="#1a1a1a" stroke-width="1.5"/>
+  <text x="305" y="28" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9" letter-spacing="0.1em" fill="#c9c5b8">NAB · BO</text>
+  <text x="305" y="46" text-anchor="middle" font-family="Pretendard, sans-serif" font-size="13" font-weight="700" fill="#ffffff">상담AI BE</text>
+  <rect x="420" y="10" width="170" height="46" rx="3" fill="#1a1a1a" stroke="#1a1a1a" stroke-width="1.5"/>
+  <text x="505" y="28" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9" letter-spacing="0.1em" fill="#c9c5b8">NAB · STORAGE</text>
+  <text x="505" y="46" text-anchor="middle" font-family="Pretendard, sans-serif" font-size="13" font-weight="700" fill="#ffffff">DB</text>
+  <line x1="105" y1="60" x2="105" y2="225" stroke="#c9c5b8" stroke-width="1" stroke-dasharray="3 4"/>
+  <line x1="305" y1="60" x2="305" y2="225" stroke="#c9c5b8" stroke-width="1" stroke-dasharray="3 4"/>
+  <line x1="505" y1="60" x2="505" y2="225" stroke="#c9c5b8" stroke-width="1" stroke-dasharray="3 4"/>
+  <text x="110" y="92" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="700" fill="#c4471c">①</text>
+  <text x="125" y="92" font-family="Pretendard, sans-serif" font-size="12" font-weight="600">GET /bo/chat/conversations/search?keyword=…</text>
+  <line x1="105" y1="104" x2="303" y2="104" stroke="#c4471c" stroke-width="1.5" marker-end="url(#n23A)"/>
+  <text x="310" y="134" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="700" fill="#c4471c">②</text>
+  <text x="325" y="134" font-family="Pretendard, sans-serif" font-size="12" font-weight="600" fill="#1e4d7b">SELECT counsel_message · MATCH(content_masked) AGAINST(? IN BOOLEAN MODE)</text>
+  <line x1="305" y1="146" x2="503" y2="146" stroke="#1e4d7b" stroke-width="1.5" marker-end="url(#n23B)"/>
+  <rect x="380" y="162" width="280" height="22" rx="2" fill="#f5f1e8" stroke="#c9c5b8" stroke-width="0.8"/>
+  <text x="520" y="176" text-anchor="middle" font-family="Pretendard, sans-serif" font-size="11" fill="#3d3d3d">FULLTEXT NGRAM index · ngram_token_size=2</text>
+  <text x="110" y="208" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="700" fill="#c4471c">③</text>
+  <text x="125" y="208" font-family="Pretendard, sans-serif" font-size="12" font-weight="600">200 [{ messageId, conversationId, fpId, snippet }]</text>
+  <line x1="303" y1="220" x2="107" y2="220" stroke="#c4471c" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#n23A)"/>
+</svg>
+  </div>
+  </div>
+  <div class="api-tabpanel" role="tabpanel" id="api-23-panel-request" aria-labelledby="api-23-tab-request" data-tab-label="Request" hidden>
+<div class="sec"><div class="sec-title">Request Headers</div>
+  <table class="map">
+  <thead><tr><th style="width:22%">헤더</th><th style="width:14%">필수</th><th>설명</th></tr></thead>
+  <tbody>
+    <tr><td><code>Authorization</code></td><td>O</td><td><code>Bearer &lt;accessToken&gt;</code> — JWT Access Token · <b>ADMIN 권한 필요</b> (백오피스). 토큰 발급·검증은 <a href="#cat-auth">§03 인증 OAuth2</a>, 권한(RBAC) 매트릭스는 <a href="#permission">§12 권한·보안</a> 참조</td></tr>
+    <tr><td><code>X-Request-Id</code></td><td>—</td><td>요청 상관관계(Correlation) 추적용 UUID. 미전송 시 BE 가 생성하여 응답 헤더로 반환</td></tr>
+  </tbody>
+  </table></div>
+<div class="sec"><div class="sec-title">Query Parameters</div>
+<pre><code class="language-http">?keyword=암진단&amp;page=1&amp;limit=20&amp;fromDate=2026-01-01&amp;toDate=2026-05-27</code></pre>
+  <table class="map">
+  <thead><tr><th style="width:18%">파라미터</th><th style="width:28%">타입 · 필수</th><th>설명</th></tr></thead>
+  <tbody>
+    <tr><td><code>keyword</code></td><td>string · required</td><td>메시지 본문 (<code>content_masked</code>) 전문 검색어 · FULLTEXT NGRAM (<code>ngram_token_size=2</code>) BOOLEAN MODE 매칭</td></tr>
+    <tr><td><code>page</code></td><td>integer · optional · default <code>1</code></td><td>1-based 페이지 번호</td></tr>
+    <tr><td><code>limit</code></td><td>integer · optional · default <code>20</code></td><td>페이지 크기</td></tr>
+    <tr><td><code>fromDate</code></td><td>string · optional</td><td>검색 기간 시작일 (<code>yyyy-MM-dd</code>) · 메시지 생성일 기준</td></tr>
+    <tr><td><code>toDate</code></td><td>string · optional</td><td>검색 기간 종료일 (<code>yyyy-MM-dd</code>) · 메시지 생성일 기준</td></tr>
+  </tbody>
+  </table></div>
+  </div>
+  <div class="api-tabpanel" role="tabpanel" id="api-23-panel-response" aria-labelledby="api-23-tab-response" data-tab-label="Response" hidden>
+<div class="sec"><div class="sec-title">Response 200</div>
+<pre><code class="language-json">{
+  "success": true,
+  "data":    [
+    {
+      "messageId":      "uuid",
+      "conversationId": "uuid",
+      "fpId":           "fp123",
+      "snippet":        "...키워드 주변(마스킹)...",
+      "createdAt":      "2026-05-14 08:42:11"
+    }
+  ],
+  "meta":    {
+    "page":  1,
+    "limit": 20,
+    "total": 41
+  }
+}</code></pre></div>
+<div class="sec"><div class="sec-title">Response Fields</div>
+  <table class="map">
+  <thead><tr><th style="width:24%">필드</th><th style="width:18%">타입</th><th>비고</th></tr></thead>
+  <tbody>
+    <tr><td><code>data[]</code></td><td>array&lt;object&gt;</td><td>매칭 메시지 배열 — FULLTEXT 점수 순</td></tr>
+    <tr><td><code>data[].messageId</code></td><td>string</td><td>UUID — 메시지 식별자</td></tr>
+    <tr><td><code>data[].conversationId</code></td><td>string</td><td>UUID — 메시지가 속한 대화 식별자</td></tr>
+    <tr><td><code>data[].fpId</code></td><td>string</td><td>대화 소유 FP ID</td></tr>
+    <tr><td><code>data[].snippet</code></td><td>string</td><td>키워드 주변 컨텍스트 발췌 (마스킹 상태 그대로)</td></tr>
+    <tr><td><code>data[].createdAt</code></td><td>string</td><td>메시지 생성 시각 — <code>yyyy-MM-dd HH:mm:ss</code></td></tr>
+    <tr><td><code>meta.page</code></td><td>integer</td><td>현재 페이지 (1-based)</td></tr>
+    <tr><td><code>meta.limit</code></td><td>integer</td><td>페이지 크기</td></tr>
+    <tr><td><code>meta.total</code></td><td>integer</td><td>매칭 전체 건수</td></tr>
+  </tbody>
+  </table></div>
+<div class="sec"><div class="sec-title">DB</div>
+  <ul><li><code>counsel_message</code> FULLTEXT NGRAM (<code>MATCH(content_masked) AGAINST(... IN BOOLEAN MODE)</code>)</li></ul></div>
+<div class="sec"><div class="sec-title">마스킹 정책 v1.0 (영속화 시점 적용)</div>
+  <ul>
+    <li>검색 대상 컬럼: <code>counsel_message.content_masked</code> — <a href="privacy_v1.0.md">v1.0 §1.1 ~ §1.7</a> 모드 A 정규식 마스킹된 본문</li>
+    <li>검색 결과 <code>snippet</code> — 매칭된 키워드 주변 컨텍스트 (마스킹 상태 그대로 발췌, 추가 처리 없음)</li>
+    <li><strong>주의</strong>: 키워드로 마스킹 패턴 (예: <code>****</code> 또는 마스킹된 부분 문자열) 검색 시 NGRAM 토큰화 동작에 따라 hit 가능 — Admin 의 정상 조회 흐름. PII 원본 검색은 본 endpoint 로 불가.</li>
+  </ul>
+  <p class="note">전체 정책 — <a href="privacy_v1.0.md"><code>docs/counsel/privacy_v1.0.md</code></a> 참조.</p></div>
+  </div>
+</div>
+
+<div class="api" id="api-24">
+<header>
+    <span class="no">No.24</span>
+    <span class="badge method POST">POST</span>
+    <code class="path">/api/counsel/bo/v1/post/admin/conversations/purge</code>
+    <span class="badge admin">JWT+ADMIN</span>
+    <span class="badge" style="background:#fee2e2;color:#9b1c1c;border-color:#9b1c1c">HARD DELETE</span>
+    <h3 class="api-title">대화이력 영구삭제</h3>
+  </header>
+  <div class="api-tabs" role="tablist" aria-label="api-24 섹션">
+    <button class="api-tab" role="tab" id="api-24-tab-overview" aria-controls="api-24-panel-overview" aria-selected="true" tabindex="0">개요</button>
+    <button class="api-tab" role="tab" id="api-24-tab-request" aria-controls="api-24-panel-request" aria-selected="false" tabindex="-1">Request</button>
+    <button class="api-tab" role="tab" id="api-24-tab-response" aria-controls="api-24-panel-response" aria-selected="false" tabindex="-1">Response</button>
+  </div>
+  <div class="api-tabpanel" role="tabpanel" id="api-24-panel-overview" aria-labelledby="api-24-tab-overview" data-tab-label="개요">
+<p class="desc"><strong>보관기간이 만료된 대화 세션을 DB 에서 영구 삭제</strong> (hard delete). <a href="#api-14">No.14 (대화 세션 삭제)</a> 의 soft delete (<code>is_active='N'</code>) 와 분리 — 본 endpoint 는 만료된 row 자체를 physical DELETE.</p>
+<div class="sec"><div class="sec-title">보관 정책 · 삭제 주기</div>
+  <table class="map">
+  <thead><tr><th style="width:22%">항목</th><th>값</th></tr></thead>
+  <tbody>
+    <tr><td><b>데이터 보관기간</b></td><td><strong>1년</strong> — <code>retention_until = last_message_at + 1년</code> (마지막 대화 일시 기준 · <code>system_setting.retention_days = 365</code>). 사용자/관리자 삭제분(soft delete)도 마킹 시점부터 보관기간 만료 시 동일하게 물리 삭제.</td></tr>
+    <tr><td><b>삭제 대상</b></td><td><code>retention_until &lt; NOW()</code> (또는 <code>olderThan</code> 지정 시 그 시점) 인 대화 + 종속 4개 테이블 CASCADE</td></tr>
+    <tr><td><b>삭제 주기</b></td><td><strong>일배치 (SCHEDULED) · 매일 <code>03:00 KST</code></strong> — 매 실행분에서 그 시점 만료된 row 를 소진. 별도로 BO 관리자 수동(MANUAL) 호출 가능.</td></tr>
+  </tbody>
+  </table>
+  <p class="note">보관기간(1년)은 <a href="#convention">§1.3 대화 세션 정책</a> · <a href="./database_schema.html#history">DB 스키마</a> 와 동일 기준. 대화 목록(<a href="#api-12">No.12</a>) 의 "최근 1년 표시" 범위와 정합 — 1년 초과 대화는 본 배치로 제거되어 목록에서도 사라진다.</p></div>
+<p class="desc"><b>FP 사용 화면</b>: <strong>X (BO admin 배치)</strong> — FE 직접 호출 없음. 관리자 BO 콘솔의 [대화이력 정리] 액션 또는 cron 트리거.</p>
+<div class="sec"><div class="sec-title">실행 안전 장치</div>
+  <ul>
+    <li><strong>락 충돌 방지</strong>: <code>system_setting</code> 의 advisory lock 또는 <code>SELECT FOR UPDATE SKIP LOCKED</code> 로 동시 실행 차단 — manual 호출 중 SCHEDULED 발생 시 <code>409 BATCH_RUNNING</code> 반환</li>
+    <li><strong>분할 트랜잭션</strong>: <code>batchSize</code> 단위로 chunk 분할 (단일 트랜잭션 LOCK 시간 최소화). 각 batch 사이에 짧은 sleep — Master DB I/O 부하 분산</li>
+    <li><strong>dryRun 모드</strong>: 삭제 대상 SELECT COUNT(*) + 메타 통계만 반환, 실제 DELETE 미실행 — 운영 검증용</li>
+    <li><strong>알림</strong>: 실행 시작/종료 시 <code>audit_log</code> + 운영 슬랙 webhook (system_setting <code>purge_alert_enabled='Y'</code>)</li>
+    <li><strong>복구 불가</strong>: hard delete 이므로 백업 외 복구 불가. 본 endpoint 실행 전 일배치 백업 권고 (운영팀 SOP)</li>
+  </ul></div>
+<div class="flow"><span class="flow-label">Flow · 시퀀스 (배치 + 수동 분기)</span>
+<svg viewBox="0 0 820 340" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="No.24 대화 이력 hard delete 시퀀스">
+  <defs>
+    <marker id="n24A" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#c4471c"/></marker>
+    <marker id="n24B" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#1e4d7b"/></marker>
+    <marker id="n24R" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#9b1c1c"/></marker>
+  </defs>
+  <rect x="20" y="10" width="170" height="46" rx="3" fill="#fee2e2" stroke="#b91c1c" stroke-width="1.5"/>
+  <text x="105" y="28" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9" letter-spacing="0.1em" fill="#b91c1c">CLIENT · ADMIN</text>
+  <text x="105" y="46" text-anchor="middle" font-family="Pretendard, sans-serif" font-size="13" font-weight="700">Admin / cron</text>
+  <rect x="220" y="10" width="170" height="46" rx="3" fill="#1a1a1a" stroke="#1a1a1a" stroke-width="1.5"/>
+  <text x="305" y="28" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9" letter-spacing="0.1em" fill="#c9c5b8">NAB · BO</text>
+  <text x="305" y="46" text-anchor="middle" font-family="Pretendard, sans-serif" font-size="13" font-weight="700" fill="#ffffff">상담AI BE</text>
+  <rect x="420" y="10" width="170" height="46" rx="3" fill="#1a1a1a" stroke="#1a1a1a" stroke-width="1.5"/>
+  <text x="505" y="28" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9" letter-spacing="0.1em" fill="#c9c5b8">NAB · STORAGE</text>
+  <text x="505" y="46" text-anchor="middle" font-family="Pretendard, sans-serif" font-size="13" font-weight="700" fill="#ffffff">DB</text>
+  <line x1="105" y1="60" x2="105" y2="325" stroke="#c9c5b8" stroke-width="1" stroke-dasharray="3 4"/>
+  <line x1="305" y1="60" x2="305" y2="325" stroke="#c9c5b8" stroke-width="1" stroke-dasharray="3 4"/>
+  <line x1="505" y1="60" x2="505" y2="325" stroke="#c9c5b8" stroke-width="1" stroke-dasharray="3 4"/>
+  <text x="110" y="84" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="700" fill="#c4471c">①</text>
+  <text x="125" y="84" font-family="Pretendard, sans-serif" font-size="12" font-weight="600">POST /admin/conversations/purge · { triggerType, dryRun, batchSize }</text>
+  <line x1="105" y1="96" x2="303" y2="96" stroke="#c4471c" stroke-width="1.5" marker-end="url(#n24A)"/>
+  <rect x="200" y="108" width="210" height="22" rx="2" fill="#fef2ec" stroke="#c4471c" stroke-width="0.8"/>
+  <text x="305" y="122" text-anchor="middle" font-family="Pretendard, sans-serif" font-size="11" font-weight="600" fill="#c4471c">advisory lock · 동시 실행 차단</text>
+  <text x="310" y="148" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="700" fill="#1e4d7b">②</text>
+  <text x="325" y="148" font-family="Pretendard, sans-serif" font-size="11.5" font-weight="600" fill="#1e4d7b">SELECT conversation_id WHERE retention_until &lt; (olderThan ?? NOW()) LIMIT batchSize</text>
+  <line x1="305" y1="160" x2="503" y2="160" stroke="#1e4d7b" stroke-width="1.5" marker-end="url(#n24B)"/>
+  <rect x="200" y="172" width="210" height="22" rx="2" fill="#fef2ec" stroke="#c4471c" stroke-width="0.8"/>
+  <text x="305" y="186" text-anchor="middle" font-family="Pretendard, sans-serif" font-size="11" font-weight="600" fill="#c4471c">dryRun 분기 — true 시 COUNT 만</text>
+  <text x="310" y="212" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="700" fill="#9b1c1c">③</text>
+  <text x="325" y="212" font-family="Pretendard, sans-serif" font-size="11.5" font-weight="600" fill="#9b1c1c">DELETE counsel_message_source / feedback / tool_call / message / conversation (CASCADE)</text>
+  <line x1="305" y1="224" x2="503" y2="224" stroke="#9b1c1c" stroke-width="2" marker-end="url(#n24R)"/>
+  <rect x="200" y="236" width="210" height="22" rx="2" fill="#fef2ec" stroke="#c4471c" stroke-width="0.8"/>
+  <text x="305" y="250" text-anchor="middle" font-family="Pretendard, sans-serif" font-size="11" font-weight="600" fill="#c4471c">batchSize 단위 반복 — 모든 만료 row 소진까지</text>
+  <text x="310" y="276" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="700" fill="#1e4d7b">④</text>
+  <text x="325" y="276" font-family="Pretendard, sans-serif" font-size="12" font-weight="600" fill="#1e4d7b">audit_log INSERT · event=CONVERSATION_PURGE · 통계 메타</text>
+  <line x1="305" y1="288" x2="503" y2="288" stroke="#1e4d7b" stroke-width="1.5" marker-end="url(#n24B)"/>
+  <text x="110" y="312" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="700" fill="#c4471c">⑤</text>
+  <text x="125" y="312" font-family="Pretendard, sans-serif" font-size="12" font-weight="600">200 { deletedCounts, durationMs }</text>
+  <line x1="303" y1="320" x2="107" y2="320" stroke="#c4471c" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#n24A)"/>
+</svg>
+  </div>
+  </div>
+  <div class="api-tabpanel" role="tabpanel" id="api-24-panel-request" aria-labelledby="api-24-tab-request" data-tab-label="Request" hidden>
+<div class="sec"><div class="sec-title">Request Headers</div>
+  <table class="map">
+  <thead><tr><th style="width:22%">헤더</th><th style="width:14%">필수</th><th>설명</th></tr></thead>
+  <tbody>
+    <tr><td><code>Authorization</code></td><td>O</td><td><code>Bearer &lt;accessToken&gt;</code> — JWT Access Token · <b>ADMIN 권한 필요</b> (백오피스). 토큰 발급·검증은 <a href="#cat-auth">§03 인증 OAuth2</a>, 권한(RBAC) 매트릭스는 <a href="#permission">§12 권한·보안</a> 참조</td></tr>
+    <tr><td><code>Content-Type</code></td><td>O</td><td><code>application/json</code> (파일 업로드 카드는 <code>multipart/form-data</code>)</td></tr>
+    <tr><td><code>X-Request-Id</code></td><td>—</td><td>요청 상관관계(Correlation) 추적용 UUID. 미전송 시 BE 가 생성하여 응답 헤더로 반환</td></tr>
+  </tbody>
+  </table></div>
+<div class="sec"><div class="sec-title">Request Body</div>
+<pre><code class="language-json">{
+  "triggerType": "MANUAL",
+  "dryRun":      false,
+  "batchSize":   1000,
+  "olderThan":   "2025-05-26"
+}</code></pre>
+  <p class="note">
+    <code>triggerType</code> · Enum: <code>SCHEDULED</code> (일배치 cron · 03:00 KST 예정) / <code>MANUAL</code> (BO admin) <br/>
+    <code>dryRun</code> · boolean · default <code>false</code> · <code>true</code> 시 삭제 대상 건수만 조회 후 미실행 <br/>
+    <code>batchSize</code> · integer · default <code>1000</code> · 단일 트랜잭션당 최대 삭제 건수 (큰 보관 만료 row 발생 시 분할) <br/>
+    <code>olderThan</code> · string · optional · <code>yyyy-MM-dd</code> · 기본 <code>NOW()</code> · 임의 컷오프 지정 (운영 복구용)
+  </p></div>
+  </div>
+  <div class="api-tabpanel" role="tabpanel" id="api-24-panel-response" aria-labelledby="api-24-tab-response" data-tab-label="Response" hidden>
+<div class="sec"><div class="sec-title">Response 200</div>
+<pre><code class="language-json">{
+  "success": true,
+  "data":    {
+    "triggerType":          "MANUAL",
+    "dryRun":               false,
+    "deletedConversations": 423,
+    "deletedMessages":      8541,
+    "deletedSources":       12302,
+    "deletedFeedback":      367,
+    "deletedToolCalls":     84,
+    "earliestDeleted":      "2024-12-15",
+    "latestDeleted":        "2025-05-25",
+    "executedAt":           "2026-05-26 03:00:00",
+    "durationMs":           4521
+  }
+}</code></pre></div>
+<div class="sec"><div class="sec-title">Response Fields</div>
+  <table class="map">
+  <thead><tr><th style="width:24%">필드</th><th style="width:18%">타입</th><th>비고</th></tr></thead>
+  <tbody>
+    <tr><td><code>data.triggerType</code></td><td>string</td><td>Request echo — <code>SCHEDULED</code> / <code>MANUAL</code></td></tr>
+    <tr><td><code>data.dryRun</code></td><td>boolean</td><td>Request echo</td></tr>
+    <tr><td><code>data.deletedConversations</code></td><td>integer</td><td>삭제된 대화 세션 수 (<code>counsel_conversation</code> row)</td></tr>
+    <tr><td><code>data.deletedMessages</code></td><td>integer</td><td>CASCADE 삭제된 메시지 수</td></tr>
+    <tr><td><code>data.deletedSources</code></td><td>integer</td><td>CASCADE 삭제된 출처 메타 수</td></tr>
+    <tr><td><code>data.deletedFeedback</code></td><td>integer</td><td>CASCADE 삭제된 피드백 수</td></tr>
+    <tr><td><code>data.deletedToolCalls</code></td><td>integer</td><td>CASCADE 삭제된 Tool Call 수</td></tr>
+    <tr><td><code>data.earliestDeleted</code></td><td>string</td><td>삭제된 row 중 가장 오래된 <code>retention_until</code> · <code>yyyy-MM-dd</code></td></tr>
+    <tr><td><code>data.latestDeleted</code></td><td>string</td><td>삭제된 row 중 가장 최근 <code>retention_until</code> · <code>yyyy-MM-dd</code></td></tr>
+    <tr><td><code>data.executedAt</code></td><td>string</td><td>배치 실행 시각 · <code>yyyy-MM-dd HH:mm:ss</code></td></tr>
+    <tr><td><code>data.durationMs</code></td><td>integer</td><td>전체 실행 소요 시간 (ms)</td></tr>
+  </tbody>
+  </table></div>
+<div class="sec"><div class="sec-title">삭제 대상 · CASCADE 정책</div>
+  <ul>
+    <li><strong>주 대상</strong>: <code>counsel_conversation</code> WHERE <code>retention_until &lt; (olderThan ?? NOW())</code></li>
+    <li><strong>CASCADE 삭제 (애플리케이션 레이어)</strong>:
+      <ul>
+        <li><code>counsel_message</code> (대화 본문 · 모든 role)</li>
+        <li><code>counsel_message_source</code> (출처 메타 · 4섹션 포함)</li>
+        <li><code>counsel_message_feedback</code> (피드백 — UPSERT row 도 함께 파기)</li>
+        <li><code>counsel_message_tool_call</code> (Clarification-Panel 라이프사이클)</li>
+      </ul>
+    </li>
+    <li><strong>유지 (CASCADE 제외)</strong>:
+      <ul>
+        <li><code>audit_log</code> — 본 endpoint 실행 자체가 <code>CONVERSATION_PURGE</code> 이벤트 적재 (대상 row 의 <code>conversation_id</code> 만 기록, 본문 미보존)</li>
+        <li><code>counsel_customer_view_log</code> — 고객 상세 조회 감사는 별도 보유 정책</li>
+        <li><code>agent_call_log</code> — 토큰 사용량 통계와 연계 (별도 보관 정책 적용)</li>
+      </ul>
+    </li>
+    <li><code>is_active</code> 값과 무관 — 활성 ('Y') 이라도 <code>retention_until</code> 이 만료되면 삭제 (정책 정의상 1년 = 마지막 사용자 질의 +365일)</li>
+  </ul></div>
+<div class="sec"><div class="sec-title">DB · 권한</div>
+  <div class="db-row"><span class="lbl">Write</span><span class="db-tag w">counsel_conversation (DELETE)</span><span class="db-tag w">counsel_message (DELETE)</span><span class="db-tag w">counsel_message_source (DELETE)</span><span class="db-tag w">counsel_message_feedback (DELETE)</span><span class="db-tag w">counsel_message_tool_call (DELETE)</span><span class="db-tag w">audit_log (CONVERSATION_PURGE)</span></div>
+  <ul>
+    <li>권한: <code>SYSTEM_ADMIN</code> 만 (MANUAL 호출 시) · SCHEDULED 는 BE 내부 system identity</li>
+    <li>JWT 검증: <code>scope=admin.system</code> 클레임 필수</li>
+  </ul></div>
+<div class="sec"><div class="sec-title">Errors</div>
+  <ul>
+    <li><code>VALIDATION_FAILED</code> (400) — <code>batchSize</code> 범위 외 (1~10000), <code>olderThan</code> 미래 일자</li>
+    <li><code>FORBIDDEN</code> (403) — <code>SYSTEM_ADMIN</code> 권한 없음</li>
+    <li><code>BATCH_RUNNING</code> (409) — 이미 실행 중인 batch 존재 (cron + manual 충돌)</li>
+    <li><code>INTERNAL_ERROR</code> (500) — DB 트랜잭션 실패 시 (이전 batch 까지 commit 유지)</li>
+  </ul></div>
+  </div>
+</div>
+</section>
+
+<!-- =================================================================== -->
+<section id="bo-docs">
+  <div class="section-head">
+    <span class="num">07</span>
+    <h2>백오피스 · 문서 관리</h2>
+    <span class="right">7 ENDPOINTS · DOC LIFECYCLE (CORE · INTERNAL)</span>
+  </div>
+<p>백오피스 관리자용 문서 라이프사이클 API 7종 — 문서 등록(PDF 단건 + CSV 일괄) · 작업 상태 조회 · 상품 정보 Pulling(CORE) · 임베딩 콜백(Internal) · 문서 조회 · 다운로드 · 결재 승인/반려. 모두 <code>JWT + ADMIN</code> 인증이며 권한 5종(<code>SYSTEM_ADMIN</code> / <code>DOC_ADMIN</code> / <code>PROMPT_ADMIN</code> / <code>MONITOR_ADMIN</code> / <code>DOC_REVIEWER</code>) 중 카드별 요구사항에 따라 RBAC 검증 (임베딩 콜백만 Internal Auth — HMAC + IP 화이트리스트). 약관·상품 사용자 조회는 <a href="#cat-chat">§05 챗봇</a> 참조. 공통 요청 처리 흐름은 <a href="#cross">§15 공통 파이프라인</a> 참조.</p>
+
+<div class="api" id="api-25">
+<header>
+    <span class="no">No.25</span>
+    <span class="badge method POST">POST</span>
+    <code class="path">/api/counsel/bo/v1/post/admin/documents</code>
+    <span class="badge admin">JWT+ADMIN</span>
+    <h3 class="api-title">문서 등록 (PDF 단건 + CSV 일괄)</h3>
+  </header>
+  <div class="api-tabs" role="tablist" aria-label="api-25 섹션">
+    <button class="api-tab" role="tab" id="api-25-tab-overview" aria-controls="api-25-panel-overview" aria-selected="true" tabindex="0">개요</button>
+    <button class="api-tab" role="tab" id="api-25-tab-request" aria-controls="api-25-panel-request" aria-selected="false" tabindex="-1">Request</button>
+    <button class="api-tab" role="tab" id="api-25-tab-response" aria-controls="api-25-panel-response" aria-selected="false" tabindex="-1">Response</button>
+  </div>
+  <div class="api-tabpanel" role="tabpanel" id="api-25-panel-overview" aria-labelledby="api-25-tab-overview" data-tab-label="개요">
+<p class="desc">백오피스 관리자가 문서를 등록하는 단일 진입점. <b>두 가지 등록 모드</b>를 지원한다 — <b>(i) PDF 단건 업로드</b>: <code>category</code> enum 으로 약관·매뉴얼·가이드 등 모든 문서를 받으며, <code>POLICY</code>(약관) 인 경우 <b>파일명에서 보종코드 + 상품명을 파싱</b>해 <code>product_master</code> 와 단건 매칭하고 실패 시 업로드를 거부하여 <code>400 INVALID_FILE_NAME</code> 으로 BO 사용자에게 즉시 피드백한다 (<code>MANUAL</code>·<code>GUIDE</code>·<code>OTHER</code> 는 상품 매칭 없이 적재 가능). <b>(ii) PDF + CSV 일괄 등록</b>: 단일 PDF 와 multi-row 메타 CSV (documentType · title · productCode 등)를 한 묶음으로 받아 chunk/meta 를 일괄 적재. 두 모드 모두 등록 후 결재(<code>document_approval</code>) 워크플로우를 거친다.</p>
+<div class="flow"><span class="flow-label">Flow · 시퀀스 (POLICY 파일명 파싱 + product_master 매칭 + 업로드 + 임베딩 트리거)</span>
+<svg viewBox="0 0 980 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="No.25 문서 등록">
+  <defs>
+    <marker id="n25A" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#c4471c"/></marker>
+    <marker id="n25B" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#1e4d7b"/></marker>
+    <marker id="n25P" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#6b3a8e"/></marker>
+  </defs>
+  <rect x="20" y="10" width="170" height="46" rx="3" fill="#fee2e2" stroke="#b91c1c" stroke-width="1.5"/>
+  <text x="105" y="28" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9" letter-spacing="0.1em" fill="#b91c1c">CLIENT · ADMIN</text>
+  <text x="105" y="46" text-anchor="middle" font-family="Pretendard, sans-serif" font-size="13" font-weight="700">Admin</text>
+  <rect x="220" y="10" width="170" height="46" rx="3" fill="#1a1a1a" stroke="#1a1a1a" stroke-width="1.5"/>
+  <text x="305" y="28" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9" letter-spacing="0.1em" fill="#c9c5b8">NAB · BO</text>
+  <text x="305" y="46" text-anchor="middle" font-family="Pretendard, sans-serif" font-size="13" font-weight="700" fill="#ffffff">상담AI BE</text>
+  <rect x="420" y="10" width="170" height="46" rx="3" fill="#f0e8f5" stroke="#6b3a8e" stroke-width="1.5"/>
+  <text x="505" y="28" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9" letter-spacing="0.1em" fill="#6b3a8e">EXTERNAL · STORAGE</text>
+  <text x="505" y="46" text-anchor="middle" font-family="Pretendard, sans-serif" font-size="13" font-weight="700">Object Storage / CDN</text>
+  <rect x="620" y="10" width="170" height="46" rx="3" fill="#1a1a1a" stroke="#1a1a1a" stroke-width="1.5"/>
+  <text x="705" y="28" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9" letter-spacing="0.1em" fill="#c9c5b8">NAB · STORAGE</text>
+  <text x="705" y="46" text-anchor="middle" font-family="Pretendard, sans-serif" font-size="13" font-weight="700" fill="#ffffff">DB</text>
+  <rect x="820" y="10" width="150" height="46" rx="3" fill="#f0e8f5" stroke="#6b3a8e" stroke-width="1.5"/>
+  <text x="895" y="28" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9" letter-spacing="0.1em" fill="#6b3a8e">EXTERNAL · PIPELINE</text>
+  <text x="895" y="46" text-anchor="middle" font-family="Pretendard, sans-serif" font-size="13" font-weight="700">임베딩</text>
+  <line x1="105" y1="60" x2="105" y2="375" stroke="#c9c5b8" stroke-width="1" stroke-dasharray="3 4"/>
+  <line x1="305" y1="60" x2="305" y2="375" stroke="#c9c5b8" stroke-width="1" stroke-dasharray="3 4"/>
+  <line x1="505" y1="60" x2="505" y2="375" stroke="#c9c5b8" stroke-width="1" stroke-dasharray="3 4"/>
+  <line x1="705" y1="60" x2="705" y2="375" stroke="#c9c5b8" stroke-width="1" stroke-dasharray="3 4"/>
+  <line x1="895" y1="60" x2="895" y2="375" stroke="#c9c5b8" stroke-width="1" stroke-dasharray="3 4"/>
+  <text x="110" y="84" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="700" fill="#c4471c">①</text>
+  <text x="125" y="84" font-family="Pretendard, sans-serif" font-size="12" font-weight="600">POST /bo/products/document · multipart: file, type, productCode, …</text>
+  <line x1="105" y1="96" x2="303" y2="96" stroke="#c4471c" stroke-width="1.5" marker-end="url(#n25A)"/>
+  <rect x="220" y="110" width="170" height="22" rx="2" fill="#fef2ec" stroke="#c4471c" stroke-width="0.8"/>
+  <text x="305" y="124" text-anchor="middle" font-family="Pretendard, sans-serif" font-size="11" font-weight="600" fill="#c4471c">확장자/사이즈 검증</text>
+  <rect x="220" y="136" width="170" height="22" rx="2" fill="#fef2ec" stroke="#c4471c" stroke-width="0.8"/>
+  <text x="305" y="150" text-anchor="middle" font-family="Pretendard, sans-serif" font-size="11" font-weight="600" fill="#c4471c">sha256 계산 · 중복 차단</text>
+  <text x="310" y="178" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="700" fill="#c4471c">②</text>
+  <text x="325" y="178" font-family="Pretendard, sans-serif" font-size="12" font-weight="600" fill="#6b3a8e">파일 업로드</text>
+  <line x1="305" y1="190" x2="503" y2="190" stroke="#6b3a8e" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#n25P)"/>
+  <text x="325" y="210" font-family="Pretendard, sans-serif" font-size="11" fill="#6b3a8e">storage_uri</text>
+  <line x1="503" y1="218" x2="307" y2="218" stroke="#6b3a8e" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#n25P)"/>
+  <text x="310" y="244" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="700" fill="#c4471c">③</text>
+  <text x="325" y="244" font-family="Pretendard, sans-serif" font-size="12" font-weight="600" fill="#1e4d7b">product_document INSERT · status=UPLOADING</text>
+  <line x1="305" y1="256" x2="703" y2="256" stroke="#1e4d7b" stroke-width="1.5" marker-end="url(#n25B)"/>
+  <text x="310" y="280" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="700" fill="#c4471c">④</text>
+  <text x="325" y="280" font-family="Pretendard, sans-serif" font-size="12" font-weight="600" fill="#1e4d7b">product_document_job INSERT · phase=UPLOAD, status=SUCCESS</text>
+  <line x1="305" y1="292" x2="703" y2="292" stroke="#1e4d7b" stroke-width="1.5" marker-end="url(#n25B)"/>
+  <text x="310" y="316" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="700" fill="#c4471c">⑤</text>
+  <text x="325" y="316" font-family="Pretendard, sans-serif" font-size="12" font-weight="600" fill="#6b3a8e">후속 처리 트리거 · CHUNK / EMBED</text>
+  <line x1="305" y1="328" x2="893" y2="328" stroke="#6b3a8e" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#n25P)"/>
+  <text x="110" y="358" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="700" fill="#c4471c">⑥</text>
+  <text x="125" y="358" font-family="Pretendard, sans-serif" font-size="12" font-weight="600">200 { documentId, status: UPLOADING }</text>
+  <line x1="303" y1="370" x2="107" y2="370" stroke="#c4471c" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#n25A)"/>
+</svg>
+  </div>
+  </div>
+  <div class="api-tabpanel" role="tabpanel" id="api-25-panel-request" aria-labelledby="api-25-tab-request" data-tab-label="Request" hidden>
+<div class="sec"><div class="sec-title">Request Headers</div>
+  <table class="map">
+  <thead><tr><th style="width:22%">헤더</th><th style="width:14%">필수</th><th>설명</th></tr></thead>
+  <tbody>
+    <tr><td><code>Authorization</code></td><td>O</td><td><code>Bearer &lt;accessToken&gt;</code> — JWT Access Token · <b>ADMIN 권한 필요</b> (백오피스). 토큰 발급·검증은 <a href="#cat-auth">§03 인증 OAuth2</a>, 권한(RBAC) 매트릭스는 <a href="#permission">§12 권한·보안</a> 참조</td></tr>
+    <tr><td><code>Content-Type</code></td><td>O</td><td><code>application/json</code> (파일 업로드 카드는 <code>multipart/form-data</code>)</td></tr>
+    <tr><td><code>X-Request-Id</code></td><td>—</td><td>요청 상관관계(Correlation) 추적용 UUID. 미전송 시 BE 가 생성하여 응답 헤더로 반환</td></tr>
+  </tbody>
+  </table></div>
+<div class="sec"><div class="sec-title">모드 (i) — PDF 단건 (multipart/form-data)</div>
+<pre><code class="language-bash">file:           PDF (required)
+category:       POLICY|MANUAL|GUIDE|OTHER (required, NEW v0.19)
+documentType:   POLICY_TERMS|SERVICE_MANUAL|PRODUCT_MANUAL|OPS_GUIDE|... (required, 세분류)
+title:          string (required, 표시 제목)
+effectiveFrom:  YYYY-MM-DD (optional, POLICY 권장)
+effectiveTo:    YYYY-MM-DD (optional)</code></pre>
+  <p class="note"><b>productCode 제거 (v0.19)</b> — 약관은 파일명에서 자동 추출 + <code>product_master</code> lookup 으로 결정. BO 사용자가 직접 입력하지 않는다.</p></div>
+<div class="sec"><div class="sec-title">모드 (ii) — PDF + CSV 일괄 (multipart/form-data)</div>
+<pre><code class="language-bash">pdf:             PDF 파일 (required)
+csv:             메타데이터 CSV (required, UTF-8 BOM)
+category:        POLICY|MANUAL|GUIDE|OTHER (required)
+requestApproval: boolean (default true)</code></pre>
+  <p class="note">단일 PDF 와 multi-row 메타 CSV 를 한 묶음으로 전송. CSV 각 행이 PDF 의 chunk 범위 + 메타를 기술하여 일괄 적재된다.</p></div>
+<div class="sec"><div class="sec-title">CSV 메타 스키마 (모드 ii)</div>
+  <table class="map">
+  <thead><tr><th style="width:24%">컬럼</th><th style="width:18%">필수</th><th>설명</th></tr></thead>
+  <tbody>
+    <tr><td><code>documentType</code></td><td>O</td><td>세부 분류 Enum (<code>POLICY_TERMS</code> / <code>SERVICE_MANUAL</code> / …)</td></tr>
+    <tr><td><code>title</code></td><td>O</td><td>행(chunk) 표시 제목</td></tr>
+    <tr><td><code>productCode</code></td><td>—</td><td>상품코드 (POLICY 인 경우 <code>product_master</code> 매칭에 사용)</td></tr>
+    <tr><td><code>chunkRange</code></td><td>—</td><td>PDF 내 chunk 범위 (페이지/오프셋) — 미지정 시 자동 분할</td></tr>
+    <tr><td><code>effectiveFrom</code> · <code>effectiveTo</code></td><td>—</td><td>효력 기간 <code>YYYY-MM-DD</code></td></tr>
+  </tbody>
+  </table>
+  <p class="note">CSV 헤더는 UTF-8 BOM. 파싱 실패 시 <code>400 CSV_PARSE_FAILED</code>. <code>category=POLICY</code> 행은 모드 (i) 와 동일한 파일명 파싱 + <code>product_master</code> lookup 규칙을 따른다.</p></div>
+<div class="sec"><div class="sec-title">파일명 명명 규칙 (category=POLICY 필수)</div>
+<pre><code class="language-bash">약관_&lt;보종코드&gt;_&lt;상품명&gt;[_&lt;버전&gt;].pdf
+
+예) 약관_K07_(무)스마트변액유니버셜종신보험_v1.2.pdf
+    약관_L13_(무)5세대실손보험_2024Q2.pdf</code></pre>
+  <ul>
+    <li><b>구분자</b>: <code>_</code> (underscore). 보종코드·상품명·버전 토큰을 명확히 분리.</li>
+    <li><b>보종코드</b>: <code>product_master.prod_kind_code</code> 와 정확 일치 (case-sensitive).</li>
+    <li><b>상품명</b>: <code>product_master.product_name</code> 또는 <code>product_alias</code> 와 정확 일치 (whitespace · 괄호 보존).</li>
+    <li><b>버전 토큰</b>: 선택. 매칭에 영향 없음.</li>
+    <li>위 규칙 위반 시 즉시 <code>400 INVALID_FILE_NAME</code> 반환 (구문 단계). <code>product_master</code> lookup 실패는 <code>400 PRODUCT_NOT_FOUND_FOR_POLICY</code>.</li>
+  </ul></div>
+  </div>
+  <div class="api-tabpanel" role="tabpanel" id="api-25-panel-response" aria-labelledby="api-25-tab-response" data-tab-label="Response" hidden>
+<div class="sec"><div class="sec-title">Response 200 (성공)</div>
+<pre><code class="language-json">{
+  "success": true,
+  "data":    {
+    "documentId":      "uuid",
+    "category":        "POLICY",
+    "documentType":    "POLICY_TERMS",
+    "title":           "(무)스마트변액유니버셜종신보험 약관 v1.2",
+    "fileName":        "약관_K07_(무)스마트변액유니버셜종신보험_v1.2.pdf",
+    "parsedProdKind":  "K07",
+    "parsedProdName":  "(무)스마트변액유니버셜종신보험",
+    "productMasterId": 4231,
+    "prodCode":        "P00231",
+    "effectiveFrom":   "2024-04-01",
+    "approvalId":      7821,
+    "approvalStatus":  "PENDING",
+    "status":          "UPLOADING"
+  }
+}</code></pre>
+  <p class="note">모드 (ii) PDF + CSV 일괄 등록 시 <code>data.rows[]</code> 로 행별 결과(<code>documentId</code> · <code>approvalId</code> · <code>title</code>)를 배열로 반환할 수 있다. 신규 등록은 항상 <code>approvalStatus=PENDING</code> (결재 대기) 으로 시작한다.</p></div>
+<div class="sec"><div class="sec-title">Response Fields</div>
+  <table class="map">
+  <thead><tr><th style="width:24%">필드</th><th style="width:18%">타입</th><th>비고</th></tr></thead>
+  <tbody>
+    <tr><td><code>data.documentId</code></td><td>string</td><td>UUID — 신규 문서 식별자</td></tr>
+    <tr><td><code>data.category</code></td><td>string</td><td>Enum: <code>POLICY</code> (약관) / <code>UNDERWRITING</code> (메뉴얼)</td></tr>
+    <tr><td><code>data.documentType</code></td><td>string</td><td>Enum: <code>POLICY_TERMS</code> / <code>UNDERWRITING_MANUAL</code> 등 · 세부 분류</td></tr>
+    <tr><td><code>data.title</code></td><td>string</td><td>파싱된 문서 제목</td></tr>
+    <tr><td><code>data.fileName</code></td><td>string</td><td>업로드된 파일명</td></tr>
+    <tr><td><code>data.parsedProdKind</code></td><td>string</td><td>파싱 결과 보종 코드 (nullable · 파싱 실패 시)</td></tr>
+    <tr><td><code>data.parsedProdName</code></td><td>string</td><td>파싱 결과 상품명 (nullable)</td></tr>
+    <tr><td><code>data.productMasterId</code></td><td>integer</td><td>매칭된 <code>product_master.id</code> (매칭 실패 시 <code>null</code>)</td></tr>
+    <tr><td><code>data.prodCode</code></td><td>string</td><td>매칭된 상품 코드 (nullable)</td></tr>
+    <tr><td><code>data.effectiveFrom</code></td><td>string</td><td>효력 시작일 · <code>yyyy-MM-dd</code></td></tr>
+    <tr><td><code>data.approvalId</code></td><td>integer</td><td>신규 결재 ID — 등록과 함께 생성되는 <code>document_approval</code> row</td></tr>
+    <tr><td><code>data.approvalStatus</code></td><td>string</td><td>항상 <code>PENDING</code> (신규 등록은 결재 대기로 시작)</td></tr>
+    <tr><td><code>data.status</code></td><td>string</td><td>Enum: <code>UPLOADING</code> / <code>PROCESSING</code> / <code>COMPLETED</code> / <code>FAILED</code> — 업로드 직후 상태</td></tr>
+  </tbody>
+  </table></div>
+<div class="sec"><div class="sec-title">Response 400 (파일명 파싱 / 매칭 실패)</div>
+<pre><code class="language-json">{
+  "success": false,
+  "error":   {
+    "code":    "INVALID_FILE_NAME",
+    "message": "약관 파일명 형식이 올바르지 않습니다. '약관_&lt;보종코드&gt;_&lt;상품명&gt;.pdf' 형식을 확인해주세요.",
+    "details": {
+      "fileName":       "약관_(잘못된형식).pdf",
+      "expectedFormat": "약관_&lt;보종코드&gt;_&lt;상품명&gt;[_&lt;버전&gt;].pdf",
+      "parsedTokens":   null
+    }
+  }
+}</code></pre>
+<pre><code class="language-json">{
+  "success": false,
+  "error":   {
+    "code":    "PRODUCT_NOT_FOUND_FOR_POLICY",
+    "message": "파일명에서 추출한 보종코드/상품명에 매칭되는 상품이 없습니다. 상품 마스터 동기화 여부 또는 파일명을 확인해주세요.",
+    "details": {
+      "parsedProdKind": "K07",
+      "parsedProdName": "(무)존재하지않는상품",
+      "fileName":       "약관_K07_(무)존재하지않는상품_v1.0.pdf"
+    }
+  }
+}</code></pre></div>
+<div class="sec"><div class="sec-title">DB · 권한</div>
+  <div class="db-row">
+    <span class="lbl">Read</span>
+    <span class="db-tag r">product_master</span> <span style="font-size:11px;color:var(--ink-muted)">(POLICY · 보종+상품명 lookup)</span>
+  </div>
+  <div class="db-row">
+    <span class="lbl">Write</span>
+    <span class="db-tag w">product_document</span>
+    <span class="db-tag w">document_approval</span>
+    <span class="db-tag w">product_document_job</span>
+  </div>
+  <ul>
+    <li><code>product_document</code> INSERT — <code>category</code> · <code>product_master_id</code>(POLICY NOT NULL) · <code>file_name</code> · <code>parsed_prod_kind</code> · <code>parsed_prod_name</code> · <code>status=UPLOADING</code> · <code>approval_status=PENDING</code> (모드 ii 는 CSV 행마다 1건)</li>
+    <li><code>document_approval</code> INSERT — <code>status=PENDING</code> · <code>requested_by</code> (등록 즉시 결재 대기 진입)</li>
+    <li><code>product_document_job</code> INSERT — <code>phase=UPLOAD</code>, <code>status=SUCCESS</code> (이후 CHUNK / EMBED 가 비동기 실행)</li>
+    <li>권한: <code>DOC_ADMIN</code> · <code>SYSTEM_ADMIN</code> (DOC_REVIEWER 는 승인만)</li>
+  </ul></div>
+<div class="sec"><div class="sec-title">Errors</div>
+  <ul>
+    <li><code>INVALID_FILE_NAME</code> (400) — 약관 파일명 구문 위반 (구분자 누락, 토큰 부족 등) · NEW v0.19</li>
+    <li><code>PRODUCT_NOT_FOUND_FOR_POLICY</code> (400) — 보종+상품명에 일치하는 <code>product_master</code> 행 없음 · NEW v0.19</li>
+    <li><code>CATEGORY_REQUIRED</code> (400) — <code>category</code> 누락 · NEW v0.19</li>
+    <li><code>CSV_PARSE_FAILED</code> (400) — 모드 (ii) 메타 CSV 파싱 실패 (헤더 누락, 인코딩 오류 등)</li>
+    <li><code>FILE_FORMAT_UNSUPPORTED</code> (415) · <code>FILE_DUPLICATED</code> (409 · sha256)</li>
+  </ul></div>
+  </div>
+</div>
+
+<div class="api" id="api-26">
+<header>
+    <span class="no">No.26</span>
+    <span class="badge method GET">GET</span>
+    <code class="path">/api/counsel/bo/v1/get/products/document</code>
+    <span class="badge admin">JWT+ADMIN</span>
+    <h3 class="api-title">업로드 문서 작업 상태 조회</h3>
+  </header>
+  <div class="api-tabs" role="tablist" aria-label="api-26 섹션">
+    <button class="api-tab" role="tab" id="api-26-tab-overview" aria-controls="api-26-panel-overview" aria-selected="true" tabindex="0">개요</button>
+    <button class="api-tab" role="tab" id="api-26-tab-request" aria-controls="api-26-panel-request" aria-selected="false" tabindex="-1">Request</button>
+    <button class="api-tab" role="tab" id="api-26-tab-response" aria-controls="api-26-panel-response" aria-selected="false" tabindex="-1">Response</button>
+  </div>
+  <div class="api-tabpanel" role="tabpanel" id="api-26-panel-overview" aria-labelledby="api-26-tab-overview" data-tab-label="개요">
+<p class="desc">업로드한 상품 문서의 처리(파싱·임베딩) 작업 상태를 조회한다 — <a href="#api-25">No.25 (문서 업로드)</a> 직후 진행 상황 폴링용.</p>
+<div class="flow"><span class="flow-label">Flow · 시퀀스 (폴링 + 파이프라인 콜백)</span>
+<svg viewBox="0 0 900 340" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="No.26 업로드 작업 상태 조회">
+  <defs>
+    <marker id="n26A" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#c4471c"/></marker>
+    <marker id="n26B" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#1e4d7b"/></marker>
+    <marker id="n26P" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#6b3a8e"/></marker>
+  </defs>
+  <rect x="20" y="10" width="170" height="46" rx="3" fill="#fee2e2" stroke="#b91c1c" stroke-width="1.5"/>
+  <text x="105" y="28" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9" letter-spacing="0.1em" fill="#b91c1c">CLIENT · ADMIN</text>
+  <text x="105" y="46" text-anchor="middle" font-family="Pretendard, sans-serif" font-size="13" font-weight="700">Admin</text>
+  <rect x="220" y="10" width="170" height="46" rx="3" fill="#1a1a1a" stroke="#1a1a1a" stroke-width="1.5"/>
+  <text x="305" y="28" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9" letter-spacing="0.1em" fill="#c9c5b8">NAB · BO</text>
+  <text x="305" y="46" text-anchor="middle" font-family="Pretendard, sans-serif" font-size="13" font-weight="700" fill="#ffffff">상담AI BE</text>
+  <rect x="420" y="10" width="170" height="46" rx="3" fill="#1a1a1a" stroke="#1a1a1a" stroke-width="1.5"/>
+  <text x="505" y="28" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9" letter-spacing="0.1em" fill="#c9c5b8">NAB · STORAGE</text>
+  <text x="505" y="46" text-anchor="middle" font-family="Pretendard, sans-serif" font-size="13" font-weight="700" fill="#ffffff">DB</text>
+  <rect x="620" y="10" width="170" height="46" rx="3" fill="#f0e8f5" stroke="#6b3a8e" stroke-width="1.5"/>
+  <text x="705" y="28" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9" letter-spacing="0.1em" fill="#6b3a8e">EXTERNAL · PIPELINE</text>
+  <text x="705" y="46" text-anchor="middle" font-family="Pretendard, sans-serif" font-size="13" font-weight="700">임베딩 파이프라인</text>
+  <line x1="105" y1="60" x2="105" y2="315" stroke="#c9c5b8" stroke-width="1" stroke-dasharray="3 4"/>
+  <line x1="305" y1="60" x2="305" y2="315" stroke="#c9c5b8" stroke-width="1" stroke-dasharray="3 4"/>
+  <line x1="505" y1="60" x2="505" y2="315" stroke="#c9c5b8" stroke-width="1" stroke-dasharray="3 4"/>
+  <line x1="705" y1="60" x2="705" y2="315" stroke="#c9c5b8" stroke-width="1" stroke-dasharray="3 4"/>
+  <rect x="30" y="74" width="800" height="120" rx="3" fill="none" stroke="#c9c5b8" stroke-width="1" stroke-dasharray="4 3"/>
+  <text x="40" y="88" font-family="'JetBrains Mono', monospace" font-size="9.5" font-weight="700" fill="#1e4d7b" letter-spacing="0.08em">LOOP · 폴링</text>
+  <text x="110" y="110" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="700" fill="#c4471c">①</text>
+  <text x="125" y="110" font-family="Pretendard, sans-serif" font-size="12" font-weight="600">GET /bo/products/document?documentId=…</text>
+  <line x1="105" y1="122" x2="303" y2="122" stroke="#c4471c" stroke-width="1.5" marker-end="url(#n26A)"/>
+  <text x="310" y="146" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="700" fill="#c4471c">②</text>
+  <text x="325" y="146" font-family="Pretendard, sans-serif" font-size="12" font-weight="600" fill="#1e4d7b">SELECT product_document + product_document_job</text>
+  <line x1="305" y1="158" x2="503" y2="158" stroke="#1e4d7b" stroke-width="1.5" marker-end="url(#n26B)"/>
+  <text x="110" y="180" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="700" fill="#c4471c">③</text>
+  <text x="125" y="180" font-family="Pretendard, sans-serif" font-size="12" font-weight="600">200 { status: Processing | Completed | Error, phase, … }</text>
+  <line x1="303" y1="190" x2="107" y2="190" stroke="#c4471c" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#n26A)"/>
+  <rect x="30" y="206" width="800" height="100" rx="3" fill="none" stroke="#c9c5b8" stroke-width="1" stroke-dasharray="4 3"/>
+  <text x="40" y="220" font-family="'JetBrains Mono', monospace" font-size="9.5" font-weight="700" fill="#6b3a8e" letter-spacing="0.08em">CALLBACK · 비동기 처리 완료 시</text>
+  <text x="310" y="240" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="700" fill="#c4471c">④</text>
+  <text x="325" y="240" font-family="Pretendard, sans-serif" font-size="12" font-weight="600" fill="#6b3a8e">청크/임베딩 결과 콜백</text>
+  <line x1="703" y1="252" x2="307" y2="252" stroke="#6b3a8e" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#n26P)"/>
+  <text x="310" y="274" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="700" fill="#c4471c">⑤</text>
+  <text x="325" y="274" font-family="Pretendard, sans-serif" font-size="12" font-weight="600" fill="#1e4d7b">product_document_job UPDATE · phase=CHUNK/EMBED, status=SUCCESS</text>
+  <line x1="305" y1="284" x2="503" y2="284" stroke="#1e4d7b" stroke-width="1.5" marker-end="url(#n26B)"/>
+  <text x="310" y="298" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="700" fill="#c4471c">⑥</text>
+  <text x="325" y="298" font-family="Pretendard, sans-serif" font-size="12" font-weight="600" fill="#1e4d7b">product_document UPDATE · status=COMPLETED, last_indexed_at</text>
+  <line x1="305" y1="306" x2="503" y2="306" stroke="#1e4d7b" stroke-width="1.5" marker-end="url(#n26B)"/>
+</svg>
+  </div>
+  </div>
+  <div class="api-tabpanel" role="tabpanel" id="api-26-panel-request" aria-labelledby="api-26-tab-request" data-tab-label="Request" hidden>
+<div class="sec"><div class="sec-title">Request Headers</div>
+  <table class="map">
+  <thead><tr><th style="width:22%">헤더</th><th style="width:14%">필수</th><th>설명</th></tr></thead>
+  <tbody>
+    <tr><td><code>Authorization</code></td><td>O</td><td><code>Bearer &lt;accessToken&gt;</code> — JWT Access Token · <b>ADMIN 권한 필요</b> (백오피스). 토큰 발급·검증은 <a href="#cat-auth">§03 인증 OAuth2</a>, 권한(RBAC) 매트릭스는 <a href="#permission">§12 권한·보안</a> 참조</td></tr>
+    <tr><td><code>X-Request-Id</code></td><td>—</td><td>요청 상관관계(Correlation) 추적용 UUID. 미전송 시 BE 가 생성하여 응답 헤더로 반환</td></tr>
+  </tbody>
+  </table></div>
+<div class="sec"><div class="sec-title">Query Parameters</div>
+<pre><code class="language-http">?documentId=d7e8f9a0-1122-4c33-8d44-555566667777</code></pre>
+  <table class="map">
+  <thead><tr><th style="width:22%">파라미터</th><th style="width:24%">타입 · 필수</th><th>설명</th></tr></thead>
+  <tbody>
+    <tr><td><code>documentId</code></td><td>string (UUID) · required</td><td>작업 상태를 조회할 문서 식별자 (<a href="#api-25">No.25</a> 업로드 응답의 <code>documentId</code>) — 폴링 단위</td></tr>
+  </tbody>
+  </table></div>
+  </div>
+  <div class="api-tabpanel" role="tabpanel" id="api-26-panel-response" aria-labelledby="api-26-tab-response" data-tab-label="Response" hidden>
+<div class="sec"><div class="sec-title">Response 200</div>
+<pre><code class="language-json">{
+  "success": true,
+  "data":    [
+    {
+      "documentId":   "uuid",
+      "title":        "약관 v3.2",
+      "status":       "PROCESSING",
+      "phase":        "EMBEDDING",
+      "attemptNo":    1,
+      "errorMessage": null,
+      "updatedAt":    "2026-05-14 08:42:11"
+    }
+  ]
+}</code></pre></div>
+<div class="sec"><div class="sec-title">Response Fields</div>
+  <table class="map">
+  <thead><tr><th style="width:24%">필드</th><th style="width:18%">타입</th><th>비고</th></tr></thead>
+  <tbody>
+    <tr><td><code>data[]</code></td><td>array&lt;object&gt;</td><td>작업 상태 배열</td></tr>
+    <tr><td><code>data[].documentId</code></td><td>string</td><td>UUID — 문서 식별자</td></tr>
+    <tr><td><code>data[].title</code></td><td>string</td><td>문서 제목</td></tr>
+    <tr><td><code>data[].status</code></td><td>string</td><td>Enum: <code>PENDING</code> / <code>PROCESSING</code> / <code>COMPLETED</code> / <code>FAILED</code></td></tr>
+    <tr><td><code>data[].phase</code></td><td>string</td><td>Enum: <code>UPLOAD</code> / <code>CHUNK</code> / <code>EMBEDDING</code> / <code>INDEXING</code> — 현재 phase</td></tr>
+    <tr><td><code>data[].attemptNo</code></td><td>integer</td><td>재시도 횟수 (1-based · 1=최초 시도)</td></tr>
+    <tr><td><code>data[].errorMessage</code></td><td>string</td><td>실패 사유 (status=FAILED 시) · 그 외 <code>null</code></td></tr>
+    <tr><td><code>data[].updatedAt</code></td><td>string</td><td>마지막 업데이트 시각 — <code>yyyy-MM-dd HH:mm:ss</code></td></tr>
+  </tbody>
+  </table></div>
+<div class="sec"><div class="sec-title">상태값</div>
+  <ul><li><code>Processing(Uploading|Chunking|Embedding)</code> / <code>Completed</code> / <code>Error</code></li></ul></div>
+  </div>
+</div>
+
+<div class="api" id="api-27">
+<header>
+    <span class="no">No.27</span>
+    <span class="badge method POST">POST</span>
+    <code class="path">/api/counsel/bo/v1/post/products/sync</code>
+    <span class="badge admin">JWT+ADMIN</span>
+    <span class="badge core">CORE</span>
+    <h3 class="api-title">상품 정보 Pulling · 일배치 + 수동 (v0.18)</h3>
+  </header>
+  <div class="api-tabs" role="tablist" aria-label="api-27 섹션">
+    <button class="api-tab" role="tab" id="api-27-tab-overview" aria-controls="api-27-panel-overview" aria-selected="true" tabindex="0">개요</button>
+    <button class="api-tab" role="tab" id="api-27-tab-request" aria-controls="api-27-panel-request" aria-selected="false" tabindex="-1">Request</button>
+    <button class="api-tab" role="tab" id="api-27-tab-response" aria-controls="api-27-panel-response" aria-selected="false" tabindex="-1">Response</button>
+  </div>
+  <div class="api-tabpanel" role="tabpanel" id="api-27-panel-overview" aria-labelledby="api-27-tab-overview" data-tab-label="개요">
+<p class="desc"><strong>이중 트리거</strong> — 매일 04:00 KST 자동 스케줄(<code>SCHEDULED</code>) + 본 API 의 수동 호출(<code>MANUAL</code>). 보험코어 <strong>C3 상품 정보 조회 API</strong> 응답을 받아 <code>product_master</code> 로 UPSERT 하고 약관 매핑(<code>product_document_mapping</code>)을 BY_CODE → BY_NAME 순으로 재계산.</p>
+<div class="note">v0.13 비고 — "Progress 표시 가능할지 확인 필요" · v0.18 — 일배치 cron 시간 (04:00 KST) 은 운영팀과 협의 후 확정</div>
+<div class="flow"><span class="flow-label">Flow · 시퀀스 (202 Accepted + 비동기 CORE Pulling)</span>
+<svg viewBox="0 0 900 410" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="No.27 상품 정보 Pulling (CORE)">
+  <defs>
+    <marker id="n27A" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#c4471c"/></marker>
+    <marker id="n27B" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#1e4d7b"/></marker>
+    <marker id="n27P" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#6b3a8e"/></marker>
+  </defs>
+  <rect x="20" y="10" width="170" height="46" rx="3" fill="#fee2e2" stroke="#b91c1c" stroke-width="1.5"/>
+  <text x="105" y="28" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9" letter-spacing="0.1em" fill="#b91c1c">CLIENT · ADMIN</text>
+  <text x="105" y="46" text-anchor="middle" font-family="Pretendard, sans-serif" font-size="13" font-weight="700">Admin</text>
+  <rect x="220" y="10" width="170" height="46" rx="3" fill="#1a1a1a" stroke="#1a1a1a" stroke-width="1.5"/>
+  <text x="305" y="28" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9" letter-spacing="0.1em" fill="#c9c5b8">NAB · BO</text>
+  <text x="305" y="46" text-anchor="middle" font-family="Pretendard, sans-serif" font-size="13" font-weight="700" fill="#ffffff">상담AI BE</text>
+  <rect x="420" y="10" width="170" height="46" rx="3" fill="#f0e8f5" stroke="#6b3a8e" stroke-width="1.5"/>
+  <text x="505" y="28" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9" letter-spacing="0.1em" fill="#6b3a8e">EXTERNAL · LEGACY</text>
+  <text x="505" y="46" text-anchor="middle" font-family="Pretendard, sans-serif" font-size="13" font-weight="700">보험코어 상품시스템</text>
+  <rect x="620" y="10" width="170" height="46" rx="3" fill="#1a1a1a" stroke="#1a1a1a" stroke-width="1.5"/>
+  <text x="705" y="28" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9" letter-spacing="0.1em" fill="#c9c5b8">NAB · STORAGE</text>
+  <text x="705" y="46" text-anchor="middle" font-family="Pretendard, sans-serif" font-size="13" font-weight="700" fill="#ffffff">DB</text>
+  <line x1="105" y1="60" x2="105" y2="385" stroke="#c9c5b8" stroke-width="1" stroke-dasharray="3 4"/>
+  <line x1="305" y1="60" x2="305" y2="385" stroke="#c9c5b8" stroke-width="1" stroke-dasharray="3 4"/>
+  <line x1="505" y1="60" x2="505" y2="385" stroke="#c9c5b8" stroke-width="1" stroke-dasharray="3 4"/>
+  <line x1="705" y1="60" x2="705" y2="385" stroke="#c9c5b8" stroke-width="1" stroke-dasharray="3 4"/>
+  <text x="110" y="92" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="700" fill="#c4471c">①</text>
+  <text x="125" y="92" font-family="Pretendard, sans-serif" font-size="12" font-weight="600">POST /bo/products/sync · { productCode? }</text>
+  <line x1="105" y1="104" x2="303" y2="104" stroke="#c4471c" stroke-width="1.5" marker-end="url(#n27A)"/>
+  <text x="310" y="134" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="700" fill="#c4471c">②</text>
+  <text x="325" y="134" font-family="Pretendard, sans-serif" font-size="12" font-weight="600" fill="#1e4d7b">product_sync_log INSERT · status=STARTED</text>
+  <line x1="305" y1="146" x2="703" y2="146" stroke="#1e4d7b" stroke-width="1.5" marker-end="url(#n27B)"/>
+  <text x="110" y="178" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="700" fill="#c4471c">③</text>
+  <text x="125" y="178" font-family="Pretendard, sans-serif" font-size="12" font-weight="600">202 Accepted { syncLogId, status: STARTED }</text>
+  <line x1="303" y1="188" x2="107" y2="188" stroke="#c4471c" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#n27A)"/>
+  <rect x="200" y="208" width="700" height="170" rx="3" fill="none" stroke="#c9c5b8" stroke-width="1" stroke-dasharray="4 3"/>
+  <text x="210" y="222" font-family="'JetBrains Mono', monospace" font-size="9.5" font-weight="700" fill="#6b3a8e" letter-spacing="0.08em">ASYNC · 비동기 처리</text>
+  <text x="310" y="246" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="700" fill="#c4471c">④</text>
+  <text x="325" y="246" font-family="Pretendard, sans-serif" font-size="12" font-weight="600" fill="#6b3a8e">상품 정보 조회 · 전체 or 단건</text>
+  <line x1="305" y1="258" x2="503" y2="258" stroke="#6b3a8e" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#n27P)"/>
+  <text x="325" y="278" font-family="Pretendard, sans-serif" font-size="11" fill="#6b3a8e">상품 목록</text>
+  <line x1="503" y1="286" x2="307" y2="286" stroke="#6b3a8e" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#n27P)"/>
+  <rect x="220" y="300" width="680" height="48" rx="3" fill="none" stroke="#c9c5b8" stroke-width="1" stroke-dasharray="3 3"/>
+  <text x="232" y="314" font-family="'JetBrains Mono', monospace" font-size="9.5" font-weight="700" fill="#1e4d7b" letter-spacing="0.08em">LOOP · 항목마다</text>
+  <text x="310" y="334" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="700" fill="#c4471c">⑤</text>
+  <text x="325" y="334" font-family="Pretendard, sans-serif" font-size="12" font-weight="600" fill="#1e4d7b">product_document UPSERT · product_policy_mapping UPSERT</text>
+  <line x1="305" y1="344" x2="703" y2="344" stroke="#1e4d7b" stroke-width="1.5" marker-end="url(#n27B)"/>
+  <text x="310" y="370" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="700" fill="#c4471c">⑥</text>
+  <text x="325" y="370" font-family="Pretendard, sans-serif" font-size="12" font-weight="600" fill="#1e4d7b">product_sync_log UPDATE · status=SUCCESS, item_count, finished_at</text>
+  <line x1="305" y1="378" x2="703" y2="378" stroke="#1e4d7b" stroke-width="1.5" marker-end="url(#n27B)"/>
+</svg>
+  </div>
+  </div>
+  <div class="api-tabpanel" role="tabpanel" id="api-27-panel-request" aria-labelledby="api-27-tab-request" data-tab-label="Request" hidden>
+<div class="sec"><div class="sec-title">Request Headers</div>
+  <table class="map">
+  <thead><tr><th style="width:22%">헤더</th><th style="width:14%">필수</th><th>설명</th></tr></thead>
+  <tbody>
+    <tr><td><code>Authorization</code></td><td>O</td><td><code>Bearer &lt;accessToken&gt;</code> — JWT Access Token · <b>ADMIN 권한 필요</b> (백오피스). 토큰 발급·검증은 <a href="#cat-auth">§03 인증 OAuth2</a>, 권한(RBAC) 매트릭스는 <a href="#permission">§12 권한·보안</a> 참조</td></tr>
+    <tr><td><code>Content-Type</code></td><td>O</td><td><code>application/json</code> (파일 업로드 카드는 <code>multipart/form-data</code>)</td></tr>
+    <tr><td><code>X-Request-Id</code></td><td>—</td><td>요청 상관관계(Correlation) 추적용 UUID. 미전송 시 BE 가 생성하여 응답 헤더로 반환</td></tr>
+  </tbody>
+  </table></div>
+<div class="sec"><div class="sec-title">Request Body (optional)</div>
+  <pre><code class="language-json">{
+  "productCode": "string (optional, 미지정 시 전체 sync)"
+}</code></pre>
+  <table class="map">
+  <thead><tr><th style="width:22%">필드</th><th style="width:24%">타입 · 필수</th><th>설명</th></tr></thead>
+  <tbody>
+    <tr><td><code>productCode</code></td><td>string · optional</td><td>특정 상품코드만 sync. 미지정 시 <strong>전체 sync</strong> (보험코어 C3 상품 정보 전량 재동기화)</td></tr>
+  </tbody>
+  </table></div>
+  </div>
+  <div class="api-tabpanel" role="tabpanel" id="api-27-panel-response" aria-labelledby="api-27-tab-response" data-tab-label="Response" hidden>
+<div class="sec"><div class="sec-title">Response 202</div>
+  <pre><code class="language-json">{
+  "success": true,
+  "data":    {
+    "syncLogId":   1234,
+    "status":      "STARTED",
+    "triggerType": "MANUAL"
+  }
+}</code></pre>
+  <p class="note">비동기 작업 — <code>202 Accepted</code> 로 즉시 반환 후 백그라운드에서 sync 진행 (<code>product_sync_log</code> 로 상태 추적).</p></div>
+<div class="sec"><div class="sec-title">Response Fields</div>
+  <table class="map">
+  <thead><tr><th style="width:24%">필드</th><th style="width:18%">타입</th><th>비고</th></tr></thead>
+  <tbody>
+    <tr><td><code>data.syncLogId</code></td><td>integer</td><td><code>product_sync_log</code> row 식별자 — 이후 sync 진행/완료 상태 추적 키</td></tr>
+    <tr><td><code>data.status</code></td><td>string</td><td>접수 직후 상태 — 항상 <code>STARTED</code> (이후 백그라운드에서 <code>SUCCESS</code> / <code>FAILED</code> 로 전이)</td></tr>
+    <tr><td><code>data.triggerType</code></td><td>string</td><td>Enum: <code>MANUAL</code> (관리자 수동 호출) / <code>SCHEDULED</code> (배치 트리거)</td></tr>
+  </tbody>
+  </table></div>
+<div class="sec"><div class="sec-title">외부 / DB</div>
+  <div class="db-row">
+    <span class="lbl">External</span>
+    <span class="db-tag" style="border-color:var(--purple);color:var(--purple)">보험코어 C3 상품 정보 API</span>
+  </div>
+  <div class="db-row">
+    <span class="lbl">Write</span>
+    <span class="db-tag w">product_sync_log</span>
+    <span class="db-tag w">product_master</span>
+    <span class="db-tag w">product_document_mapping</span>
+  </div>
+  <ul>
+    <li><code>product_sync_log</code> INSERT (<code>trigger_type=SCHEDULED|MANUAL</code>, status=STARTED → 완료 시 UPDATE + <code>upsert_count</code>)</li>
+    <li>응답 항목마다 <code>product_master</code> UPSERT — 매칭 키 <code>(prod_code, prod_detl_code)</code>, 차이 행만 UPDATE, 누락 행은 <code>sync_status='RETIRED'</code></li>
+    <li><strong>약관 매핑 재계산</strong> — 각 <code>product_master_id</code> 에 대해 <code>product_document</code> 를 검색:
+      <ol>
+        <li><b>BY_CODE</b> — <code>product_document.product_code</code> = <code>product_master.prod_code</code> (+ prod_detl_code 일치 시) → confidence = 1.00</li>
+        <li><b>BY_NAME</b> — <code>product_document.title</code> ↔ <code>product_master.product_name/alias</code> ngram FULLTEXT 매칭 + 보종코드 검증 → confidence 0.5~0.95</li>
+        <li><b>MANUAL</b> — 위 2단계 실패 시 매핑 보류. 백오피스 매핑 UI 에서 관리자가 수동 매핑 (No.27 결재 또는 별도 매핑 API)</li>
+      </ol>
+      결과는 <code>product_document_mapping</code> UPSERT (UNIQUE <code>(document_id, product_master_id)</code>)
+    </li>
+  </ul></div>
+  </div>
+</div>
+
+<div class="api" id="api-28">
+<header>
+    <span class="no">No.28</span>
+    <span class="badge method POST">POST</span>
+    <code class="path">/api/counsel/internal/v1/post/products/documents/{documentId}/embedding-status</code>
+    <span class="badge" style="background:#fef2ec;color:#c4471c;border-color:#c4471c">INTERNAL</span>
+    <h3 class="api-title">임베딩 작업 상태 콜백 (AI BE → NAB BE, v0.20)</h3>
+  </header>
+  <div class="api-tabs" role="tablist" aria-label="api-28 섹션">
+    <button class="api-tab" role="tab" id="api-28-tab-overview" aria-controls="api-28-panel-overview" aria-selected="true" tabindex="0">개요</button>
+    <button class="api-tab" role="tab" id="api-28-tab-request" aria-controls="api-28-panel-request" aria-selected="false" tabindex="-1">Request</button>
+    <button class="api-tab" role="tab" id="api-28-tab-response" aria-controls="api-28-panel-response" aria-selected="false" tabindex="-1">Response</button>
+  </div>
+  <div class="api-tabpanel" role="tabpanel" id="api-28-panel-overview" aria-labelledby="api-28-tab-overview" data-tab-label="개요">
+<p class="desc"><strong>v0.20 신설</strong> — AI BE 가 문서 임베딩 파이프라인(CHUNK / EMBED phase)을 진행하면서 NAB BE 로 진행 상태/완료/오류를 통보하기 위한 <b>internal 콜백 API</b>. <a href="#api-25">No.25 문서 업로드</a> 직후 NAB BE 가 AI BE 측 임베딩 큐에 작업을 등록하면, AI BE 가 단계별로 본 API 를 호출해 <code>product_document_job</code> · <code>product_document.status</code> 를 갱신한다. BO 사용자가 <a href="#api-26">No.26 작업 상태</a> 로 조회하는 값은 본 콜백으로 누적된 결과.</p>
+<div class="flow"><span class="flow-label">Flow · 시퀀스 (AI BE → NAB BE 콜백 + DB 갱신)</span>
+<svg viewBox="0 0 820 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="No.28 임베딩 상태 콜백 시퀀스">
+  <defs>
+    <marker id="nembA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#c4471c"/></marker>
+    <marker id="nembB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#1e4d7b"/></marker>
+  </defs>
+  <!-- actors -->
+  <rect x="20" y="10" width="170" height="46" rx="3" fill="#eaf1f7" stroke="#1e4d7b" stroke-width="1.5"/>
+  <text x="105" y="28" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9" letter-spacing="0.1em" fill="#1e4d7b">SERVICE · AI BE</text>
+  <text x="105" y="46" text-anchor="middle" font-family="Pretendard, sans-serif" font-size="13" font-weight="700">AI BE (embedder)</text>
+  <rect x="220" y="10" width="170" height="46" rx="3" fill="#1a1a1a" stroke="#1a1a1a" stroke-width="1.5"/>
+  <text x="305" y="28" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9" letter-spacing="0.1em" fill="#c9c5b8">NAB · CONTROLLER</text>
+  <text x="305" y="46" text-anchor="middle" font-family="Pretendard, sans-serif" font-size="13" font-weight="700" fill="#ffffff">상담AI BE</text>
+  <rect x="420" y="10" width="170" height="46" rx="3" fill="#1a1a1a" stroke="#1a1a1a" stroke-width="1.5"/>
+  <text x="505" y="28" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9" letter-spacing="0.1em" fill="#c9c5b8">NAB · SERVICE</text>
+  <text x="505" y="46" text-anchor="middle" font-family="Pretendard, sans-serif" font-size="13" font-weight="700" fill="#ffffff">DocJobService</text>
+  <rect x="620" y="10" width="170" height="46" rx="3" fill="#1a1a1a" stroke="#1a1a1a" stroke-width="1.5"/>
+  <text x="705" y="28" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9" letter-spacing="0.1em" fill="#c9c5b8">NAB · STORAGE</text>
+  <text x="705" y="46" text-anchor="middle" font-family="Pretendard, sans-serif" font-size="13" font-weight="700" fill="#ffffff">DB</text>
+  <!-- lifelines -->
+  <line x1="105" y1="60" x2="105" y2="285" stroke="#c9c5b8" stroke-width="1" stroke-dasharray="3 4"/>
+  <line x1="305" y1="60" x2="305" y2="285" stroke="#c9c5b8" stroke-width="1" stroke-dasharray="3 4"/>
+  <line x1="505" y1="60" x2="505" y2="285" stroke="#c9c5b8" stroke-width="1" stroke-dasharray="3 4"/>
+  <line x1="705" y1="60" x2="705" y2="285" stroke="#c9c5b8" stroke-width="1" stroke-dasharray="3 4"/>
+  <!-- ① POST -->
+  <text x="110" y="84" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="700" fill="#c4471c">①</text>
+  <text x="125" y="84" font-family="Pretendard, sans-serif" font-size="12" font-weight="600">POST /internal/.../embedding-status · X-Internal-Signature</text>
+  <line x1="105" y1="96" x2="303" y2="96" stroke="#c4471c" stroke-width="1.5" marker-end="url(#nembA)"/>
+  <!-- ② HMAC verify -->
+  <text x="310" y="120" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="700" fill="#c4471c">②</text>
+  <text x="325" y="120" font-family="Pretendard, sans-serif" font-size="11" font-weight="600">HMAC 서명 검증 + IP 화이트리스트</text>
+  <!-- ③ Service -->
+  <text x="310" y="148" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="700" fill="#c4471c">③</text>
+  <text x="325" y="148" font-family="Pretendard, sans-serif" font-size="12" font-weight="600">updateJob(docId, phase, status)</text>
+  <line x1="305" y1="160" x2="503" y2="160" stroke="#c4471c" stroke-width="1.5" marker-end="url(#nembA)"/>
+  <!-- ④ UPSERT job -->
+  <text x="510" y="184" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="700" fill="#1e4d7b">④</text>
+  <text x="525" y="184" font-family="Pretendard, sans-serif" font-size="11" font-weight="600" fill="#1e4d7b">product_document_job UPSERT · product_document.status 재계산</text>
+  <line x1="505" y1="196" x2="703" y2="196" stroke="#1e4d7b" stroke-width="1.5" marker-end="url(#nembB)"/>
+  <!-- ⑤ audit_log -->
+  <text x="510" y="222" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="700" fill="#1e4d7b">⑤</text>
+  <text x="525" y="222" font-family="Pretendard, sans-serif" font-size="11" font-weight="600" fill="#1e4d7b">audit_log INSERT · SERVICE_CALL (AI BE)</text>
+  <line x1="505" y1="234" x2="703" y2="234" stroke="#1e4d7b" stroke-width="1.5" marker-end="url(#nembB)"/>
+  <!-- ⑥ response -->
+  <text x="110" y="266" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="700" fill="#c4471c">⑥</text>
+  <text x="125" y="266" font-family="Pretendard, sans-serif" font-size="12" font-weight="600">200 { documentId, phase, status, overallStatus }</text>
+  <line x1="303" y1="278" x2="107" y2="278" stroke="#c4471c" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#nembA)"/>
+</svg>
+  </div>
+  </div>
+  <div class="api-tabpanel" role="tabpanel" id="api-28-panel-request" aria-labelledby="api-28-tab-request" data-tab-label="Request" hidden>
+<div class="sec"><div class="sec-title">Path Parameter</div>
+  <ul><li><code>documentId</code> · CHAR(36) · <code>product_document.document_id</code></li></ul></div>
+<div class="sec"><div class="sec-title">Request Body</div>
+<pre><code class="language-json">{
+  "phase":        "CHUNK | EMBED",
+  "status":       "PENDING | SUCCESS | ERROR",
+  "attemptNo":    1,
+  "chunkCount":   124,
+  "errorMessage": "(optional, status=ERROR 일 때)",
+  "occurredAt":   "2026-05-19 10:23:01"
+}</code></pre></div>
+<div class="sec"><div class="sec-title">인증 · 권한 (Internal Auth)</div>
+  <ul>
+    <li><b>JWT 미사용</b> — BO 사용자 토큰과 분리. AI BE 가 사전 공유 secret 으로 HMAC 서명한 별도 헤더 (<code>X-Internal-Signature</code>) 검증.</li>
+    <li>요청 IP 화이트리스트 (AI BE 클러스터 CIDR) 병행.</li>
+    <li><code>auth.internal.api-keys</code> yml 키 로테이션 — OTT 발급(<a href="#api-1">No.1</a>) 과 동일 패턴.</li>
+  </ul></div>
+  </div>
+  <div class="api-tabpanel" role="tabpanel" id="api-28-panel-response" aria-labelledby="api-28-tab-response" data-tab-label="Response" hidden>
+<div class="sec"><div class="sec-title">Response 200</div>
+<pre><code class="language-json">{
+  "success": true,
+  "data":    {
+    "documentId":    "uuid",
+    "phase":         "EMBED",
+    "status":        "SUCCESS",
+    "overallStatus": "COMPLETED"
+  }
+}</code></pre>
+  <p class="note"><code>overallStatus</code> 는 <code>product_document.status</code> 의 새 상태 — 모든 phase 가 SUCCESS 면 <code>COMPLETED</code>, ERROR 가 하나라도 있으면 <code>ERROR</code>, 그 외 <code>PROCESSING</code>.</p></div>
+<div class="sec"><div class="sec-title">Response Fields</div>
+  <table class="map">
+  <thead><tr><th style="width:24%">필드</th><th style="width:18%">타입</th><th>비고</th></tr></thead>
+  <tbody>
+    <tr><td><code>data.documentId</code></td><td>string</td><td>UUID — 콜백 대상 문서</td></tr>
+    <tr><td><code>data.phase</code></td><td>string</td><td>AI BE 가 보고한 최종 phase (Enum: <code>CHUNK</code> / <code>EMBED</code>)</td></tr>
+    <tr><td><code>data.status</code></td><td>string</td><td>최종 phase 상태 (Enum: <code>PENDING</code> / <code>SUCCESS</code> / <code>ERROR</code>)</td></tr>
+    <tr><td><code>data.overallStatus</code></td><td>string</td><td>문서 전체 처리 상태 — Enum: <code>UPLOADING</code> / <code>PROCESSING</code> / <code>COMPLETED</code> / <code>FAILED</code> (NAB BE 가 phase 들을 종합 판정)</td></tr>
+  </tbody>
+  </table></div>
+<div class="sec"><div class="sec-title">DB · 외부</div>
+  <div class="db-row">
+    <span class="lbl">Write</span>
+    <span class="db-tag w">product_document_job</span>
+    <span class="db-tag w">product_document</span>
+  </div>
+  <ul>
+    <li><code>product_document_job</code> UPSERT — <code>(document_id, phase)</code> UNIQUE 갱신, <code>attempt_no</code>·<code>error_message</code>·<code>started_at</code>·<code>finished_at</code> 기록</li>
+    <li><code>product_document.status</code> 재계산 — 모든 phase SUCCESS 면 <code>COMPLETED</code>, 아니면 <code>PROCESSING</code>/<code>ERROR</code></li>
+    <li>호출 출처(AI BE)는 <code>audit_log</code> 에 SERVICE_CALL 로 기록</li>
+  </ul></div>
+<div class="sec"><div class="sec-title">Errors</div>
+  <ul>
+    <li><code>INTERNAL_AUTH_FAILED</code> (401) — HMAC 서명 검증 실패 / IP 불일치</li>
+    <li><code>DOCUMENT_NOT_FOUND</code> (404) — <code>documentId</code> 미존재</li>
+    <li><code>PHASE_TRANSITION_INVALID</code> (409) — 이미 SUCCESS 인 phase 를 ERROR 로 되돌리는 등 비정상 전이</li>
+  </ul></div>
+  </div>
+</div>
+
+<div class="api" id="api-29">
+<header>
+    <span class="no">No.29</span>
+    <span class="badge method GET">GET</span>
+    <code class="path">/api/counsel/bo/v1/get/admin/documents</code>
+    <span class="badge admin">JWT+ADMIN</span>
+    <h3 class="api-title">문서 조회 (전체 카테고리 + 상품 필터 + 결재)</h3>
+  </header>
+  <div class="api-tabs" role="tablist" aria-label="api-29 섹션">
+    <button class="api-tab" role="tab" id="api-29-tab-overview" aria-controls="api-29-panel-overview" aria-selected="true" tabindex="0">개요</button>
+    <button class="api-tab" role="tab" id="api-29-tab-request" aria-controls="api-29-panel-request" aria-selected="false" tabindex="-1">Request</button>
+    <button class="api-tab" role="tab" id="api-29-tab-response" aria-controls="api-29-panel-response" aria-selected="false" tabindex="-1">Response</button>
+  </div>
+  <div class="api-tabpanel" role="tabpanel" id="api-29-panel-overview" aria-labelledby="api-29-tab-overview" data-tab-label="개요">
+<p class="desc">백오피스에서 등록된 모든 문서(약관·매뉴얼·가이드)를 검색·필터링하는 <b>단일 문서 조회 API</b>. 전체 카테고리 + 결재 워크플로우 + 텍스트 검색을 지원하며, <code>category=POLICY</code> + 상품 필터(상품코드·보종코드·승인상태·운영여부)로 <b>상품 약관 중심 조회</b>도 동일 endpoint 에서 처리한다. 등록자/승인자 메타와 업로드/승인 진행 상태를 함께 반환한다.</p>
+  </div>
+  <div class="api-tabpanel" role="tabpanel" id="api-29-panel-request" aria-labelledby="api-29-tab-request" data-tab-label="Request" hidden>
+<div class="sec"><div class="sec-title">Request Headers</div>
+  <table class="map">
+  <thead><tr><th style="width:22%">헤더</th><th style="width:14%">필수</th><th>설명</th></tr></thead>
+  <tbody>
+    <tr><td><code>Authorization</code></td><td>O</td><td><code>Bearer &lt;accessToken&gt;</code> — JWT Access Token · <b>ADMIN 권한 필요</b> (백오피스). 토큰 발급·검증은 <a href="#cat-auth">§03 인증 OAuth2</a>, 권한(RBAC) 매트릭스는 <a href="#permission">§12 권한·보안</a> 참조</td></tr>
+    <tr><td><code>X-Request-Id</code></td><td>—</td><td>요청 상관관계(Correlation) 추적용 UUID. 미전송 시 BE 가 생성하여 응답 헤더로 반환</td></tr>
+  </tbody>
+  </table></div>
+<div class="sec"><div class="sec-title">Query Parameters</div>
+<pre><code class="language-http">?keyword=실손&amp;category=POLICY&amp;approvalStatus=PENDING&amp;prodCode=P00231&amp;prodKindCode=K07&amp;isActive=true&amp;page=0&amp;size=20</code></pre>
+  <table class="map">
+  <thead><tr><th style="width:20%">파라미터</th><th style="width:30%">타입 · 필수</th><th>설명</th></tr></thead>
+  <tbody>
+    <tr><td><code>keyword</code></td><td>string · optional</td><td>문서명/상품명 부분 일치 검색</td></tr>
+    <tr><td><code>category</code></td><td>string · optional</td><td>Enum: <code>POLICY</code> / <code>MANUAL</code> / <code>GUIDE</code> / <code>OTHER</code></td></tr>
+    <tr><td><code>approvalStatus</code></td><td>string · optional</td><td>Enum: <code>PENDING</code> / <code>APPROVED</code> / <code>REJECTED</code> (결재 검수자는 PENDING 필터 주로 사용)</td></tr>
+    <tr><td><code>prodCode</code></td><td>string · optional</td><td>상품코드 (부분/완전 일치) — 상품 약관 중심 조회용</td></tr>
+    <tr><td><code>prodKindCode</code></td><td>string · optional</td><td>보종코드 — 상품 약관 중심 조회용</td></tr>
+    <tr><td><code>uploadStatus</code></td><td>string · optional</td><td>Enum: <code>UPLOADING</code> / <code>PROCESSING</code> / <code>COMPLETED</code> / <code>FAILED</code></td></tr>
+    <tr><td><code>isActive</code></td><td>boolean · optional</td><td>운영 여부 <code>true</code> / <code>false</code> (기본 미지정 = 전체)</td></tr>
+    <tr><td><code>page</code></td><td>integer · optional · default <code>0</code></td><td>0-based 페이지 번호</td></tr>
+    <tr><td><code>size</code></td><td>integer · optional · default <code>20</code></td><td>페이지 크기</td></tr>
+  </tbody>
+  </table>
+  <p class="note"><b>상품 약관 중심 조회</b> — <code>category=POLICY</code> + <code>prodCode</code>/<code>prodKindCode</code>/<code>approvalStatus</code>/<code>isActive</code> 조합으로 상품별 약관 문서를 필터링한다 (구 상품 문서 조회 기능 흡수). 미매핑 약관도 좌외부 조인으로 포함.</p></div>
+  </div>
+  <div class="api-tabpanel" role="tabpanel" id="api-29-panel-response" aria-labelledby="api-29-tab-response" data-tab-label="Response" hidden>
+<div class="sec"><div class="sec-title">Response 200</div>
+<pre><code class="language-json">{
+  "success": true,
+  "data":    {
+    "items": [
+      {
+        "documentId":          "uuid",
+        "category":            "POLICY",
+        "documentType":        "POLICY_TERMS",
+        "title":               "...",
+        "fileName":            "...",
+        "productMasterId":     4231,
+        "approvalStatus":      "PENDING",
+        "uploadStatus":        "COMPLETED",
+        "createdBy":           "uploader01",
+        "createdAt":           "...",
+        "approvalId":          7821,
+        "approvalRequestedAt": "..."
+      }
+    ],
+    "total": 87,
+    "page":  1,
+    "limit": 20
+  }
+}</code></pre></div>
+<div class="sec"><div class="sec-title">Response Fields</div>
+  <table class="map">
+  <thead><tr><th style="width:24%">필드</th><th style="width:18%">타입</th><th>비고</th></tr></thead>
+  <tbody>
+    <tr><td><code>data.items[]</code></td><td>array&lt;object&gt;</td><td>문서 배열</td></tr>
+    <tr><td><code>data.items[].documentId</code></td><td>string</td><td>UUID</td></tr>
+    <tr><td><code>data.items[].category</code></td><td>string</td><td>Enum: <code>POLICY</code> / <code>UNDERWRITING</code></td></tr>
+    <tr><td><code>data.items[].documentType</code></td><td>string</td><td>세부 분류 Enum</td></tr>
+    <tr><td><code>data.items[].title</code></td><td>string</td><td>문서 제목</td></tr>
+    <tr><td><code>data.items[].fileName</code></td><td>string</td><td>파일명</td></tr>
+    <tr><td><code>data.items[].productMasterId</code></td><td>integer</td><td>매칭된 상품 ID (nullable)</td></tr>
+    <tr><td><code>data.items[].approvalStatus</code></td><td>string</td><td>Enum: <code>PENDING</code> / <code>APPROVED</code> / <code>REJECTED</code></td></tr>
+    <tr><td><code>data.items[].uploadStatus</code></td><td>string</td><td>Enum: <code>UPLOADING</code> / <code>PROCESSING</code> / <code>COMPLETED</code> / <code>FAILED</code></td></tr>
+    <tr><td><code>data.items[].createdBy</code></td><td>string</td><td>등록자 ID</td></tr>
+    <tr><td><code>data.items[].createdAt</code></td><td>string</td><td>등록 시각 — <code>yyyy-MM-dd HH:mm:ss</code></td></tr>
+    <tr><td><code>data.items[].approvalId</code></td><td>integer</td><td>결재 ID (결재 진입 시) · nullable</td></tr>
+    <tr><td><code>data.items[].approvalRequestedAt</code></td><td>string</td><td>결재 요청 시각 — <code>yyyy-MM-dd HH:mm:ss</code> · nullable</td></tr>
+    <tr><td><code>data.total</code></td><td>integer</td><td>전체 문서 건수</td></tr>
+    <tr><td><code>data.page</code></td><td>integer</td><td>현재 페이지 (1-based)</td></tr>
+    <tr><td><code>data.limit</code></td><td>integer</td><td>페이지 크기</td></tr>
+  </tbody>
+  </table></div>
+<div class="sec"><div class="sec-title">DB · 권한</div>
+  <div class="db-row"><span class="lbl">Read</span><span class="db-tag r">product_document</span><span class="db-tag r">document_approval</span><span class="db-tag r">product_master</span><span class="db-tag r">admin_user</span></div>
+  <ul><li>JOIN: <code>product_document</code> ⋈ <code>document_approval</code>(LEFT, PENDING/REJECTED 행 표시) ⋈ <code>product_master</code></li>
+  <li>권한: <code>DOC_ADMIN</code> · <code>DOC_REVIEWER</code> · <code>SYSTEM_ADMIN</code></li></ul></div>
+  </div>
+</div>
+
+<div class="api" id="api-30">
+<header>
+    <span class="no">No.30</span>
+    <span class="badge method GET">GET</span>
+    <code class="path">/api/counsel/bo/v1/get/admin/documents/download</code>
+    <span class="badge admin">JWT+ADMIN</span>
+    <h3 class="api-title">문서 다운로드</h3>
+  </header>
+  <div class="api-tabs" role="tablist" aria-label="api-30 섹션">
+    <button class="api-tab" role="tab" id="api-30-tab-overview" aria-controls="api-30-panel-overview" aria-selected="true" tabindex="0">개요</button>
+    <button class="api-tab" role="tab" id="api-30-tab-request" aria-controls="api-30-panel-request" aria-selected="false" tabindex="-1">Request</button>
+    <button class="api-tab" role="tab" id="api-30-tab-response" aria-controls="api-30-panel-response" aria-selected="false" tabindex="-1">Response</button>
+  </div>
+  <div class="api-tabpanel" role="tabpanel" id="api-30-panel-overview" aria-labelledby="api-30-tab-overview" data-tab-label="개요">
+<p class="desc">백오피스에서 등록된 문서를 원본 PDF 로 다운로드. CDN signed URL 생성 후 redirect 또는 직접 stream.</p>
+  </div>
+  <div class="api-tabpanel" role="tabpanel" id="api-30-panel-request" aria-labelledby="api-30-tab-request" data-tab-label="Request" hidden>
+<div class="sec"><div class="sec-title">Request Headers</div>
+  <table class="map">
+  <thead><tr><th style="width:22%">헤더</th><th style="width:14%">필수</th><th>설명</th></tr></thead>
+  <tbody>
+    <tr><td><code>Authorization</code></td><td>O</td><td><code>Bearer &lt;accessToken&gt;</code> — JWT Access Token · <b>ADMIN 권한 필요</b> (백오피스). 토큰 발급·검증은 <a href="#cat-auth">§03 인증 OAuth2</a>, 권한(RBAC) 매트릭스는 <a href="#permission">§12 권한·보안</a> 참조</td></tr>
+    <tr><td><code>X-Request-Id</code></td><td>—</td><td>요청 상관관계(Correlation) 추적용 UUID. 미전송 시 BE 가 생성하여 응답 헤더로 반환</td></tr>
+  </tbody>
+  </table></div>
+<div class="sec"><div class="sec-title">Query Parameters</div>
+<pre><code class="language-http">?documentId=d7e8f9a0-1122-4c33-8d44-555566667777&amp;inline=true</code></pre>
+  <table class="map">
+  <thead><tr><th style="width:22%">파라미터</th><th style="width:24%">타입 · 필수</th><th>설명</th></tr></thead>
+  <tbody>
+    <tr><td><code>documentId</code></td><td>string (CHAR 36) · required</td><td>다운로드 대상 문서 식별자 (<code>product_document.document_id</code>)</td></tr>
+    <tr><td><code>inline</code></td><td>boolean · optional · default <code>false</code></td><td><code>true</code> 시 redirect 대신 <code>application/pdf</code> 직접 stream</td></tr>
+  </tbody>
+  </table></div>
+  </div>
+  <div class="api-tabpanel" role="tabpanel" id="api-30-panel-response" aria-labelledby="api-30-tab-response" data-tab-label="Response" hidden>
+<div class="sec"><div class="sec-title">Response 302</div>
+<pre><code class="language-http">HTTP/1.1 302 Found
+Location: https://cdn.example.com/docs/d7e8f9a0-1122-4c33-8d44-555566667777.pdf?sig=...&amp;expires=...</code></pre>
+  <p class="note">CDN signed URL 로 <code>Location</code> redirect (default · 60초 만료). 직접 stream 모드 (<code>?inline=true</code>) 는 <code>200 application/pdf</code> 바이너리 — 어느 경우에도 JSON 응답 본문 없음.</p></div>
+<div class="sec"><div class="sec-title">DB · 권한</div>
+  <div class="db-row"><span class="lbl">Read</span><span class="db-tag r">product_document</span><span class="db-tag" style="border-color:var(--purple);color:var(--purple)">CDN / Object Storage</span></div>
+  <ul><li>권한: <code>DOC_ADMIN</code> · <code>DOC_REVIEWER</code> · <code>SYSTEM_ADMIN</code></li>
+  <li>다운로드 이력 <code>audit_log</code> INSERT (DOC_DOWNLOAD)</li></ul></div>
+<div class="sec"><div class="sec-title">Errors</div>
+  <ul><li><code>DOCUMENT_NOT_FOUND</code> (404), <code>DOWNLOAD_URL_EXPIRED</code> (410)</li></ul></div>
+  </div>
+</div>
+
+<div class="api" id="api-31">
+<header>
+    <span class="no">No.31</span>
+    <span class="badge method POST">POST</span>
+    <code class="path">/api/counsel/bo/v1/post/admin/documents/approve</code>
+    <span class="badge admin">JWT+ADMIN</span>
+    <h3 class="api-title">미승인 결재 문서 승인 / 반려</h3>
+  </header>
+  <div class="api-tabs" role="tablist" aria-label="api-31 섹션">
+    <button class="api-tab" role="tab" id="api-31-tab-overview" aria-controls="api-31-panel-overview" aria-selected="true" tabindex="0">개요</button>
+    <button class="api-tab" role="tab" id="api-31-tab-request" aria-controls="api-31-panel-request" aria-selected="false" tabindex="-1">Request</button>
+    <button class="api-tab" role="tab" id="api-31-tab-response" aria-controls="api-31-panel-response" aria-selected="false" tabindex="-1">Response</button>
+  </div>
+  <div class="api-tabpanel" role="tabpanel" id="api-31-panel-overview" aria-labelledby="api-31-tab-overview" data-tab-label="개요">
+<p class="desc">결재 검수자(<code>DOC_REVIEWER</code>) 또는 시스템 관리자가 PENDING 문서를 승인/반려. 승인 시 <code>product_document.approval_status='APPROVED'</code> 갱신 + 임베딩 파이프라인 트리거. 반려 시 사유 기록.</p>
+  </div>
+  <div class="api-tabpanel" role="tabpanel" id="api-31-panel-request" aria-labelledby="api-31-tab-request" data-tab-label="Request" hidden>
+<div class="sec"><div class="sec-title">Request Headers</div>
+  <table class="map">
+  <thead><tr><th style="width:22%">헤더</th><th style="width:14%">필수</th><th>설명</th></tr></thead>
+  <tbody>
+    <tr><td><code>Authorization</code></td><td>O</td><td><code>Bearer &lt;accessToken&gt;</code> — JWT Access Token · <b>ADMIN 권한 필요</b> (백오피스). 토큰 발급·검증은 <a href="#cat-auth">§03 인증 OAuth2</a>, 권한(RBAC) 매트릭스는 <a href="#permission">§12 권한·보안</a> 참조</td></tr>
+    <tr><td><code>Content-Type</code></td><td>O</td><td><code>application/json</code> (파일 업로드 카드는 <code>multipart/form-data</code>)</td></tr>
+    <tr><td><code>X-Request-Id</code></td><td>—</td><td>요청 상관관계(Correlation) 추적용 UUID. 미전송 시 BE 가 생성하여 응답 헤더로 반환</td></tr>
+  </tbody>
+  </table></div>
+<div class="sec"><div class="sec-title">Request Body</div>
+<pre><code class="language-json">{
+  "approvalId": 7821,
+  "decision":   "APPROVED | REJECTED",
+  "reason":     "(optional, REJECTED 시 권장)"
+}</code></pre></div>
+  </div>
+  <div class="api-tabpanel" role="tabpanel" id="api-31-panel-response" aria-labelledby="api-31-tab-response" data-tab-label="Response" hidden>
+<div class="sec"><div class="sec-title">Response 200</div>
+<pre><code class="language-json">{
+  "success": true,
+  "data":    {
+    "approvalId":     7821,
+    "documentId":     "uuid",
+    "approvalStatus": "APPROVED",
+    "approvedAt":     "...",
+    "approvedBy":     "reviewer01"
+  }
+}</code></pre></div>
+<div class="sec"><div class="sec-title">Response Fields</div>
+  <table class="map">
+  <thead><tr><th style="width:24%">필드</th><th style="width:18%">타입</th><th>비고</th></tr></thead>
+  <tbody>
+    <tr><td><code>data.approvalId</code></td><td>integer</td><td>결재 ID</td></tr>
+    <tr><td><code>data.documentId</code></td><td>string</td><td>UUID — 대상 문서</td></tr>
+    <tr><td><code>data.approvalStatus</code></td><td>string</td><td>Enum: <code>APPROVED</code> / <code>REJECTED</code></td></tr>
+    <tr><td><code>data.approvedAt</code></td><td>string</td><td>결재 처리 시각 · <code>yyyy-MM-dd HH:mm:ss</code></td></tr>
+    <tr><td><code>data.approvedBy</code></td><td>string</td><td>결재자 admin ID</td></tr>
+  </tbody>
+  </table></div>
+<div class="sec"><div class="sec-title">DB · 권한</div>
+  <div class="db-row"><span class="lbl">Write</span><span class="db-tag w">document_approval</span><span class="db-tag w">product_document</span><span class="db-tag w">audit_log</span></div>
+  <ul>
+    <li><code>document_approval</code> UPDATE (status, decided_by, decided_at, reason)</li>
+    <li><code>product_document</code> UPDATE (approval_status, approved_by, approved_at)</li>
+    <li><code>audit_log</code> INSERT (<code>DOC_APPROVE</code> / <code>DOC_REJECT</code>)</li>
+    <li>승인 시 AI BE 임베딩 큐에 작업 등록 (이후 <a href="#api-28">No.28</a> 콜백으로 진행 상태 갱신)</li>
+    <li>권한: <code>DOC_REVIEWER</code> · <code>SYSTEM_ADMIN</code></li>
+  </ul></div>
+<div class="sec"><div class="sec-title">Errors</div>
+  <ul><li><code>APPROVAL_NOT_FOUND</code> (404), <code>APPROVAL_ALREADY_DECIDED</code> (409)</li></ul></div>
+  </div>
+</div>
+
+</section>
+
+<!-- =================================================================== -->
+<section id="bo-perms">
+  <div class="section-head">
+    <span class="num">08</span>
+    <h2>백오피스 · 권한 관리</h2>
+    <span class="right">4 ENDPOINTS · RBAC · SETTINGS</span>
+  </div>
+
+<div class="api" id="api-32">
+<header>
+    <span class="no">No.32</span>
+    <span class="badge method GET">GET</span>
+    <code class="path">/api/counsel/bo/v1/get/admin/users</code>
+    <span class="badge admin">JWT+ADMIN</span>
+    <h3 class="api-title">사용자 조회 (일반 / 관리자 / 마스터)</h3>
+  </header>
+  <div class="api-tabs" role="tablist" aria-label="api-32 섹션">
+    <button class="api-tab" role="tab" id="api-32-tab-overview" aria-controls="api-32-panel-overview" aria-selected="true" tabindex="0">개요</button>
+    <button class="api-tab" role="tab" id="api-32-tab-request" aria-controls="api-32-panel-request" aria-selected="false" tabindex="-1">Request</button>
+    <button class="api-tab" role="tab" id="api-32-tab-response" aria-controls="api-32-panel-response" aria-selected="false" tabindex="-1">Response</button>
+  </div>
+  <div class="api-tabpanel" role="tabpanel" id="api-32-panel-overview" aria-labelledby="api-32-tab-overview" data-tab-label="개요">
+<p class="desc">백오피스 사용자 목록. 마스터(SYSTEM_ADMIN)만 전체 조회 가능, 일반 관리자는 자기 부서/팀 사용자만.</p>
+  </div>
+  <div class="api-tabpanel" role="tabpanel" id="api-32-panel-request" aria-labelledby="api-32-tab-request" data-tab-label="Request" hidden>
+<div class="sec"><div class="sec-title">Request Headers</div>
+  <table class="map">
+  <thead><tr><th style="width:22%">헤더</th><th style="width:14%">필수</th><th>설명</th></tr></thead>
+  <tbody>
+    <tr><td><code>Authorization</code></td><td>O</td><td><code>Bearer &lt;accessToken&gt;</code> — JWT Access Token · <b>ADMIN 권한 필요</b> (백오피스). 토큰 발급·검증은 <a href="#cat-auth">§03 인증 OAuth2</a>, 권한(RBAC) 매트릭스는 <a href="#permission">§12 권한·보안</a> 참조</td></tr>
+    <tr><td><code>X-Request-Id</code></td><td>—</td><td>요청 상관관계(Correlation) 추적용 UUID. 미전송 시 BE 가 생성하여 응답 헤더로 반환</td></tr>
+  </tbody>
+  </table></div>
+<div class="sec"><div class="sec-title">Query Parameters</div>
+<pre><code class="language-http">?roleCode=DOC_ADMIN&amp;keyword=홍길동&amp;page=0&amp;size=20</code></pre>
+  <table class="map">
+  <thead><tr><th style="width:20%">파라미터</th><th style="width:30%">타입 · 필수</th><th>설명</th></tr></thead>
+  <tbody>
+    <tr><td><code>roleCode</code></td><td>string · optional</td><td>권한 코드 필터 (예: <code>DOC_ADMIN</code>)</td></tr>
+    <tr><td><code>keyword</code></td><td>string · optional</td><td>이름/사번 부분 일치 검색</td></tr>
+    <tr><td><code>page</code></td><td>integer · optional · default <code>0</code></td><td>0-based 페이지 번호</td></tr>
+    <tr><td><code>size</code></td><td>integer · optional · default <code>20</code></td><td>페이지 크기</td></tr>
+  </tbody>
+  </table></div>
+  </div>
+  <div class="api-tabpanel" role="tabpanel" id="api-32-panel-response" aria-labelledby="api-32-tab-response" data-tab-label="Response" hidden>
+<div class="sec"><div class="sec-title">Response 200</div>
+<pre><code class="language-json">{
+  "success": true,
+  "data":    {
+    "items": [
+      {
+        "userId":      "FP001234",
+        "name":        "홍길동",
+        "roles":       [
+          "DOC_ADMIN"
+        ],
+        "lastLoginAt": "...",
+        "isActive":    true
+      }
+    ],
+    "total": 142,
+    "page":  1,
+    "limit": 20
+  }
+}</code></pre></div>
+<div class="sec"><div class="sec-title">Response Fields</div>
+  <table class="map">
+  <thead><tr><th style="width:24%">필드</th><th style="width:18%">타입</th><th>비고</th></tr></thead>
+  <tbody>
+    <tr><td><code>data.items[]</code></td><td>array&lt;object&gt;</td><td>사용자 배열</td></tr>
+    <tr><td><code>data.items[].userId</code></td><td>string</td><td>사용자 ID (FP ID 또는 admin 계정 ID)</td></tr>
+    <tr><td><code>data.items[].name</code></td><td>string</td><td>사용자 이름</td></tr>
+    <tr><td><code>data.items[].roles</code></td><td>array&lt;string&gt;</td><td>권한 코드 배열 (예: <code>["DOC_ADMIN"]</code>)</td></tr>
+    <tr><td><code>data.items[].lastLoginAt</code></td><td>string</td><td>마지막 로그인 시각 — <code>yyyy-MM-dd HH:mm:ss</code> (미로그인 시 <code>null</code>)</td></tr>
+    <tr><td><code>data.items[].isActive</code></td><td>boolean</td><td>활성 여부</td></tr>
+    <tr><td><code>data.total</code></td><td>integer</td><td>전체 사용자 수</td></tr>
+    <tr><td><code>data.page</code></td><td>integer</td><td>현재 페이지 (1-based)</td></tr>
+    <tr><td><code>data.limit</code></td><td>integer</td><td>페이지 크기</td></tr>
+  </tbody>
+  </table></div>
+<div class="sec"><div class="sec-title">DB · 권한</div>
+  <div class="db-row"><span class="lbl">Read</span><span class="db-tag r">admin_user</span><span class="db-tag r">admin_user_role</span><span class="db-tag r">admin_role</span></div>
+  <ul><li>권한: <code>SYSTEM_ADMIN</code> · <code>DOC_ADMIN</code>(범위 제한)</li></ul></div>
+  </div>
+</div>
+
+<div class="api" id="api-33">
+<header>
+    <span class="no">No.33</span>
+    <span class="badge method GET">GET</span>
+    <code class="path">/api/counsel/bo/v1/get/admin/roles</code>
+    <span class="badge admin">JWT+ADMIN</span>
+    <h3 class="api-title">권한 목록 (5종) + 권한별 매트릭스</h3>
+  </header>
+  <div class="api-tabs" role="tablist" aria-label="api-33 섹션">
+    <button class="api-tab" role="tab" id="api-33-tab-overview" aria-controls="api-33-panel-overview" aria-selected="true" tabindex="0">개요</button>
+    <button class="api-tab" role="tab" id="api-33-tab-request" aria-controls="api-33-panel-request" aria-selected="false" tabindex="-1">Request</button>
+    <button class="api-tab" role="tab" id="api-33-tab-response" aria-controls="api-33-panel-response" aria-selected="false" tabindex="-1">Response</button>
+  </div>
+  <div class="api-tabpanel" role="tabpanel" id="api-33-panel-overview" aria-labelledby="api-33-tab-overview" data-tab-label="개요">
+<p class="desc">시스템에 정의된 권한 5종(<code>SYSTEM_ADMIN</code> / <code>DOC_ADMIN</code> / <code>PROMPT_ADMIN</code> / <code>MONITOR_ADMIN</code> / <code>DOC_REVIEWER</code>) + 각 권한이 가지는 세부 permission 매트릭스.</p>
+  </div>
+  <div class="api-tabpanel" role="tabpanel" id="api-33-panel-request" aria-labelledby="api-33-tab-request" data-tab-label="Request" hidden>
+<div class="sec"><div class="sec-title">Request Headers</div>
+  <table class="map">
+  <thead><tr><th style="width:22%">헤더</th><th style="width:14%">필수</th><th>설명</th></tr></thead>
+  <tbody>
+    <tr><td><code>Authorization</code></td><td>O</td><td><code>Bearer &lt;accessToken&gt;</code> — JWT Access Token · <b>ADMIN 권한 필요</b> (백오피스). 토큰 발급·검증은 <a href="#cat-auth">§03 인증 OAuth2</a>, 권한(RBAC) 매트릭스는 <a href="#permission">§12 권한·보안</a> 참조</td></tr>
+    <tr><td><code>X-Request-Id</code></td><td>—</td><td>요청 상관관계(Correlation) 추적용 UUID. 미전송 시 BE 가 생성하여 응답 헤더로 반환</td></tr>
+  </tbody>
+  </table></div>
+<div class="sec"><div class="sec-title">Query Parameters</div><p class="note">요청 파라미터 없음 — 경로 고정 호출 (정의된 권한 5종 + 매트릭스 전체 반환).</p></div>
+  </div>
+  <div class="api-tabpanel" role="tabpanel" id="api-33-panel-response" aria-labelledby="api-33-tab-response" data-tab-label="Response" hidden>
+<div class="sec"><div class="sec-title">Response 200</div>
+<pre><code class="language-json">{
+  "success": true,
+  "data":    [
+    {
+      "roleCode":    "DOC_ADMIN",
+      "name":        "문서 관리자",
+      "permissions": [
+        "DOC_READ",
+        "DOC_WRITE",
+        "DOC_APPROVE_REQUEST"
+      ],
+      "userCount":   12
+    }
+  ]
+}</code></pre></div>
+<div class="sec"><div class="sec-title">Response Fields</div>
+  <table class="map">
+  <thead><tr><th style="width:24%">필드</th><th style="width:18%">타입</th><th>비고</th></tr></thead>
+  <tbody>
+    <tr><td><code>data[]</code></td><td>array&lt;object&gt;</td><td>권한 (role) 배열 — 5종</td></tr>
+    <tr><td><code>data[].roleCode</code></td><td>string</td><td>Enum: <code>SYSTEM_ADMIN</code> / <code>DOC_ADMIN</code> / <code>PROMPT_ADMIN</code> / <code>MONITOR_ADMIN</code> / <code>REVIEWER</code></td></tr>
+    <tr><td><code>data[].name</code></td><td>string</td><td>권한 한국어 이름 (예: "문서 관리자")</td></tr>
+    <tr><td><code>data[].permissions</code></td><td>array&lt;string&gt;</td><td>해당 권한이 보유한 permission 코드 배열</td></tr>
+    <tr><td><code>data[].userCount</code></td><td>integer</td><td>해당 권한이 할당된 사용자 수</td></tr>
+  </tbody>
+  </table></div>
+<div class="sec"><div class="sec-title">DB · 권한</div>
+  <div class="db-row"><span class="lbl">Read</span><span class="db-tag r">admin_role</span><span class="db-tag r">admin_permission</span><span class="db-tag r">admin_role_permission</span></div>
+  <ul><li>권한: <code>SYSTEM_ADMIN</code></li></ul></div>
+  </div>
+</div>
+
+<div class="api" id="api-34">
+<header>
+    <span class="no">No.34</span>
+    <span class="badge method GET">GET</span>
+    <code class="path">/api/counsel/bo/v1/get/admin/settings</code>
+    <span class="badge admin">JWT+ADMIN</span>
+    <h3 class="api-title">시스템 설정 조회</h3>
+  </header>
+  <div class="api-tabs" role="tablist" aria-label="api-34 섹션">
+    <button class="api-tab" role="tab" id="api-34-tab-overview" aria-controls="api-34-panel-overview" aria-selected="true" tabindex="0">개요</button>
+    <button class="api-tab" role="tab" id="api-34-tab-request" aria-controls="api-34-panel-request" aria-selected="false" tabindex="-1">Request</button>
+    <button class="api-tab" role="tab" id="api-34-tab-response" aria-controls="api-34-panel-response" aria-selected="false" tabindex="-1">Response</button>
+  </div>
+  <div class="api-tabpanel" role="tabpanel" id="api-34-panel-overview" aria-labelledby="api-34-tab-overview" data-tab-label="개요">
+<p class="desc">서비스 전체 설정값(retention 일수 · LLM timeout · 임베딩 batch 크기 등) 조회. 카테고리별 그룹화.</p>
+  </div>
+  <div class="api-tabpanel" role="tabpanel" id="api-34-panel-request" aria-labelledby="api-34-tab-request" data-tab-label="Request" hidden>
+<div class="sec"><div class="sec-title">Request Headers</div>
+  <table class="map">
+  <thead><tr><th style="width:22%">헤더</th><th style="width:14%">필수</th><th>설명</th></tr></thead>
+  <tbody>
+    <tr><td><code>Authorization</code></td><td>O</td><td><code>Bearer &lt;accessToken&gt;</code> — JWT Access Token · <b>ADMIN 권한 필요</b> (백오피스). 토큰 발급·검증은 <a href="#cat-auth">§03 인증 OAuth2</a>, 권한(RBAC) 매트릭스는 <a href="#permission">§12 권한·보안</a> 참조</td></tr>
+    <tr><td><code>X-Request-Id</code></td><td>—</td><td>요청 상관관계(Correlation) 추적용 UUID. 미전송 시 BE 가 생성하여 응답 헤더로 반환</td></tr>
+  </tbody>
+  </table></div>
+<div class="sec"><div class="sec-title">Query Parameters</div><p class="note">요청 파라미터 없음 — 경로 고정 호출 (전체 설정값을 카테고리별 그룹화하여 반환).</p></div>
+  </div>
+  <div class="api-tabpanel" role="tabpanel" id="api-34-panel-response" aria-labelledby="api-34-tab-response" data-tab-label="Response" hidden>
+<div class="sec"><div class="sec-title">Response 200</div>
+<pre><code class="language-json">{
+  "success": true,
+  "data":    [
+    {
+      "category": "RETENTION",
+      "settings": [
+        {
+          "key":       "CONVERSATION_RETENTION_DAYS",
+          "value":     "7",
+          "valueType": "INT",
+          "updatedAt": "...",
+          "updatedBy": "admin01"
+        }
+      ]
+    }
+  ]
+}</code></pre></div>
+<div class="sec"><div class="sec-title">Response Fields</div>
+  <table class="map">
+  <thead><tr><th style="width:24%">필드</th><th style="width:18%">타입</th><th>비고</th></tr></thead>
+  <tbody>
+    <tr><td><code>data[]</code></td><td>array&lt;object&gt;</td><td>카테고리별 설정 배열</td></tr>
+    <tr><td><code>data[].category</code></td><td>string</td><td>설정 카테고리 (예: <code>RETENTION</code>, <code>SECURITY</code>, <code>AI</code>)</td></tr>
+    <tr><td><code>data[].settings[]</code></td><td>array&lt;object&gt;</td><td>카테고리 내 설정 키 배열</td></tr>
+    <tr><td><code>data[].settings[].key</code></td><td>string</td><td>설정 키 (예: <code>CONVERSATION_RETENTION_DAYS</code>)</td></tr>
+    <tr><td><code>data[].settings[].value</code></td><td>string</td><td>설정 값 — 항상 문자열로 직렬화 (실제 타입은 <code>valueType</code> 참조)</td></tr>
+    <tr><td><code>data[].settings[].valueType</code></td><td>string</td><td>Enum: <code>STRING</code> / <code>INT</code> / <code>BOOL</code> / <code>JSON</code> — value 의 의미적 타입</td></tr>
+    <tr><td><code>data[].settings[].updatedAt</code></td><td>string</td><td>마지막 변경 시각 — <code>yyyy-MM-dd HH:mm:ss</code></td></tr>
+    <tr><td><code>data[].settings[].updatedBy</code></td><td>string</td><td>마지막 변경자 admin ID</td></tr>
+  </tbody>
+  </table></div>
+<div class="sec"><div class="sec-title">DB · 권한</div>
+  <div class="db-row"><span class="lbl">Read</span><span class="db-tag r">system_setting</span></div>
+  <ul><li>권한: <code>SYSTEM_ADMIN</code> · <code>MONITOR_ADMIN</code></li></ul></div>
+  </div>
+</div>
+
+<div class="api" id="api-35">
+<header>
+    <span class="no">No.35</span>
+    <span class="badge method POST">POST</span>
+    <code class="path">/api/counsel/bo/v1/post/admin/settings</code>
+    <span class="badge admin">JWT+ADMIN</span>
+    <h3 class="api-title">시스템 설정 등록 / 수정</h3>
+  </header>
+  <div class="api-tabs" role="tablist" aria-label="api-35 섹션">
+    <button class="api-tab" role="tab" id="api-35-tab-overview" aria-controls="api-35-panel-overview" aria-selected="true" tabindex="0">개요</button>
+    <button class="api-tab" role="tab" id="api-35-tab-request" aria-controls="api-35-panel-request" aria-selected="false" tabindex="-1">Request</button>
+    <button class="api-tab" role="tab" id="api-35-tab-response" aria-controls="api-35-panel-response" aria-selected="false" tabindex="-1">Response</button>
+  </div>
+  <div class="api-tabpanel" role="tabpanel" id="api-35-panel-overview" aria-labelledby="api-35-tab-overview" data-tab-label="개요">
+<p class="desc">설정 단건 또는 다건 갱신. <code>retention_policy</code> 같은 운영 핵심 키는 마스터(SYSTEM_ADMIN)만 변경.</p>
+  </div>
+  <div class="api-tabpanel" role="tabpanel" id="api-35-panel-request" aria-labelledby="api-35-tab-request" data-tab-label="Request" hidden>
+<div class="sec"><div class="sec-title">Request Headers</div>
+  <table class="map">
+  <thead><tr><th style="width:22%">헤더</th><th style="width:14%">필수</th><th>설명</th></tr></thead>
+  <tbody>
+    <tr><td><code>Authorization</code></td><td>O</td><td><code>Bearer &lt;accessToken&gt;</code> — JWT Access Token · <b>ADMIN 권한 필요</b> (백오피스). 토큰 발급·검증은 <a href="#cat-auth">§03 인증 OAuth2</a>, 권한(RBAC) 매트릭스는 <a href="#permission">§12 권한·보안</a> 참조</td></tr>
+    <tr><td><code>Content-Type</code></td><td>O</td><td><code>application/json</code> (파일 업로드 카드는 <code>multipart/form-data</code>)</td></tr>
+    <tr><td><code>X-Request-Id</code></td><td>—</td><td>요청 상관관계(Correlation) 추적용 UUID. 미전송 시 BE 가 생성하여 응답 헤더로 반환</td></tr>
+  </tbody>
+  </table></div>
+<div class="sec"><div class="sec-title">Request Body</div>
+<pre><code class="language-json">{
+  "updates": [
+    {
+      "key":          "CONVERSATION_RETENTION_DAYS",
+      "value":        "14",
+      "changeReason": "운영팀 요청 (정책 변경)"
+    }
+  ]
+}</code></pre></div>
+  </div>
+  <div class="api-tabpanel" role="tabpanel" id="api-35-panel-response" aria-labelledby="api-35-tab-response" data-tab-label="Response" hidden>
+<div class="sec"><div class="sec-title">Response 200</div>
+<pre><code class="language-json">{
+  "success": true,
+  "data":    {
+    "updated": [
+      {
+        "key":      "...",
+        "oldValue": "7",
+        "newValue": "14"
+      }
+    ]
+  }
+}</code></pre></div>
+<div class="sec"><div class="sec-title">Response Fields</div>
+  <table class="map">
+  <thead><tr><th style="width:24%">필드</th><th style="width:18%">타입</th><th>비고</th></tr></thead>
+  <tbody>
+    <tr><td><code>data.updated[]</code></td><td>array&lt;object&gt;</td><td>실제로 수정된 설정 키 배열</td></tr>
+    <tr><td><code>data.updated[].key</code></td><td>string</td><td>설정 키</td></tr>
+    <tr><td><code>data.updated[].oldValue</code></td><td>string</td><td>변경 전 값 (문자열 직렬화 — 의미적 타입은 §No.34 valueType 참조)</td></tr>
+    <tr><td><code>data.updated[].newValue</code></td><td>string</td><td>변경 후 값 (문자열 직렬화)</td></tr>
+  </tbody>
+  </table></div>
+<div class="sec"><div class="sec-title">DB · 권한</div>
+  <div class="db-row"><span class="lbl">Write</span><span class="db-tag w">system_setting</span><span class="db-tag w">audit_log</span></div>
+  <ul>
+    <li><code>system_setting</code> UPDATE (value, updated_by, updated_at)</li>
+    <li><code>audit_log</code> INSERT (<code>SETTING_UPDATE</code>, <code>oldValue/newValue</code>)</li>
+    <li>권한: <code>SYSTEM_ADMIN</code> (일부 키는 <code>MONITOR_ADMIN</code> 도 허용 — DB 스키마 §08 매트릭스)</li>
+  </ul></div>
+<div class="sec"><div class="sec-title">Errors</div>
+  <ul><li><code>SETTING_KEY_INVALID</code> (400), <code>SETTING_VALUE_INVALID</code> (400)</li></ul></div>
+  </div>
+</div>
+
+</section>
+
+<!-- =================================================================== -->
+<section id="bo-stats">
+  <div class="section-head">
+    <span class="num">09</span>
+    <h2>백오피스 · 통계</h2>
+    <span class="right">5 ENDPOINTS · USAGE · FEEDBACK · TOKEN</span>
+  </div>
+
+<div class="api" id="api-36">
+<header>
+    <span class="no">No.36</span>
+    <span class="badge method GET">GET</span>
+    <code class="path">/api/counsel/bo/v1/get/admin/stats/users</code>
+    <span class="badge admin">JWT+ADMIN</span>
+    <h3 class="api-title">서비스 사용자 통계 (DAU / MAU / 평균 사용 시간)</h3>
+  </header>
+  <div class="api-tabs" role="tablist" aria-label="api-36 섹션">
+    <button class="api-tab" role="tab" id="api-36-tab-overview" aria-controls="api-36-panel-overview" aria-selected="true" tabindex="0">개요</button>
+    <button class="api-tab" role="tab" id="api-36-tab-request" aria-controls="api-36-panel-request" aria-selected="false" tabindex="-1">Request</button>
+    <button class="api-tab" role="tab" id="api-36-tab-response" aria-controls="api-36-panel-response" aria-selected="false" tabindex="-1">Response</button>
+  </div>
+  <div class="api-tabpanel" role="tabpanel" id="api-36-panel-overview" aria-labelledby="api-36-tab-overview" data-tab-label="개요">
+<p class="desc">서비스 사용자 지표(DAU / MAU · 평균 사용 시간)를 기간별로 집계 조회한다 (백오피스 통계).</p>
+  </div>
+  <div class="api-tabpanel" role="tabpanel" id="api-36-panel-request" aria-labelledby="api-36-tab-request" data-tab-label="Request" hidden>
+<div class="sec"><div class="sec-title">Request Headers</div>
+  <table class="map">
+  <thead><tr><th style="width:22%">헤더</th><th style="width:14%">필수</th><th>설명</th></tr></thead>
+  <tbody>
+    <tr><td><code>Authorization</code></td><td>O</td><td><code>Bearer &lt;accessToken&gt;</code> — JWT Access Token · <b>ADMIN 권한 필요</b> (백오피스). 토큰 발급·검증은 <a href="#cat-auth">§03 인증 OAuth2</a>, 권한(RBAC) 매트릭스는 <a href="#permission">§12 권한·보안</a> 참조</td></tr>
+    <tr><td><code>X-Request-Id</code></td><td>—</td><td>요청 상관관계(Correlation) 추적용 UUID. 미전송 시 BE 가 생성하여 응답 헤더로 반환</td></tr>
+  </tbody>
+  </table></div>
+<div class="sec"><div class="sec-title">Query Parameters</div>
+<pre><code class="language-http">?from=2026-04-28&amp;to=2026-05-27</code></pre>
+  <table class="map">
+  <thead><tr><th style="width:20%">파라미터</th><th style="width:30%">타입 · 필수</th><th>설명</th></tr></thead>
+  <tbody>
+    <tr><td><code>from</code></td><td>string (yyyy-MM-dd) · optional</td><td>집계 시작일 (미지정 시 최근 30일 시작)</td></tr>
+    <tr><td><code>to</code></td><td>string (yyyy-MM-dd) · optional</td><td>집계 종료일 (미지정 시 오늘)</td></tr>
+  </tbody>
+  </table>
+  <p class="note">미지정 시 default 최근 30일.</p></div>
+  </div>
+  <div class="api-tabpanel" role="tabpanel" id="api-36-panel-response" aria-labelledby="api-36-tab-response" data-tab-label="Response" hidden>
+<div class="sec"><div class="sec-title">Response 200</div>
+<pre><code class="language-json">{
+  "success": true,
+  "data":    {
+    "dau":               842,
+    "mau":               12340,
+    "avgSessionMinutes": 18.4,
+    "byDate":            [
+      {
+        "date":     "2026-05-18",
+        "dau":      821,
+        "sessions": 1842
+      }
+    ]
+  }
+}</code></pre></div>
+<div class="sec"><div class="sec-title">Response Fields</div>
+  <table class="map">
+  <thead><tr><th style="width:24%">필드</th><th style="width:18%">타입</th><th>비고</th></tr></thead>
+  <tbody>
+    <tr><td><code>data.dau</code></td><td>integer</td><td>오늘 Daily Active Users</td></tr>
+    <tr><td><code>data.mau</code></td><td>integer</td><td>최근 30일 Monthly Active Users</td></tr>
+    <tr><td><code>data.avgSessionMinutes</code></td><td>number</td><td>평균 세션 시간 (분 · 소수점)</td></tr>
+    <tr><td><code>data.byDate[]</code></td><td>array&lt;object&gt;</td><td>일자별 통계 배열</td></tr>
+    <tr><td><code>data.byDate[].date</code></td><td>string</td><td>일자 · <code>yyyy-MM-dd</code></td></tr>
+    <tr><td><code>data.byDate[].dau</code></td><td>integer</td><td>해당 일 DAU</td></tr>
+    <tr><td><code>data.byDate[].sessions</code></td><td>integer</td><td>해당 일 총 세션 수</td></tr>
+  </tbody>
+  </table></div>
+<div class="sec"><div class="sec-title">DB · 권한</div>
+  <div class="db-row"><span class="lbl">Read</span><span class="db-tag r">usage_user_stats</span></div>
+  <ul><li>권한: <code>MONITOR_ADMIN</code> · <code>SYSTEM_ADMIN</code></li>
+  <li><code>usage_user_stats</code> 는 일배치(별도)로 미리 집계된 테이블 — 실시간 쿼리 부담 회피</li></ul></div>
+  </div>
+</div>
+
+<div class="api" id="api-37">
+<header>
+    <span class="no">No.37</span>
+    <span class="badge method GET">GET</span>
+    <code class="path">/api/counsel/bo/v1/get/admin/stats/queries</code>
+    <span class="badge admin">JWT+ADMIN</span>
+    <h3 class="api-title">서비스 질의 통계 (카테고리별 · 되묻기율 · 응답시간)</h3>
+  </header>
+  <div class="api-tabs" role="tablist" aria-label="api-37 섹션">
+    <button class="api-tab" role="tab" id="api-37-tab-overview" aria-controls="api-37-panel-overview" aria-selected="true" tabindex="0">개요</button>
+    <button class="api-tab" role="tab" id="api-37-tab-request" aria-controls="api-37-panel-request" aria-selected="false" tabindex="-1">Request</button>
+    <button class="api-tab" role="tab" id="api-37-tab-response" aria-controls="api-37-panel-response" aria-selected="false" tabindex="-1">Response</button>
+  </div>
+  <div class="api-tabpanel" role="tabpanel" id="api-37-panel-overview" aria-labelledby="api-37-tab-overview" data-tab-label="개요">
+<p class="desc">질의 지표(카테고리별 질의 수 · 되묻기율 · 평균 응답시간)를 기간별로 집계 조회한다.</p>
+  </div>
+  <div class="api-tabpanel" role="tabpanel" id="api-37-panel-request" aria-labelledby="api-37-tab-request" data-tab-label="Request" hidden>
+<div class="sec"><div class="sec-title">Request Headers</div>
+  <table class="map">
+  <thead><tr><th style="width:22%">헤더</th><th style="width:14%">필수</th><th>설명</th></tr></thead>
+  <tbody>
+    <tr><td><code>Authorization</code></td><td>O</td><td><code>Bearer &lt;accessToken&gt;</code> — JWT Access Token · <b>ADMIN 권한 필요</b> (백오피스). 토큰 발급·검증은 <a href="#cat-auth">§03 인증 OAuth2</a>, 권한(RBAC) 매트릭스는 <a href="#permission">§12 권한·보안</a> 참조</td></tr>
+    <tr><td><code>X-Request-Id</code></td><td>—</td><td>요청 상관관계(Correlation) 추적용 UUID. 미전송 시 BE 가 생성하여 응답 헤더로 반환</td></tr>
+  </tbody>
+  </table></div>
+<div class="sec"><div class="sec-title">Query Parameters</div>
+<pre><code class="language-http">?from=2026-04-28&amp;to=2026-05-27</code></pre>
+  <table class="map">
+  <thead><tr><th style="width:20%">파라미터</th><th style="width:30%">타입 · 필수</th><th>설명</th></tr></thead>
+  <tbody>
+    <tr><td><code>from</code></td><td>string (yyyy-MM-dd) · optional</td><td>집계 시작일 (미지정 시 최근 30일 시작) — 질의 통계 기간 (개요 "기간별 집계")</td></tr>
+    <tr><td><code>to</code></td><td>string (yyyy-MM-dd) · optional</td><td>집계 종료일 (미지정 시 오늘)</td></tr>
+  </tbody>
+  </table>
+  <p class="note">미지정 시 default 최근 30일 (No.36 사용자 통계와 동일 기간 파라미터 규약).</p></div>
+  </div>
+  <div class="api-tabpanel" role="tabpanel" id="api-37-panel-response" aria-labelledby="api-37-tab-response" data-tab-label="Response" hidden>
+<div class="sec"><div class="sec-title">Response 200</div>
+<pre><code class="language-json">{
+  "success": true,
+  "data":    {
+    "totalQueries":      42312,
+    "byCategory":        [
+      {
+        "category":       "보유고객",
+        "count":          12011,
+        "rephrasingRate": 0.08
+      }
+    ],
+    "avgResponseTimeMs": 2840,
+    "p95ResponseTimeMs": 4520
+  }
+}</code></pre></div>
+<div class="sec"><div class="sec-title">Response Fields</div>
+  <table class="map">
+  <thead><tr><th style="width:24%">필드</th><th style="width:18%">타입</th><th>비고</th></tr></thead>
+  <tbody>
+    <tr><td><code>data.totalQueries</code></td><td>integer</td><td>집계 기간 내 총 질의 수</td></tr>
+    <tr><td><code>data.byCategory[]</code></td><td>array&lt;object&gt;</td><td>카테고리별 통계 배열</td></tr>
+    <tr><td><code>data.byCategory[].category</code></td><td>string</td><td>카테고리명 (예: "보유고객")</td></tr>
+    <tr><td><code>data.byCategory[].count</code></td><td>integer</td><td>해당 카테고리 질의 수</td></tr>
+    <tr><td><code>data.byCategory[].rephrasingRate</code></td><td>number</td><td>되묻기율 (0~1 · 소수점) — clarification 발생 비율</td></tr>
+    <tr><td><code>data.avgResponseTimeMs</code></td><td>integer</td><td>평균 응답 시간 (ms)</td></tr>
+    <tr><td><code>data.p95ResponseTimeMs</code></td><td>integer</td><td>P95 응답 시간 (ms)</td></tr>
+  </tbody>
+  </table></div>
+<div class="sec"><div class="sec-title">DB · 권한</div>
+  <div class="db-row"><span class="lbl">Read</span><span class="db-tag r">usage_query_stats</span></div>
+  <ul><li>권한: <code>MONITOR_ADMIN</code> · <code>SYSTEM_ADMIN</code></li></ul></div>
+  </div>
+</div>
+
+<div class="api" id="api-38">
+<header>
+    <span class="no">No.38</span>
+    <span class="badge method GET">GET</span>
+    <code class="path">/api/counsel/bo/v1/get/admin/stats/feedback</code>
+    <span class="badge admin">JWT+ADMIN</span>
+    <h3 class="api-title">피드백 집계 + 최근 7일 5건</h3>
+  </header>
+  <div class="api-tabs" role="tablist" aria-label="api-38 섹션">
+    <button class="api-tab" role="tab" id="api-38-tab-overview" aria-controls="api-38-panel-overview" aria-selected="true" tabindex="0">개요</button>
+    <button class="api-tab" role="tab" id="api-38-tab-request" aria-controls="api-38-panel-request" aria-selected="false" tabindex="-1">Request</button>
+    <button class="api-tab" role="tab" id="api-38-tab-response" aria-controls="api-38-panel-response" aria-selected="false" tabindex="-1">Response</button>
+  </div>
+  <div class="api-tabpanel" role="tabpanel" id="api-38-panel-overview" aria-labelledby="api-38-tab-overview" data-tab-label="개요">
+<p class="desc">좋아요/싫어요 피드백 집계와 최근 7일 피드백 5건을 조회한다 (백오피스 통계).</p>
+  </div>
+  <div class="api-tabpanel" role="tabpanel" id="api-38-panel-request" aria-labelledby="api-38-tab-request" data-tab-label="Request" hidden>
+<div class="sec"><div class="sec-title">Request Headers</div>
+  <table class="map">
+  <thead><tr><th style="width:22%">헤더</th><th style="width:14%">필수</th><th>설명</th></tr></thead>
+  <tbody>
+    <tr><td><code>Authorization</code></td><td>O</td><td><code>Bearer &lt;accessToken&gt;</code> — JWT Access Token · <b>ADMIN 권한 필요</b> (백오피스). 토큰 발급·검증은 <a href="#cat-auth">§03 인증 OAuth2</a>, 권한(RBAC) 매트릭스는 <a href="#permission">§12 권한·보안</a> 참조</td></tr>
+    <tr><td><code>X-Request-Id</code></td><td>—</td><td>요청 상관관계(Correlation) 추적용 UUID. 미전송 시 BE 가 생성하여 응답 헤더로 반환</td></tr>
+  </tbody>
+  </table></div>
+<div class="sec"><div class="sec-title">Query Parameters</div>
+<pre><code class="language-http">?from=2026-04-28&amp;to=2026-05-27</code></pre>
+  <table class="map">
+  <thead><tr><th style="width:20%">파라미터</th><th style="width:30%">타입 · 필수</th><th>설명</th></tr></thead>
+  <tbody>
+    <tr><td><code>from</code></td><td>string (yyyy-MM-dd) · optional</td><td>피드백 집계 시작일 (미지정 시 최근 30일 시작)</td></tr>
+    <tr><td><code>to</code></td><td>string (yyyy-MM-dd) · optional</td><td>피드백 집계 종료일 (미지정 시 오늘)</td></tr>
+  </tbody>
+  </table>
+  <p class="note">미지정 시 default 최근 30일 (No.36 / No.37 통계와 동일 기간 파라미터 규약). <code>recent</code> 는 기간과 무관하게 최근 7일 NEGATIVE 5건.</p></div>
+  </div>
+  <div class="api-tabpanel" role="tabpanel" id="api-38-panel-response" aria-labelledby="api-38-tab-response" data-tab-label="Response" hidden>
+<div class="sec"><div class="sec-title">Response 200</div>
+<pre><code class="language-json">{
+  "success": true,
+  "data":    {
+    "positive": 3120,
+    "negative": 218,
+    "ratio":    0.93,
+    "recent":   [
+      {
+        "feedbackId": 124,
+        "messageId":  "uuid",
+        "rating":     "NEGATIVE",
+        "comment":    "...",
+        "createdAt":  "..."
+      }
+    ]
+  }
+}</code></pre></div>
+<div class="sec"><div class="sec-title">Response Fields</div>
+  <table class="map">
+  <thead><tr><th style="width:24%">필드</th><th style="width:18%">타입</th><th>비고</th></tr></thead>
+  <tbody>
+    <tr><td><code>data.positive</code></td><td>integer</td><td>좋아요 누적 건수</td></tr>
+    <tr><td><code>data.negative</code></td><td>integer</td><td>싫어요 누적 건수</td></tr>
+    <tr><td><code>data.ratio</code></td><td>number</td><td>긍정 비율 (0~1 · 소수점) — <code>positive / (positive + negative)</code></td></tr>
+    <tr><td><code>data.recent[]</code></td><td>array&lt;object&gt;</td><td>최근 7일 피드백 5건 (최신순)</td></tr>
+    <tr><td><code>data.recent[].feedbackId</code></td><td>integer</td><td>피드백 ID</td></tr>
+    <tr><td><code>data.recent[].messageId</code></td><td>string</td><td>UUID — 대상 메시지 식별자</td></tr>
+    <tr><td><code>data.recent[].rating</code></td><td>string</td><td>Enum: <code>POSITIVE</code> / <code>NEGATIVE</code></td></tr>
+    <tr><td><code>data.recent[].comment</code></td><td>string</td><td>자유 의견 (마스킹 적용 · 없을 시 <code>null</code>)</td></tr>
+    <tr><td><code>data.recent[].createdAt</code></td><td>string</td><td>피드백 시각 — <code>yyyy-MM-dd HH:mm:ss</code></td></tr>
+  </tbody>
+  </table></div>
+<div class="sec"><div class="sec-title">DB · 권한</div>
+  <div class="db-row"><span class="lbl">Read</span><span class="db-tag r">usage_feedback_summary</span><span class="db-tag r">counsel_message_feedback</span></div>
+  <ul><li>권한: <code>MONITOR_ADMIN</code> · <code>DOC_ADMIN</code> · <code>SYSTEM_ADMIN</code></li>
+  <li><code>recent</code> 는 최근 7일 NEGATIVE 5건 (실시간 쿼리)</li></ul></div>
+  </div>
+</div>
+
+<div class="api" id="api-39">
+<header>
+    <span class="no">No.39</span>
+    <span class="badge method GET">GET</span>
+    <code class="path">/api/counsel/bo/v1/get/admin/feedback</code>
+    <span class="badge admin">JWT+ADMIN</span>
+    <h3 class="api-title">피드백 상세 조회 (낱건)</h3>
+  </header>
+  <div class="api-tabs" role="tablist" aria-label="api-39 섹션">
+    <button class="api-tab" role="tab" id="api-39-tab-overview" aria-controls="api-39-panel-overview" aria-selected="true" tabindex="0">개요</button>
+    <button class="api-tab" role="tab" id="api-39-tab-request" aria-controls="api-39-panel-request" aria-selected="false" tabindex="-1">Request</button>
+    <button class="api-tab" role="tab" id="api-39-tab-response" aria-controls="api-39-panel-response" aria-selected="false" tabindex="-1">Response</button>
+  </div>
+  <div class="api-tabpanel" role="tabpanel" id="api-39-panel-overview" aria-labelledby="api-39-tab-overview" data-tab-label="개요">
+<p class="desc">개별 피드백(낱건)의 상세 내용을 조회한다.</p>
+  </div>
+  <div class="api-tabpanel" role="tabpanel" id="api-39-panel-request" aria-labelledby="api-39-tab-request" data-tab-label="Request" hidden>
+<div class="sec"><div class="sec-title">Request Headers</div>
+  <table class="map">
+  <thead><tr><th style="width:22%">헤더</th><th style="width:14%">필수</th><th>설명</th></tr></thead>
+  <tbody>
+    <tr><td><code>Authorization</code></td><td>O</td><td><code>Bearer &lt;accessToken&gt;</code> — JWT Access Token · <b>ADMIN 권한 필요</b> (백오피스). 토큰 발급·검증은 <a href="#cat-auth">§03 인증 OAuth2</a>, 권한(RBAC) 매트릭스는 <a href="#permission">§12 권한·보안</a> 참조</td></tr>
+    <tr><td><code>X-Request-Id</code></td><td>—</td><td>요청 상관관계(Correlation) 추적용 UUID. 미전송 시 BE 가 생성하여 응답 헤더로 반환</td></tr>
+  </tbody>
+  </table></div>
+<div class="sec"><div class="sec-title">Query Parameters</div>
+<pre><code class="language-http">?feedbackId=124</code></pre>
+  <table class="map">
+  <thead><tr><th style="width:22%">파라미터</th><th style="width:26%">타입 · 필수</th><th>설명</th></tr></thead>
+  <tbody>
+    <tr><td><code>feedbackId</code></td><td>integer · 조건부 필수</td><td>피드백 낱건 식별자. <code>messageId</code> 와 둘 중 하나 필수</td></tr>
+    <tr><td><code>messageId</code></td><td>string (UUID) · 조건부 필수</td><td>대상 메시지 식별자로 피드백 조회. <code>feedbackId</code> 와 둘 중 하나 필수</td></tr>
+  </tbody>
+  </table>
+  <p class="note"><code>feedbackId</code> 와 <code>messageId</code> 중 정확히 하나 지정 (둘 다 미지정 시 <code>VALIDATION_FAILED</code>).</p></div>
+  </div>
+  <div class="api-tabpanel" role="tabpanel" id="api-39-panel-response" aria-labelledby="api-39-tab-response" data-tab-label="Response" hidden>
+<div class="sec"><div class="sec-title">Response 200</div>
+<pre><code class="language-json">{
+  "success": true,
+  "data":    {
+    "feedbackId":     124,
+    "messageId":      "uuid",
+    "conversationId": "uuid",
+    "userId":         "FP001234",
+    "rating":         "NEGATIVE",
+    "comment":        "...",
+    "messageContent": "(원본 답변 — Privacy 마스킹 적용)",
+    "userQuery":      "(원본 질문)",
+    "createdAt":      "..."
+  }
+}</code></pre></div>
+<div class="sec"><div class="sec-title">Response Fields</div>
+  <table class="map">
+  <thead><tr><th style="width:24%">필드</th><th style="width:18%">타입</th><th>비고</th></tr></thead>
+  <tbody>
+    <tr><td><code>data.feedbackId</code></td><td>integer</td><td>피드백 ID</td></tr>
+    <tr><td><code>data.messageId</code></td><td>string</td><td>UUID — 대상 메시지 식별자</td></tr>
+    <tr><td><code>data.conversationId</code></td><td>string</td><td>UUID — 메시지가 속한 대화</td></tr>
+    <tr><td><code>data.userId</code></td><td>string</td><td>피드백 작성 FP ID</td></tr>
+    <tr><td><code>data.rating</code></td><td>string</td><td>Enum: <code>POSITIVE</code> / <code>NEGATIVE</code></td></tr>
+    <tr><td><code>data.comment</code></td><td>string</td><td>자유 의견 (마스킹 적용 · 없을 시 <code>null</code>)</td></tr>
+    <tr><td><code>data.messageContent</code></td><td>string</td><td>대상 메시지의 답변 본문 (마스킹 적용)</td></tr>
+    <tr><td><code>data.userQuery</code></td><td>string</td><td>대상 메시지의 직전 사용자 질문 (마스킹 적용)</td></tr>
+    <tr><td><code>data.createdAt</code></td><td>string</td><td>피드백 시각 — <code>yyyy-MM-dd HH:mm:ss</code></td></tr>
+  </tbody>
+  </table></div>
+<div class="sec"><div class="sec-title">DB · 권한</div>
+  <div class="db-row"><span class="lbl">Read</span><span class="db-tag r">counsel_message_feedback</span><span class="db-tag r">counsel_message</span></div>
+  <ul><li>권한: <code>MONITOR_ADMIN</code> · <code>DOC_ADMIN</code> · <code>SYSTEM_ADMIN</code></li>
+  <li>대화 본문 조회는 Privacy 마스킹 정책 적용 (PII)</li></ul></div>
+  </div>
+</div>
+
+<div class="api" id="api-40">
+<header>
+    <span class="no">No.40</span>
+    <span class="badge method GET">GET</span>
+    <code class="path">/api/counsel/bo/v1/get/admin/stats/tokens</code>
+    <span class="badge admin">JWT+ADMIN</span>
+    <h3 class="api-title">토큰 사용량 (월/일 누적 · 평균 비용 · 예산)</h3>
+  </header>
+  <div class="api-tabs" role="tablist" aria-label="api-40 섹션">
+    <button class="api-tab" role="tab" id="api-40-tab-overview" aria-controls="api-40-panel-overview" aria-selected="true" tabindex="0">개요</button>
+    <button class="api-tab" role="tab" id="api-40-tab-request" aria-controls="api-40-panel-request" aria-selected="false" tabindex="-1">Request</button>
+    <button class="api-tab" role="tab" id="api-40-tab-response" aria-controls="api-40-panel-response" aria-selected="false" tabindex="-1">Response</button>
+  </div>
+  <div class="api-tabpanel" role="tabpanel" id="api-40-panel-overview" aria-labelledby="api-40-tab-overview" data-tab-label="개요">
+<p class="desc">LLM 토큰 사용량(월/일 누적) · 평균 비용 · 예산 대비 사용률을 조회한다 (백오피스 통계).</p>
+  </div>
+  <div class="api-tabpanel" role="tabpanel" id="api-40-panel-request" aria-labelledby="api-40-tab-request" data-tab-label="Request" hidden>
+<div class="sec"><div class="sec-title">Request Headers</div>
+  <table class="map">
+  <thead><tr><th style="width:22%">헤더</th><th style="width:14%">필수</th><th>설명</th></tr></thead>
+  <tbody>
+    <tr><td><code>Authorization</code></td><td>O</td><td><code>Bearer &lt;accessToken&gt;</code> — JWT Access Token · <b>ADMIN 권한 필요</b> (백오피스). 토큰 발급·검증은 <a href="#cat-auth">§03 인증 OAuth2</a>, 권한(RBAC) 매트릭스는 <a href="#permission">§12 권한·보안</a> 참조</td></tr>
+    <tr><td><code>X-Request-Id</code></td><td>—</td><td>요청 상관관계(Correlation) 추적용 UUID. 미전송 시 BE 가 생성하여 응답 헤더로 반환</td></tr>
+  </tbody>
+  </table></div>
+<div class="sec"><div class="sec-title">Query Parameters</div><p class="note">요청 파라미터 없음 — 경로 고정 호출 (이번 달 / 당일 기준 누적 사용량 · 예산 현황 스냅샷 반환).</p></div>
+  </div>
+  <div class="api-tabpanel" role="tabpanel" id="api-40-panel-response" aria-labelledby="api-40-tab-response" data-tab-label="Response" hidden>
+<div class="sec"><div class="sec-title">Response 200</div>
+<pre><code class="language-json">{
+  "success": true,
+  "data":    {
+    "monthlyTotalTokens": 482310000,
+    "monthlyCostUsd":     1284.5,
+    "dailyAvgTokens":     16077000,
+    "dailyAvgCostUsd":    42.81,
+    "budget":             {
+      "monthlyLimitUsd": 2000,
+      "remainingUsd":    715.5,
+      "alertThreshold":  0.85
+    }
+  }
+}</code></pre></div>
+<div class="sec"><div class="sec-title">Response Fields</div>
+  <table class="map">
+  <thead><tr><th style="width:24%">필드</th><th style="width:18%">타입</th><th>비고</th></tr></thead>
+  <tbody>
+    <tr><td><code>data.monthlyTotalTokens</code></td><td>integer</td><td>이번 달 누적 토큰 사용량 (input + output)</td></tr>
+    <tr><td><code>data.monthlyCostUsd</code></td><td>number</td><td>이번 달 누적 비용 (USD · 소수점)</td></tr>
+    <tr><td><code>data.dailyAvgTokens</code></td><td>integer</td><td>일평균 토큰 사용량 (이번 달 기준)</td></tr>
+    <tr><td><code>data.dailyAvgCostUsd</code></td><td>number</td><td>일평균 비용 (USD · 소수점)</td></tr>
+    <tr><td><code>data.budget</code></td><td>object</td><td>예산 정보 (아래 sub-field)</td></tr>
+    <tr><td><code>data.budget.monthlyLimitUsd</code></td><td>integer</td><td>월 예산 한도 (USD)</td></tr>
+    <tr><td><code>data.budget.remainingUsd</code></td><td>number</td><td>잔여 예산 (USD · 소수점)</td></tr>
+    <tr><td><code>data.budget.alertThreshold</code></td><td>number</td><td>경보 임계값 (0~1 비율 · 예: 0.85)</td></tr>
+  </tbody>
+  </table></div>
+<div class="sec"><div class="sec-title">DB · 권한</div>
+  <div class="db-row"><span class="lbl">Read</span><span class="db-tag r">usage_token_stats</span><span class="db-tag r">usage_token_budget</span></div>
+  <ul><li>권한: <code>MONITOR_ADMIN</code> · <code>SYSTEM_ADMIN</code></li>
+  <li>예산 임계치 초과 시 별도 알림 (운영팀 슬랙) — 본 API 와 분리</li></ul></div>
+  </div>
+</div>
+
+</section>
+
+<!-- =================================================================== -->
+<section id="bo-prompts">
+  <div class="section-head">
+    <span class="num">10</span>
+    <h2>백오피스 · 프롬프트</h2>
+    <span class="right">2 ENDPOINTS · TEMPLATE · AI BE SYNC</span>
+  </div>
+
+<div class="api" id="api-41">
+<header>
+    <span class="no">No.41</span>
+    <span class="badge method GET">GET</span>
+    <code class="path">/api/counsel/bo/v1/get/admin/prompts/types</code>
+    <span class="badge admin">JWT+ADMIN</span>
+    <h3 class="api-title">프롬프트 유형 조회 (active 버전 포함)</h3>
+  </header>
+  <div class="api-tabs" role="tablist" aria-label="api-41 섹션">
+    <button class="api-tab" role="tab" id="api-41-tab-overview" aria-controls="api-41-panel-overview" aria-selected="true" tabindex="0">개요</button>
+    <button class="api-tab" role="tab" id="api-41-tab-request" aria-controls="api-41-panel-request" aria-selected="false" tabindex="-1">Request</button>
+    <button class="api-tab" role="tab" id="api-41-tab-response" aria-controls="api-41-panel-response" aria-selected="false" tabindex="-1">Response</button>
+  </div>
+  <div class="api-tabpanel" role="tabpanel" id="api-41-panel-overview" aria-labelledby="api-41-tab-overview" data-tab-label="개요">
+<p class="desc">시스템에 정의된 프롬프트 유형 목록과 각 유형의 현재 ACTIVE 버전 본문을 함께 반환.</p>
+  </div>
+  <div class="api-tabpanel" role="tabpanel" id="api-41-panel-request" aria-labelledby="api-41-tab-request" data-tab-label="Request" hidden>
+<div class="sec"><div class="sec-title">Request Headers</div>
+  <table class="map">
+  <thead><tr><th style="width:22%">헤더</th><th style="width:14%">필수</th><th>설명</th></tr></thead>
+  <tbody>
+    <tr><td><code>Authorization</code></td><td>O</td><td><code>Bearer &lt;accessToken&gt;</code> — JWT Access Token · <b>ADMIN 권한 필요</b> (백오피스). 토큰 발급·검증은 <a href="#cat-auth">§03 인증 OAuth2</a>, 권한(RBAC) 매트릭스는 <a href="#permission">§12 권한·보안</a> 참조</td></tr>
+    <tr><td><code>X-Request-Id</code></td><td>—</td><td>요청 상관관계(Correlation) 추적용 UUID. 미전송 시 BE 가 생성하여 응답 헤더로 반환</td></tr>
+  </tbody>
+  </table></div>
+<div class="sec"><div class="sec-title">Query Parameters</div><p class="note">요청 파라미터 없음 — 경로 고정 호출 (정의된 프롬프트 유형 전체 + 각 유형의 ACTIVE 버전 본문 반환).</p></div>
+  </div>
+  <div class="api-tabpanel" role="tabpanel" id="api-41-panel-response" aria-labelledby="api-41-tab-response" data-tab-label="Response" hidden>
+<div class="sec"><div class="sec-title">Response 200</div>
+<pre><code class="language-json">{
+  "success": true,
+  "data":    [
+    {
+      "typeCode":     "SYSTEM_PROMPT",
+      "name":         "기본 시스템 프롬프트",
+      "active":       {
+        "templateId":   124,
+        "version":      12,
+        "body":         "...",
+        "aiSyncStatus": "SUCCESS",
+        "aiSyncedAt":   "..."
+      },
+      "historyCount": 12
+    }
+  ]
+}</code></pre></div>
+<div class="sec"><div class="sec-title">Response Fields</div>
+  <table class="map">
+  <thead><tr><th style="width:24%">필드</th><th style="width:18%">타입</th><th>비고</th></tr></thead>
+  <tbody>
+    <tr><td><code>data[]</code></td><td>array&lt;object&gt;</td><td>프롬프트 유형 배열</td></tr>
+    <tr><td><code>data[].typeCode</code></td><td>string</td><td>프롬프트 유형 코드 (예: <code>SYSTEM_PROMPT</code>)</td></tr>
+    <tr><td><code>data[].name</code></td><td>string</td><td>유형 한국어 이름</td></tr>
+    <tr><td><code>data[].active</code></td><td>object</td><td>현재 활성 버전 정보 (없을 시 <code>null</code>)</td></tr>
+    <tr><td><code>data[].active.templateId</code></td><td>integer</td><td>템플릿 ID</td></tr>
+    <tr><td><code>data[].active.version</code></td><td>integer</td><td>버전 번호</td></tr>
+    <tr><td><code>data[].active.body</code></td><td>string</td><td>프롬프트 본문</td></tr>
+    <tr><td><code>data[].active.aiSyncStatus</code></td><td>string</td><td>Enum: <code>PENDING</code> / <code>SUCCESS</code> / <code>FAILED</code> — AI BE 동기화 상태</td></tr>
+    <tr><td><code>data[].active.aiSyncedAt</code></td><td>string</td><td>AI BE 동기화 완료 시각 — <code>yyyy-MM-dd HH:mm:ss</code></td></tr>
+    <tr><td><code>data[].historyCount</code></td><td>integer</td><td>본 유형의 전체 버전 수 (이력 포함)</td></tr>
+  </tbody>
+  </table></div>
+<div class="sec"><div class="sec-title">DB · 권한</div>
+  <div class="db-row"><span class="lbl">Read</span><span class="db-tag r">prompt_type</span><span class="db-tag r">prompt_template</span></div>
+  <ul><li>권한: <code>PROMPT_ADMIN</code> · <code>SYSTEM_ADMIN</code></li></ul></div>
+  </div>
+</div>
+
+<div class="api" id="api-42">
+<header>
+    <span class="no">No.42</span>
+    <span class="badge method POST">POST</span>
+    <code class="path">/api/counsel/bo/v1/post/admin/prompts</code>
+    <span class="badge admin">JWT+ADMIN</span>
+    <span class="badge" style="background:#fef2ec;color:#c4471c;border-color:#c4471c">AI BE OUTBOUND</span>
+    <h3 class="api-title">프롬프트 유형별 등록 / 수정 (versioning + AI BE 동기화 · v0.20)</h3>
+  </header>
+  <div class="api-tabs" role="tablist" aria-label="api-42 섹션">
+    <button class="api-tab" role="tab" id="api-42-tab-overview" aria-controls="api-42-panel-overview" aria-selected="true" tabindex="0">개요</button>
+    <button class="api-tab" role="tab" id="api-42-tab-request" aria-controls="api-42-panel-request" aria-selected="false" tabindex="-1">Request</button>
+    <button class="api-tab" role="tab" id="api-42-tab-response" aria-controls="api-42-panel-response" aria-selected="false" tabindex="-1">Response</button>
+  </div>
+  <div class="api-tabpanel" role="tabpanel" id="api-42-panel-overview" aria-labelledby="api-42-tab-overview" data-tab-label="개요">
+<p class="desc"><strong>v0.20 변경</strong> — DB 적재 후 <b>AI BE 프롬프트 업데이트 API outbound</b> 호출로 새 버전 push. 실패 시 <code>ai_sync_status='FAILED'</code> + <code>audit_log</code> <code>PROMPT_SYNC_FAILED</code> 적재 후 운영자 알림 (DB 적재는 유지, AI BE 측 불일치 잔존 — 운영팀 수동 복구).</p>
+<div class="flow"><span class="flow-label">Flow · 시퀀스 (DB 적재 + AI BE outbound 동기화)</span>
+<svg viewBox="0 0 820 320" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="No.42 프롬프트 등록 + AI BE outbound 시퀀스">
+  <defs>
+    <marker id="npA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#c4471c"/></marker>
+    <marker id="npB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#1e4d7b"/></marker>
+    <marker id="npP" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#6b3a8e"/></marker>
+  </defs>
+  <rect x="20" y="10" width="170" height="46" rx="3" fill="#fee2e2" stroke="#b91c1c" stroke-width="1.5"/>
+  <text x="105" y="28" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9" letter-spacing="0.1em" fill="#b91c1c">CLIENT · ADMIN</text>
+  <text x="105" y="46" text-anchor="middle" font-family="Pretendard, sans-serif" font-size="13" font-weight="700">Admin BO</text>
+  <rect x="220" y="10" width="170" height="46" rx="3" fill="#1a1a1a" stroke="#1a1a1a" stroke-width="1.5"/>
+  <text x="305" y="28" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9" letter-spacing="0.1em" fill="#c9c5b8">NAB · BO</text>
+  <text x="305" y="46" text-anchor="middle" font-family="Pretendard, sans-serif" font-size="13" font-weight="700" fill="#ffffff">상담AI BE</text>
+  <rect x="420" y="10" width="170" height="46" rx="3" fill="#1a1a1a" stroke="#1a1a1a" stroke-width="1.5"/>
+  <text x="505" y="28" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9" letter-spacing="0.1em" fill="#c9c5b8">NAB · STORAGE</text>
+  <text x="505" y="46" text-anchor="middle" font-family="Pretendard, sans-serif" font-size="13" font-weight="700" fill="#ffffff">DB</text>
+  <rect x="620" y="10" width="170" height="46" rx="3" fill="#eaf1f7" stroke="#1e4d7b" stroke-width="1.5"/>
+  <text x="705" y="28" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9" letter-spacing="0.1em" fill="#1e4d7b">SERVICE · AI BE</text>
+  <text x="705" y="46" text-anchor="middle" font-family="Pretendard, sans-serif" font-size="13" font-weight="700">AI BE</text>
+  <line x1="105" y1="60" x2="105" y2="305" stroke="#c9c5b8" stroke-width="1" stroke-dasharray="3 4"/>
+  <line x1="305" y1="60" x2="305" y2="305" stroke="#c9c5b8" stroke-width="1" stroke-dasharray="3 4"/>
+  <line x1="505" y1="60" x2="505" y2="305" stroke="#c9c5b8" stroke-width="1" stroke-dasharray="3 4"/>
+  <line x1="705" y1="60" x2="705" y2="305" stroke="#c9c5b8" stroke-width="1" stroke-dasharray="3 4"/>
+  <text x="110" y="84" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="700" fill="#c4471c">①</text>
+  <text x="125" y="84" font-family="Pretendard, sans-serif" font-size="12" font-weight="600">POST /admin/prompts · { typeCode, body, changeNote }</text>
+  <line x1="105" y1="96" x2="303" y2="96" stroke="#c4471c" stroke-width="1.5" marker-end="url(#npA)"/>
+  <text x="310" y="120" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="700" fill="#1e4d7b">②</text>
+  <text x="325" y="120" font-family="Pretendard, sans-serif" font-size="11" font-weight="600" fill="#1e4d7b">기존 ACTIVE → RETIRED · 새 row INSERT · history INSERT</text>
+  <line x1="305" y1="132" x2="503" y2="132" stroke="#1e4d7b" stroke-width="1.5" marker-end="url(#npB)"/>
+  <text x="310" y="156" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="700" fill="#c4471c">③</text>
+  <text x="325" y="156" font-family="Pretendard, sans-serif" font-size="12" font-weight="600">200 { templateId, version, aiSyncStatus: PENDING }</text>
+  <line x1="303" y1="168" x2="107" y2="168" stroke="#c4471c" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#npA)"/>
+  <rect x="200" y="184" width="600" height="100" rx="3" fill="none" stroke="#c9c5b8" stroke-width="1" stroke-dasharray="4 3"/>
+  <text x="210" y="198" font-family="'JetBrains Mono', monospace" font-size="9.5" font-weight="700" fill="#6b3a8e" letter-spacing="0.08em">ASYNC · AI BE 동기화</text>
+  <text x="310" y="222" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="700" fill="#6b3a8e">④</text>
+  <text x="325" y="222" font-family="Pretendard, sans-serif" font-size="12" font-weight="600" fill="#6b3a8e">POST /ai/prompts/update · HMAC · retry 3회</text>
+  <line x1="305" y1="234" x2="703" y2="234" stroke="#6b3a8e" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#npP)"/>
+  <text x="325" y="252" font-family="Pretendard, sans-serif" font-size="11" fill="#6b3a8e">200 OK or 5xx → dead-letter</text>
+  <line x1="703" y1="260" x2="307" y2="260" stroke="#6b3a8e" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#npP)"/>
+  <text x="310" y="276" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="700" fill="#1e4d7b">⑤</text>
+  <text x="325" y="276" font-family="Pretendard, sans-serif" font-size="11" font-weight="600" fill="#1e4d7b">prompt_template.ai_sync_status · ai_synced_at UPDATE</text>
+  <line x1="305" y1="288" x2="503" y2="288" stroke="#1e4d7b" stroke-width="1.5" marker-end="url(#npB)"/>
+</svg>
+  </div>
+  </div>
+  <div class="api-tabpanel" role="tabpanel" id="api-42-panel-request" aria-labelledby="api-42-tab-request" data-tab-label="Request" hidden>
+<div class="sec"><div class="sec-title">Request Headers</div>
+  <table class="map">
+  <thead><tr><th style="width:22%">헤더</th><th style="width:14%">필수</th><th>설명</th></tr></thead>
+  <tbody>
+    <tr><td><code>Authorization</code></td><td>O</td><td><code>Bearer &lt;accessToken&gt;</code> — JWT Access Token · <b>ADMIN 권한 필요</b> (백오피스). 토큰 발급·검증은 <a href="#cat-auth">§03 인증 OAuth2</a>, 권한(RBAC) 매트릭스는 <a href="#permission">§12 권한·보안</a> 참조</td></tr>
+    <tr><td><code>Content-Type</code></td><td>O</td><td><code>application/json</code> (파일 업로드 카드는 <code>multipart/form-data</code>)</td></tr>
+    <tr><td><code>X-Request-Id</code></td><td>—</td><td>요청 상관관계(Correlation) 추적용 UUID. 미전송 시 BE 가 생성하여 응답 헤더로 반환</td></tr>
+  </tbody>
+  </table></div>
+<div class="sec"><div class="sec-title">Request Body</div>
+<pre><code class="language-json">{
+  "typeCode":      "SYSTEM_PROMPT",
+  "body":          "...새 프롬프트 본문...",
+  "changeNote":    "고객 상황 컨텍스트 강화",
+  "effectiveFrom": "2026-05-20 00:00:00"
+}</code></pre></div>
+  </div>
+  <div class="api-tabpanel" role="tabpanel" id="api-42-panel-response" aria-labelledby="api-42-tab-response" data-tab-label="Response" hidden>
+<div class="sec"><div class="sec-title">Response 200</div>
+<pre><code class="language-json">{
+  "success": true,
+  "data":    {
+    "templateId":   125,
+    "typeCode":     "SYSTEM_PROMPT",
+    "version":      13,
+    "status":       "ACTIVE",
+    "aiSyncStatus": "PENDING"
+  }
+}</code></pre>
+  <p class="note"><code>aiSyncStatus</code> 는 비동기 outbound 호출 결과 — 응답 시점에는 보통 <code>PENDING</code>, 이후 <code>SUCCESS</code> / <code>FAILED</code> 로 전이. 클라이언트가 polling 또는 별도 admin 알림으로 결과 확인.</p></div>
+<div class="sec"><div class="sec-title">Response Fields</div>
+  <table class="map">
+  <thead><tr><th style="width:24%">필드</th><th style="width:18%">타입</th><th>비고</th></tr></thead>
+  <tbody>
+    <tr><td><code>data.templateId</code></td><td>integer</td><td>신규 생성된 템플릿 ID</td></tr>
+    <tr><td><code>data.typeCode</code></td><td>string</td><td>프롬프트 유형 코드 (Request echo)</td></tr>
+    <tr><td><code>data.version</code></td><td>integer</td><td>신규 version 번호 (이전 ACTIVE 의 version + 1)</td></tr>
+    <tr><td><code>data.status</code></td><td>string</td><td>항상 <code>ACTIVE</code> — 등록 직후 즉시 ACTIVE 로 승격 (이전 ACTIVE 는 RETIRED 전환)</td></tr>
+    <tr><td><code>data.aiSyncStatus</code></td><td>string</td><td>Enum: <code>PENDING</code> / <code>SUCCESS</code> / <code>FAILED</code> — AI BE outbound 동기화 상태. 응답 시점은 보통 <code>PENDING</code> (비동기 호출 결과 이후 전이)</td></tr>
+  </tbody>
+  </table></div>
+<div class="sec"><div class="sec-title">DB · 외부</div>
+  <div class="db-row"><span class="lbl">Write</span><span class="db-tag w">prompt_template</span><span class="db-tag w">prompt_template_history</span><span class="db-tag w">audit_log</span></div>
+  <div class="db-row"><span class="lbl">External</span><span class="db-tag" style="border-color:var(--accent);color:var(--accent)">AI BE 프롬프트 업데이트 API (outbound)</span></div>
+  <ul>
+    <li>기존 <code>prompt_template</code> ACTIVE → RETIRED 전환 + 새 row INSERT (status=DRAFT 후 즉시 ACTIVE)</li>
+    <li><code>prompt_template_history</code> INSERT (version, diff, changed_by, changed_at)</li>
+    <li>AI BE outbound 호출 — HMAC 서명 / 재시도 3회 / dead-letter (v0.20)</li>
+    <li>결과에 따라 <code>prompt_template.ai_sync_status</code> = <code>SUCCESS</code>/<code>FAILED</code> + <code>ai_synced_at</code></li>
+    <li>권한: <code>PROMPT_ADMIN</code> · <code>SYSTEM_ADMIN</code></li>
+  </ul></div>
+<div class="sec"><div class="sec-title">Errors</div>
+  <ul>
+    <li><code>PROMPT_TYPE_NOT_FOUND</code> (404), <code>PROMPT_VERSION_CONFLICT</code> (409)</li>
+    <li><code>AI_SYNC_TIMEOUT</code> (424 · 비동기 outbound 실패 — DB 는 적재 완료, AI BE 만 미반영)</li>
+  </ul></div>
+  </div>
+</div>
+
+</section>
+
+<section id="permission">
+  <div class="section-head">
+    <span class="num">11</span>
+    <h2>권한·보안 정리</h2>
+    <span class="right">RBAC · PII · AUDIT</span>
+  </div>
+<table class="map">
+<thead><tr><th class="no">API No</th><th style="width:22%">권한</th><th>PII 마스킹</th><th style="width:30%">감사 로그</th></tr></thead>
+<tbody>
+<tr><td class="no">1, 5, 6</td><td><span class="badge public">PUBLIC</span> / <span class="badge ott">OTT</span> / Basic</td><td>—</td><td><span class="cat">LOGIN / LOGOUT</span></td></tr>
+<tr><td class="no">2</td><td><span class="badge jwt">JWT</span></td><td>—</td><td><span class="cat">EXTERNAL_CONNECT</span></td></tr>
+<tr><td class="no">3, 4</td><td><span class="badge ott">OTT</span> / PUBLIC</td><td>—</td><td><span class="cat">LOGIN</span></td></tr>
+<tr><td class="no">7~13 · 11-S</td><td><span class="badge jwt">JWT</span></td><td>응답 + 저장 모두 마스킹 (CANCELED 부분답변 포함)</td><td><span class="cat">CHAT · CHAT_STOP · CHAT_TOOL_RESPONSE · FEEDBACK</span></td></tr>
+<tr><td class="no">14~16</td><td><span class="badge admin">JWT+ADMIN</span></td><td>응답 마스킹</td><td><span class="cat">BO_READ</span></td></tr>
+<tr><td class="no">17, 18, 21</td><td><span class="badge jwt">JWT</span></td><td>응답 마스킹 (보험코어 응답 가공)</td><td><span class="cat">CUSTOMER_LIST · CUSTOMER_VIEW</span></td></tr>
+<tr><td class="no">19, 20</td><td><span class="badge jwt">JWT</span></td><td>응답 마스킹</td><td><span class="cat">PROSPECT_DRILL</span></td></tr>
+<tr><td class="no">22</td><td><span class="badge jwt">JWT</span></td><td>—</td><td>—</td></tr>
+<tr><td class="no">23, 24, 25</td><td><span class="badge admin">JWT+ADMIN</span></td><td>—</td><td><span class="cat">DOCUMENT_UPLOAD · SYNC_TRIGGER</span></td></tr>
+</tbody>
+</table>
+
+</section>
+
+
+  </div><!-- /container -->
+</div><!-- /layout -->
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-core.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+</body>
+</html>

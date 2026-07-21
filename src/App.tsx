@@ -2,10 +2,10 @@ import { CssBaseline } from '@mui/material';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import MainLayout from './components/MainLayout';
-import PromptManagement from './pages/prompt-management';
-import DocumentManagement from './pages/document-management';
-import Statistics from './pages/statistics';
-import ServiceManagement from './pages/service-management';
+import PromptManagement from './pages/nab/customer-touch/prompt-management';
+import DocumentManagement from './pages/nab/counsel/document-management';
+import Statistics from './pages/nab/customer-touch/statistics';
+import ServiceManagement from './pages/nab/customer-touch/service-management';
 
 const queryClient = new QueryClient({
   defaultOptions: {

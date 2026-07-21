@@ -4,6 +4,7 @@ import { documents, jobStatuses, uploadResult, syncResult, approveResult } from 
 import { users, roles, settings, settingUpdateResult } from './data/permissions';
 import { userStats, queryStats, feedbackStats, feedbackDetails, tokenStats } from './data/stats';
 import { promptTypes, promptHistory, promptUpsertResult } from './data/prompts';
+import { customerTouchAdminHandlers } from '../api/nab/customer-touch/handlers';
 
 const BASE = '/api/counsel';
 
@@ -197,4 +198,7 @@ export const handlers = [
   http.post(`${BASE}/bo/v1/post/admin/prompts`, () => {
     return ok(promptUpsertResult);
   }),
+
+  // ── 고객터치AI 관리자 (swagger 01. 고객AI — 20종) ──────────────────────────
+  ...customerTouchAdminHandlers,
 ];
