@@ -12,7 +12,7 @@ import {
 } from '@mui/material';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import FileDownloadOutlinedIcon from '@mui/icons-material/FileDownloadOutlined';
-import { DARK, DIVIDER, PRIMARY_ORANGE, SECONDARY } from '../../../../theme';
+import { DARK, DIVIDER, PRIMARY_ORANGE, SECONDARY } from '../../_lib/tokens';
 import { STAT_GROUPS } from '../constant';
 import type { StatRow } from '../type';
 import StatisticsEmptyState from './StatisticsEmptyState';

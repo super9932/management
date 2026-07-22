@@ -1,4 +1,5 @@
-// 전 페이지 공용 디자인 토큰 (색상 / 그림자 / 공용 sx)
+// nab 섹션 공용 디자인 토큰 (색상 / 그림자 / 공용 sx)
+// createTheme/ThemeProvider 없이 순수 상수만 — 커스텀 MUI 테마가 아니다.
 export const PRIMARY_ORANGE = '#fa6600';
 export const DARK = '#272b2f';
 export const SECONDARY = '#737c85';

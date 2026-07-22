@@ -11,7 +11,7 @@ import {
 } from '@mui/material';
 import CalendarTodayOutlinedIcon from '@mui/icons-material/CalendarTodayOutlined';
 import SearchIcon from '@mui/icons-material/Search';
-import { DISABLED, DIVIDER, FIELD_SX, SECONDARY } from '../../../../theme';
+import { DISABLED, DIVIDER, FIELD_SX, SECONDARY } from '../../_lib/tokens';
 
 export interface PromptFilterProps {
   fromDate: string;

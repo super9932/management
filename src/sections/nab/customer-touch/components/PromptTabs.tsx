@@ -1,5 +1,5 @@
 import { Box, Tabs, Tab, Divider } from '@mui/material';
-import { DARK, SECONDARY, DIVIDER } from '../../../../theme';
+import { DARK, SECONDARY, DIVIDER } from '../../_lib/tokens';
 
 interface Props {
   value: number;

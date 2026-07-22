@@ -14,7 +14,7 @@ import DocumentTabs from '../components/DocumentTabs';
 import DocumentFilter from '../components/DocumentFilter';
 import DocumentTable from '../components/DocumentTable';
 import DocumentPagination from '../components/DocumentPagination';
-import { PRIMARY_ORANGE, DARK, DISABLED, CARD_SHADOW } from '../../../../theme';
+import { PRIMARY_ORANGE, DARK, DISABLED, CARD_SHADOW } from '../../_lib/tokens';
 import type { DocumentRow, OperationStatus } from '../type';
 import { LIMIT, APPROVAL_STATUS_MAP } from '../constant';
 import { getDocuments } from '../../../../api/backoffice/documents';

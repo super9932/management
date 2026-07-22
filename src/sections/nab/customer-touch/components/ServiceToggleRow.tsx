@@ -1,6 +1,6 @@
 import { Box, Switch, Typography } from '@mui/material';
 import InfoIcon from '@mui/icons-material/Info';
-import { DARK, DISABLED, PRIMARY_ORANGE, SECONDARY } from '../../../../theme';
+import { DARK, DISABLED, PRIMARY_ORANGE, SECONDARY } from '../../_lib/tokens';
 
 interface Props {
   label: string;

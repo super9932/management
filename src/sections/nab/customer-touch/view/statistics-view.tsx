@@ -5,7 +5,7 @@ import StatisticsTabs from '../components/StatisticsTabs';
 import StatisticsFilter from '../components/StatisticsFilter';
 import StatisticsTable from '../components/StatisticsTable';
 import StatisticsPagination from '../components/StatisticsPagination';
-import { DARK, DISABLED, CARD_SHADOW } from '../../../../theme';
+import { DARK, DISABLED, CARD_SHADOW } from '../../_lib/tokens';
 import {
   MESSAGE_METRICS,
   CONTENT_SEARCH_METRICS,

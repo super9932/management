@@ -10,7 +10,7 @@ import {
   TableRow,
   Typography,
 } from '@mui/material';
-import { DARK, DIVIDER, SECONDARY } from '../../../../theme';
+import { DARK, DIVIDER, SECONDARY } from '../../_lib/tokens';
 import type { DocumentRow, RegistrationStatus, OperationStatus } from '../type';
 
 function registrationStatusChip(status: RegistrationStatus) {

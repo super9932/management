@@ -10,7 +10,7 @@ import {
   Typography,
 } from '@mui/material';
 import CalendarTodayOutlinedIcon from '@mui/icons-material/CalendarTodayOutlined';
-import { BUTTON_DARK, DIVIDER, FIELD_SX, SECONDARY } from '../../../../theme';
+import { BUTTON_DARK, DIVIDER, FIELD_SX, SECONDARY } from '../../_lib/tokens';
 
 export interface StatisticsFilterProps {
   fromDate: string;

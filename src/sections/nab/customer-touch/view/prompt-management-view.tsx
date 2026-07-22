@@ -14,7 +14,7 @@ import PromptTable from '../components/PromptTable';
 import PromptPagination from '../components/PromptPagination';
 import PromptRegister from '../components/PromptRegister';
 import PromptGuide from '../components/PromptGuide';
-import { DARK, SECONDARY_16, DISABLED, CARD_SHADOW } from '../../../../theme';
+import { DARK, SECONDARY_16, DISABLED, CARD_SHADOW } from '../../_lib/tokens';
 import { MOCK_ROWS } from '../constant';
 
 export default function PromptManagementView() {

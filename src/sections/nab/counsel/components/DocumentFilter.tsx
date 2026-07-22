@@ -10,7 +10,7 @@ import {
   TextField,
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
-import { DISABLED, DIVIDER, SECONDARY } from '../../../../theme';
+import { DISABLED, DIVIDER, SECONDARY } from '../../_lib/tokens';
 
 export interface DocumentFilterProps {
   searchType: string;

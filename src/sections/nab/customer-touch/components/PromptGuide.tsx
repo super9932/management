@@ -1,5 +1,5 @@
 import { Box, Typography } from '@mui/material';
-import { DARK } from '../../../../theme';
+import { DARK } from '../../_lib/tokens';
 
 const GUIDE_LINES = [
   'AI 메시지 생성에 적용되는 공통 프롬프트 규칙을 확인할 수 있습니다.',

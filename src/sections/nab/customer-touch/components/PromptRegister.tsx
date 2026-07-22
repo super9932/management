@@ -18,7 +18,7 @@ import {
   FIELD_SX,
   PRIMARY_ORANGE,
   SECONDARY,
-} from '../../../../theme';
+} from '../../_lib/tokens';
 
 interface Props {
   contentsId?: string;

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Box, Typography, Card, Breadcrumbs, Button } from '@mui/material';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import ServiceToggleRow from '../components/ServiceToggleRow';
-import { DARK, DISABLED, PRIMARY_ORANGE, CARD_SHADOW } from '../../../../theme';
+import { DARK, DISABLED, PRIMARY_ORANGE, CARD_SHADOW } from '../../_lib/tokens';
 import { SERVICE_TOGGLES, INITIAL_TOGGLE_STATE } from '../constant';
 import type { ServiceToggleState } from '../type';
 
