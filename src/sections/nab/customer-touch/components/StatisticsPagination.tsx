@@ -27,7 +27,7 @@ export default function StatisticsPagination({ page, onChange }: Props) {
             width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center',
             borderRadius: '50%', cursor: 'pointer',
             bgcolor: page === p ? DARK : 'transparent',
-            '&:hover': { bgcolor: page === p ? DARK : 'rgba(140,149,157,0.08)' },
+            '&:hover': { bgcolor: page === p ? DARK : 'var(--nab-hover-subtle)' },
           }}
         >
           <Typography sx={{ fontSize: page === p ? 14 : 16, color: page === p ? 'white' : DARK, fontWeight: page === p ? 600 : 400 }}>

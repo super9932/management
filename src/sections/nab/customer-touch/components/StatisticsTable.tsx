@@ -58,7 +58,7 @@ export default function StatisticsTable({ rows, total, pageSize, metrics }: Prop
           startIcon={<FileDownloadOutlinedIcon sx={{ fontSize: 18 }} />}
           sx={{
             height: 36, px: 1.5, borderRadius: 2, fontSize: 14, fontWeight: 400,
-            color: DARK, borderColor: 'rgba(140,149,157,0.48)',
+            color: DARK, borderColor: 'var(--nab-border-strong)',
             '&:hover': { borderColor: SECONDARY, bgcolor: 'transparent' },
           }}
         >
@@ -72,7 +72,7 @@ export default function StatisticsTable({ rows, total, pageSize, metrics }: Prop
         <Table sx={{ minWidth }}>
           <TableHead>
             {/* 그룹 헤더 */}
-            <TableRow sx={{ bgcolor: '#f5f6f7' }}>
+            <TableRow sx={{ bgcolor: 'var(--nab-header-bg)' }}>
               <TableCell
                 align="center"
                 rowSpan={2}
@@ -92,7 +92,7 @@ export default function StatisticsTable({ rows, total, pageSize, metrics }: Prop
               ))}
             </TableRow>
             {/* 지표 헤더 */}
-            <TableRow sx={{ bgcolor: '#f5f6f7' }}>
+            <TableRow sx={{ bgcolor: 'var(--nab-header-bg)' }}>
               {STAT_GROUPS.map((group) =>
                 metrics.map((metric, mi) => (
                   <TableCell
@@ -120,7 +120,7 @@ export default function StatisticsTable({ rows, total, pageSize, metrics }: Prop
             ) : rows.map((row) => (
               <TableRow
                 key={row.date}
-                sx={{ '&:hover': { bgcolor: 'rgba(245,246,247,0.8)' }, '& td': { borderBottom: `1px solid ${DIVIDER}` } }}
+                sx={{ '&:hover': { bgcolor: 'var(--nab-row-hover)' }, '& td': { borderBottom: `1px solid ${DIVIDER}` } }}
               >
                 <TableCell align="center" sx={{ fontSize: 13, color: DARK, py: 1.5, px: 2, whiteSpace: 'nowrap', borderRight: `1px solid ${DIVIDER}` }}>
                   {row.date}

@@ -43,7 +43,7 @@ export default function PromptTable({ rows, total, pageSize }: Props) {
           startIcon={<FileDownloadOutlinedIcon sx={{ fontSize: 18 }} />}
           sx={{
             height: 36, px: 1.5, borderRadius: 2, fontSize: 14, fontWeight: 400,
-            color: DARK, borderColor: 'rgba(140,149,157,0.48)',
+            color: DARK, borderColor: 'var(--nab-border-strong)',
             '&:hover': { borderColor: SECONDARY, bgcolor: 'transparent' },
           }}
         >
@@ -56,7 +56,7 @@ export default function PromptTable({ rows, total, pageSize }: Props) {
       <TableContainer sx={{ overflowX: 'auto' }}>
         <Table sx={{ minWidth: 900 }}>
           <TableHead>
-            <TableRow sx={{ bgcolor: '#f5f6f7' }}>
+            <TableRow sx={{ bgcolor: 'var(--nab-header-bg)' }}>
               {COLUMNS.map((col) => (
                 <TableCell
                   key={col}
@@ -78,7 +78,7 @@ export default function PromptTable({ rows, total, pageSize }: Props) {
             ) : rows.map((row) => (
               <TableRow
                 key={row.no}
-                sx={{ '&:hover': { bgcolor: 'rgba(245,246,247,0.8)', cursor: 'pointer' }, '& td': { borderBottom: `1px solid ${DIVIDER}` } }}
+                sx={{ '&:hover': { bgcolor: 'var(--nab-row-hover)', cursor: 'pointer' }, '& td': { borderBottom: `1px solid ${DIVIDER}` } }}
               >
                 <TableCell align="center" sx={{ fontSize: 13, color: DARK, py: 1.5, px: 2 }}>{row.no}</TableCell>
                 <TableCell align="center" sx={{ fontSize: 12, color: DARK, py: 1.5, px: 2 }}>{row.contentsId}</TableCell>

@@ -35,8 +35,11 @@ function buildNavSections(pathname: string): NavSection[] {
           label: '상담 Plus AI',
           defaultExpanded: true,
           children: [
-            { label: '통계 관리', icon: <BarChartOutlinedIcon sx={{ fontSize: 20 }} />, active: false, disabled: false },
-            { label: '문서 관리', icon: <DescriptionOutlinedIcon sx={{ fontSize: 20 }} />, active: isActive('/document-management'), disabled: false, path: '/document-management' },
+            { label: '통계 관리', icon: <BarChartOutlinedIcon sx={{ fontSize: 20 }} />, active: isActive('/counsel-statistics'), disabled: false, path: '/counsel-statistics' },
+            { label: '보험약관 문서', icon: <DescriptionOutlinedIcon sx={{ fontSize: 20 }} />, active: isActive('/insurance-terms'), disabled: false, path: '/insurance-terms' },
+            { label: '보험심사 문서', icon: <DescriptionOutlinedIcon sx={{ fontSize: 20 }} />, active: isActive('/insurance-review'), disabled: false, path: '/insurance-review' },
+            { label: '보험공통 문서', icon: <DescriptionOutlinedIcon sx={{ fontSize: 20 }} />, active: isActive('/insurance-common'), disabled: false, path: '/insurance-common' },
+            { label: '언더라이팅 매뉴얼', icon: <DescriptionOutlinedIcon sx={{ fontSize: 20 }} />, active: isActive('/underwriting-manual'), disabled: false, path: '/underwriting-manual' },
             { label: '권한 관리', icon: <SecurityOutlinedIcon sx={{ fontSize: 20 }} />, active: false, disabled: false },
             { label: '질문항목 관리', icon: <ArticleOutlinedIcon sx={{ fontSize: 20 }} />, active: false, disabled: true },
             { label: '프롬프트 관리', icon: <ArticleOutlinedIcon sx={{ fontSize: 20 }} />, active: false, disabled: true },

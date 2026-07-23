@@ -80,7 +80,7 @@ export default function StatisticsFilter({
         sx={{
           height: 48, px: 2, borderRadius: 2, bgcolor: BUTTON_DARK, color: 'white',
           fontSize: 15, fontWeight: 400, whiteSpace: 'nowrap', flexShrink: 0,
-          boxShadow: 'none', '&:hover': { bgcolor: '#3a4048', boxShadow: 'none' },
+          boxShadow: 'none', '&:hover': { bgcolor: 'var(--nab-button-hover)', boxShadow: 'none' },
         }}
       >
         조회

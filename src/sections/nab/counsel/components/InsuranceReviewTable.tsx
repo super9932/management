@@ -13,21 +13,22 @@ import {
 } from '@mui/material';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import { DARK, DIVIDER, PRIMARY_ORANGE, SECONDARY } from '../../_lib/tokens';
-import type { DocumentRow } from '../type';
-import { MANAGING_DEPT } from '../constant';
+import type { InsuranceReviewRow } from '../type';
+import { REVIEW_MANAGING_DEPT } from '../constant';
 import DocumentStatusChip from './DocumentStatusChip';
 import DocumentEmptyState from './DocumentEmptyState';
 
-const COLUMNS = ['번호', '보종코드', '판매기간', '문서명', '등록자', '등록일자', '운영상태'];
+const COLUMNS = ['번호', '문서명', '등록자', '등록일자', '반영/종료일자', '운영상태'];
 const COL_COUNT = COLUMNS.length + 1; // + 체크박스
 
 interface Props {
-  rows: DocumentRow[];
+  rows: InsuranceReviewRow[];
   total: number;
   pageSize: number;
   selectedIds: ReadonlySet<number>;
   onToggle: (id: number) => void;
   onToggleAll: () => void;
+  onDocumentClick: (row: InsuranceReviewRow) => void;
 }
 
 const headCellSx = {
@@ -47,8 +48,8 @@ const bodyCellSx = {
   px: 2,
 } as const;
 
-export default function DocumentTable({
-  rows, total, pageSize, selectedIds, onToggle, onToggleAll,
+export default function InsuranceReviewTable({
+  rows, total, pageSize, selectedIds, onToggle, onToggleAll, onDocumentClick,
 }: Props) {
   const allChecked = rows.length > 0 && rows.every((row) => selectedIds.has(row.id));
   const someChecked = rows.some((row) => selectedIds.has(row.id));
@@ -71,7 +72,7 @@ export default function DocumentTable({
           </Box>
         </Box>
         <Typography sx={{ fontSize: 14, color: SECONDARY }}>
-          관리 부서 : {MANAGING_DEPT}
+          관리 부서 : {REVIEW_MANAGING_DEPT}
         </Typography>
       </Box>
       <Divider sx={{ borderColor: DIVIDER }} />
@@ -116,16 +117,12 @@ export default function DocumentTable({
                   />
                 </TableCell>
                 <TableCell align="center" sx={{ ...bodyCellSx, whiteSpace: 'nowrap' }}>{row.no.toLocaleString()}</TableCell>
-                <TableCell align="center" sx={{ ...bodyCellSx, whiteSpace: 'pre-line' }}>{row.productCodes}</TableCell>
-                <TableCell align="center" sx={{ ...bodyCellSx, whiteSpace: 'nowrap' }}>
-                  <Typography sx={{ fontSize: 14, color: DARK }}>{row.salePeriodStart}</Typography>
-                  <Typography sx={{ fontSize: 14, color: SECONDARY }}>{row.salePeriodEnd}</Typography>
-                </TableCell>
-                <TableCell sx={{ ...bodyCellSx, minWidth: 520, maxWidth: 640 }}>
+                <TableCell sx={{ ...bodyCellSx, minWidth: 520 }}>
                   <Link
                     component="button"
                     type="button"
                     underline="always"
+                    onClick={() => onDocumentClick(row)}
                     sx={{
                       fontSize: 14, color: DARK, textAlign: 'left', display: 'block',
                       overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '100%',
@@ -139,6 +136,10 @@ export default function DocumentTable({
                   <Typography sx={{ fontSize: 14, color: SECONDARY }}>{row.registrantDept}</Typography>
                 </TableCell>
                 <TableCell align="center" sx={{ ...bodyCellSx, whiteSpace: 'nowrap' }}>{row.registeredAt}</TableCell>
+                <TableCell align="center" sx={{ ...bodyCellSx, whiteSpace: 'nowrap' }}>
+                  <Typography sx={{ fontSize: 14, color: DARK }}>{row.effectiveStart}</Typography>
+                  <Typography sx={{ fontSize: 14, color: SECONDARY }}>{row.effectiveEnd}</Typography>
+                </TableCell>
                 <TableCell align="center" sx={bodyCellSx}>
                   <DocumentStatusChip status={row.operationStatus} />
                 </TableCell>

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { NabThemeScope } from '../../_lib/NabThemeScope';
 import { Box, Typography, Card, Breadcrumbs, Button } from '@mui/material';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import ServiceToggleRow from '../components/ServiceToggleRow';
@@ -6,7 +7,7 @@ import { DARK, DISABLED, PRIMARY_ORANGE, CARD_SHADOW } from '../../_lib/tokens';
 import { SERVICE_TOGGLES, INITIAL_TOGGLE_STATE } from '../constant';
 import type { ServiceToggleState } from '../type';
 
-export default function ServiceManagementView() {
+function ServiceManagementViewInner() {
   const [toggles, setToggles] = useState<ServiceToggleState>(INITIAL_TOGGLE_STATE);
 
   const handleToggle = (key: string, value: boolean) =>
@@ -47,7 +48,7 @@ export default function ServiceManagementView() {
             sx={{
               height: 48, px: 2, minWidth: 64, borderRadius: 2, bgcolor: PRIMARY_ORANGE, color: 'white',
               fontSize: 15, fontWeight: 400, boxShadow: 'none',
-              '&:hover': { bgcolor: '#e05a00', boxShadow: 'none' },
+              '&:hover': { bgcolor: 'var(--nab-primary-hover)', boxShadow: 'none' },
             }}
           >
             저장
@@ -55,5 +56,13 @@ export default function ServiceManagementView() {
         </Box>
       </Card>
     </>
+  );
+}
+
+export default function ServiceManagementView() {
+  return (
+    <NabThemeScope>
+      <ServiceManagementViewInner />
+    </NabThemeScope>
   );
 }

@@ -130,9 +130,9 @@ export default function PromptFilter({
           variant="contained"
           onClick={onSearch}
           sx={{
-            height: 48, px: 2, borderRadius: 2, bgcolor: '#485059', color: 'white',
+            height: 48, px: 2, borderRadius: 2, bgcolor: 'var(--nab-button)', color: 'white',
             fontSize: 15, fontWeight: 400, whiteSpace: 'nowrap', flexShrink: 0,
-            boxShadow: 'none', '&:hover': { bgcolor: '#3a4048', boxShadow: 'none' },
+            boxShadow: 'none', '&:hover': { bgcolor: 'var(--nab-button-hover)', boxShadow: 'none' },
           }}
         >
           조회

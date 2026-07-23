@@ -14,8 +14,8 @@ export default function PromptEmptyState() {
         gap: 3,
         width: '100%',
         minHeight: 280,
-        bgcolor: 'rgba(140,149,157,0.08)',
-        border: '1px dashed rgba(140,149,157,0.32)',
+        bgcolor: 'var(--nab-hover-subtle)',
+        border: '1px dashed var(--nab-border-dashed)',
         borderRadius: 2,
         py: 5,
       }}
@@ -26,7 +26,7 @@ export default function PromptEmptyState() {
           sx={{
             position: 'absolute',
             inset: '19.66% 14.51% 9.37% 14.53%',
-            bgcolor: '#8c959d',
+            bgcolor: 'var(--nab-text-disabled)',
             opacity: 0.48,
             borderRadius: '7.3px',
           }}
@@ -65,7 +65,7 @@ export default function PromptEmptyState() {
         sx={{
           fontSize: 18,
           fontWeight: 700,
-          color: '#8c959d',
+          color: 'var(--nab-text-disabled)',
           textAlign: 'center',
           lineHeight: '28px',
         }}

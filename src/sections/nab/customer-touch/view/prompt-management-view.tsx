@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { NabThemeScope } from '../../_lib/NabThemeScope';
 import {
   Box,
   Typography,
@@ -17,7 +18,7 @@ import PromptGuide from '../components/PromptGuide';
 import { DARK, SECONDARY_16, DISABLED, CARD_SHADOW } from '../../_lib/tokens';
 import { MOCK_ROWS } from '../constant';
 
-export default function PromptManagementView() {
+function PromptManagementViewInner() {
   const [tabValue, setTabValue] = useState(1);
   const [fromDate, setFromDate] = useState('2026.10.15');
   const [toDate, setToDate] = useState('2026.11.15');
@@ -106,5 +107,13 @@ export default function PromptManagementView() {
         </Card>
       )}
     </>
+  );
+}
+
+export default function PromptManagementView() {
+  return (
+    <NabThemeScope>
+      <PromptManagementViewInner />
+    </NabThemeScope>
   );
 }

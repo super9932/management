@@ -79,7 +79,7 @@ export default function PromptRegister({
               ...FIELD_SX,
               '& .MuiOutlinedInput-root fieldset': {
                 borderStyle: 'dashed',
-                borderColor: 'rgba(140,149,157,0.2)',
+                borderColor: 'var(--nab-border)',
               },
             }}
           />
@@ -147,7 +147,7 @@ export default function PromptRegister({
                 alignItems: 'flex-start',
                 p: 0,
                 '& fieldset': { borderColor: DIVIDER },
-                '&:hover fieldset': { borderColor: 'rgba(140,149,157,0.5)' },
+                '&:hover fieldset': { borderColor: 'var(--nab-border-hover)' },
               },
               '& .MuiInputBase-inputMultiline': { px: 2, py: 1.5, color: DARK, minHeight: 88 },
             }}
@@ -162,7 +162,7 @@ export default function PromptRegister({
             sx={{
               height: 48, px: 2, minWidth: 64, borderRadius: 2, color: DARK,
               fontSize: 15, fontWeight: 400, bgcolor: 'transparent',
-              '&:hover': { bgcolor: 'rgba(115,124,133,0.08)' },
+              '&:hover': { bgcolor: 'var(--nab-hover-secondary)' },
             }}
           >
             목록
@@ -174,7 +174,7 @@ export default function PromptRegister({
               sx={{
                 height: 48, px: 2, minWidth: 64, borderRadius: 2, bgcolor: BUTTON_DARK, color: 'white',
                 fontSize: 15, fontWeight: 400, boxShadow: 'none',
-                '&:hover': { bgcolor: '#3a4048', boxShadow: 'none' },
+                '&:hover': { bgcolor: 'var(--nab-button-hover)', boxShadow: 'none' },
               }}
             >
               취소
@@ -185,7 +185,7 @@ export default function PromptRegister({
               sx={{
                 height: 48, px: 2, minWidth: 64, borderRadius: 2, bgcolor: PRIMARY_ORANGE, color: 'white',
                 fontSize: 15, fontWeight: 400, boxShadow: 'none',
-                '&:hover': { bgcolor: '#e05a00', boxShadow: 'none' },
+                '&:hover': { bgcolor: 'var(--nab-primary-hover)', boxShadow: 'none' },
               }}
             >
               저장

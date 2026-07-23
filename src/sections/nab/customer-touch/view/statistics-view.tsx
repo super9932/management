@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { NabThemeScope } from '../../_lib/NabThemeScope';
 import { Box, Typography, Card, Breadcrumbs } from '@mui/material';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import StatisticsTabs from '../components/StatisticsTabs';
@@ -13,7 +14,7 @@ import {
   MOCK_CONTENT_SEARCH_ROWS,
 } from '../constant';
 
-export default function StatisticsView() {
+function StatisticsViewInner() {
   const [tabValue, setTabValue] = useState(0);
   const [fromDate, setFromDate] = useState('2026.10.15');
   const [toDate, setToDate] = useState('2026.11.15');
@@ -57,5 +58,13 @@ export default function StatisticsView() {
         <StatisticsPagination page={page} onChange={setPage} />
       </Card>
     </>
+  );
+}
+
+export default function StatisticsView() {
+  return (
+    <NabThemeScope>
+      <StatisticsViewInner />
+    </NabThemeScope>
   );
 }

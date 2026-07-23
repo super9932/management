@@ -1,1 +1,21 @@
 node_modules
+
+# 환경변수 (시크릿 — 커밋 금지, E-03/S-01)
+.env
+.env.local
+.env.*.local
+
+# 빌드 산출물
+dist
+
+# OS
+.DS_Store
+
+# send-src 임시 산출물
+*.tar.gz
+
+# Playwright MCP 로그·스냅샷·스크린샷
+.playwright-mcp/
+
+# 진단용 스크린샷
+insurance-common-check.png
