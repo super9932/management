@@ -61,7 +61,17 @@ const archivePath = join(workDir, fileName);
 try {
   execFileSync(
     'tar',
-    ['-czf', archivePath, '--exclude', '.DS_Store', '-C', ROOT, 'src'],
+    [
+      '-czf',
+      archivePath,
+      '--exclude',
+      '.DS_Store',
+      '-C',
+      ROOT,
+      'src/pages',
+      'src/sections',
+      'src/api',
+    ],
     { stdio: 'inherit' },
   );
 } catch (error) {
