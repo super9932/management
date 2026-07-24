@@ -125,7 +125,7 @@ export default function DocumentTable({
                   <Link
                     component="button"
                     type="button"
-                    underline="always"
+                    underline="none"
                     sx={{
                       fontSize: 14, color: DARK, textAlign: 'left', display: 'block',
                       overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '100%',

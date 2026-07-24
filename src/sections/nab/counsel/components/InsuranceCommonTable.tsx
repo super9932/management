@@ -121,7 +121,7 @@ export default function InsuranceCommonTable({
                   <Link
                     component="button"
                     type="button"
-                    underline="always"
+                    underline="none"
                     onClick={() => onDocumentClick(row)}
                     sx={{
                       fontSize: 14, color: DARK, textAlign: 'left', display: 'block',
