@@ -23,7 +23,7 @@ export const NAB_CUSTOMER_TOUCH_API = {
   promptDelete: withBase('/v1/post/customer/admin/touch/message/prompt/delete'),
   promptGet: withBase('/v1/get/customer/admin/touch/message/prompt'),
   promptList: withBase('/v1/get/customer/admin/touch/message/prompt/list'),
-  promptGuide: withBase('/v1/get/customer/admin/touch/message/prompt/guide'),
+  promptTypes: withBase('/v1/get/customer/admin/touch/message/prompt/types'),
   promptDuplicate: withBase('/v1/get/customer/admin/touch/message/prompt/duplicate'),
 
   // ── 고객터치AI · 관리자 · Kill-Switch ──────────────────────────────────────
@@ -32,12 +32,10 @@ export const NAB_CUSTOMER_TOUCH_API = {
   killSwitchDetail: withBase('/v1/get/customer/admin/touch/killswitch/detail'),
   killSwitchCheck: withBase('/v1/get/customer/admin/touch/killswitch/check'),
 
-  // ── 고객터치AI · 관리자 · 카테고리 ─────────────────────────────────────────
-  categoryCreate: withBase('/v1/post/customer/admin/touch/content/category'),
-  categoryUpdate: withBase('/v1/post/customer/admin/touch/content/category/update'),
-  categoryUseYn: withBase('/v1/post/customer/admin/touch/content/category/useYn'),
-  categoryGet: withBase('/v1/get/customer/admin/touch/content/category'),
-  categoryList: withBase('/v1/get/customer/admin/touch/content/category/list'),
+  // ── 고객터치AI · 관리자 · NAH 콘텐츠 ───────────────────────────────────────
+  contentNahGet: withBase('/v1/get/customer/admin/touch/content/nah'),
+  contentNahRegister: withBase('/v1/post/customer/admin/touch/content/nah'),
+  contentNahUpdate: withBase('/v1/post/customer/admin/touch/content/nah/update'),
 } as const;
 
 export type NabCustomerTouchApiKey = keyof typeof NAB_CUSTOMER_TOUCH_API;

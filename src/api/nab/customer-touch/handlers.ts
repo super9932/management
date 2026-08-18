@@ -9,7 +9,7 @@ import { promptUpdateHandlers } from './prompt-update/mock';
 import { promptDeleteHandlers } from './prompt-delete/mock';
 import { promptGetHandlers } from './prompt-get/mock';
 import { promptListHandlers } from './prompt-list/mock';
-import { promptGuideHandlers } from './prompt-guide/mock';
+import { promptTypesHandlers } from './prompt-types/mock';
 import { promptDuplicateHandlers } from './prompt-duplicate/mock';
 
 import { killSwitchSaveHandlers } from './killswitch-save/mock';
@@ -17,11 +17,9 @@ import { killSwitchListHandlers } from './killswitch-list/mock';
 import { killSwitchDetailHandlers } from './killswitch-detail/mock';
 import { killSwitchCheckHandlers } from './killswitch-check/mock';
 
-import { categoryCreateHandlers } from './category-create/mock';
-import { categoryUpdateHandlers } from './category-update/mock';
-import { categoryUseYnHandlers } from './category-useyn/mock';
-import { categoryGetHandlers } from './category-get/mock';
-import { categoryListHandlers } from './category-list/mock';
+import { contentNahGetHandlers } from './content-nah-get/mock';
+import { contentNahRegisterHandlers } from './content-nah-register/mock';
+import { contentNahUpdateHandlers } from './content-nah-update/mock';
 
 export const customerTouchAdminHandlers = [
   ...statsSummaryHandlers,
@@ -34,7 +32,7 @@ export const customerTouchAdminHandlers = [
   ...promptDeleteHandlers,
   ...promptGetHandlers,
   ...promptListHandlers,
-  ...promptGuideHandlers,
+  ...promptTypesHandlers,
   ...promptDuplicateHandlers,
 
   ...killSwitchSaveHandlers,
@@ -42,9 +40,7 @@ export const customerTouchAdminHandlers = [
   ...killSwitchDetailHandlers,
   ...killSwitchCheckHandlers,
 
-  ...categoryCreateHandlers,
-  ...categoryUpdateHandlers,
-  ...categoryUseYnHandlers,
-  ...categoryGetHandlers,
-  ...categoryListHandlers,
+  ...contentNahGetHandlers,
+  ...contentNahRegisterHandlers,
+  ...contentNahUpdateHandlers,
 ];
