@@ -7,10 +7,10 @@ export interface PromptListRequest {
   startDate?: string;
   /** 등록일 종료(yyyy-MM-dd, 해당일 포함, 미지정 = 제한 없음) */
   endDate?: string;
-  /** 유형 필터 (미지정 = 전체) */
-  type?: string;
-  /** 카테고리 필터 (미지정 = 전체) */
+  /** 카테고리 필터(1-depth 코드, 미지정 = 전체) */
   category?: string;
+  /** 항목 필터(2-depth, 미지정 = 전체) */
+  item?: string;
   /** 검색어 적용 범위 (미지정 = ALL) */
   searchScope?: PromptSearchScope;
   /** 검색어 (미지정 = 검색 안 함) */
@@ -26,10 +26,12 @@ export interface PromptListRequest {
 /** 목록 행 — 단건 조회(PromptGetResponse)와 달리 본문은 길이만 내려온다 */
 export interface PromptItem {
   id: number;
-  /** 유형 */
-  type: string;
-  /** 카테고리 */
+  /** 카테고리 코드(1-depth) */
   category: string;
+  /** 카테고리 표기 */
+  categoryLabel: string;
+  /** 항목 코드(2-depth) — 시나리오 계열은 common|guideline|validation, 그 외는 선택값 라벨 */
+  item: string;
   /** 프롬프트명 */
   name: string;
   /** 본문 길이(문자) */

@@ -6,6 +6,7 @@ import type { StatsSummaryResponse } from './dto';
 
 export const statsSummaryMock: StatsSummaryResponse = {
   generateCount: 12_480,
+  editCount: 4_128,
   sendCount: 9_312,
   readCount: 6_907,
   searchCount: 21_045,

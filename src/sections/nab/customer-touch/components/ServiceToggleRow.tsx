@@ -6,16 +6,19 @@ interface Props {
   label: string;
   helper: string;
   checked: boolean;
+  /** Kill-Switch 조회 중/실패 시 조작을 막는다 */
+  disabled?: boolean;
   onChange: (v: boolean) => void;
 }
 
-export default function ServiceToggleRow({ label, helper, checked, onChange }: Props) {
+export default function ServiceToggleRow({ label, helper, checked, disabled, onChange }: Props) {
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
       <Box sx={{ height: 38, display: 'flex', alignItems: 'center', gap: 1 }}>
         <Typography sx={{ fontSize: 14, color: DARK, width: 100 }}>{label}</Typography>
         <Switch
           checked={checked}
+          disabled={disabled}
           onChange={(e) => onChange(e.target.checked)}
           sx={{
             '& .MuiSwitch-switchBase.Mui-checked': { color: '#fff' },

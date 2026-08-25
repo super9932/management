@@ -29,8 +29,8 @@ export * from './prompt-get/dto';
 export * from './prompt-get/service';
 export * from './prompt-list/dto';
 export * from './prompt-list/service';
-export * from './prompt-types/dto';
-export * from './prompt-types/service';
+export * from './prompt-categories/dto';
+export * from './prompt-categories/service';
 export * from './prompt-duplicate/dto';
 export * from './prompt-duplicate/service';
 

@@ -14,15 +14,22 @@ import {
   BUTTON_DARK,
   CARD_SHADOW,
   DARK,
+  DISABLED,
   DIVIDER,
   FIELD_SX,
   PRIMARY_ORANGE,
   SECONDARY,
 } from '../../_lib/tokens';
+import { promptItemLabel } from '../constant';
+import type { PromptCategoryItem } from '../../../../api/nab/customer-touch';
 
 interface Props {
   contentsId?: string;
+  /** 서버 카탈로그(prompt/categories) — 유형·카테고리 셀렉트 소스 */
+  categories: PromptCategoryItem[];
+  /** 유형 = API category 코드. 미선택은 빈 문자열 ('전체'는 조회 전용이라 등록에는 없다) */
   type: string;
+  /** 유형이 바뀌면 카테고리는 미선택으로 되돌린다 */
   onTypeChange: (v: string) => void;
   category: string;
   onCategoryChange: (v: string) => void;
@@ -48,8 +55,12 @@ const SELECT_SX = {
   '& .MuiOutlinedInput-notchedOutline': { borderColor: DIVIDER },
 } as const;
 
+/** 미선택 상태를 회색 안내 문구로 보여준다 */
+const placeholder = (text: string) => <Typography sx={{ fontSize: 14, color: DISABLED }}>{text}</Typography>;
+
 export default function PromptRegister({
   contentsId = '',
+  categories,
   type,
   onTypeChange,
   category,
@@ -62,6 +73,9 @@ export default function PromptRegister({
   onCancel,
   onSave,
 }: Props) {
+  const selected = categories.find((category) => category.code === type);
+  const items = selected?.items ?? [];
+
   return (
     <Card sx={{ borderRadius: 4, boxShadow: CARD_SHADOW }}>
       <Box sx={{ p: 2.5, display: 'flex', flexDirection: 'column', gap: 2.5 }}>
@@ -93,17 +107,22 @@ export default function PromptRegister({
               value={type}
               label="유형 *"
               displayEmpty
+              renderValue={(value) =>
+                value
+                  ? (categories.find((category) => category.code === value)?.label ?? String(value))
+                  : placeholder('유형을 선택해주세요')
+              }
               onChange={(e) => onTypeChange(e.target.value)}
               sx={SELECT_SX}
             >
-              <MenuItem value="전체">전체</MenuItem>
-              <MenuItem value="유형1">유형1</MenuItem>
-              <MenuItem value="유형2">유형2</MenuItem>
+              {categories.map((category) => (
+                <MenuItem key={category.code} value={category.code}>{category.label}</MenuItem>
+              ))}
             </Select>
           </FormControl>
 
-          {/* 카테고리 */}
-          <FormControl sx={{ width: 246, ...FIELD_SX }}>
+          {/* 카테고리 — 선택된 유형의 2depth 목록으로 연동된다 */}
+          <FormControl sx={{ width: 246, ...FIELD_SX }} disabled={type === ''}>
             <InputLabel shrink sx={{ fontSize: 12, fontWeight: 700, color: SECONDARY }}>
               {requiredLabel('카테고리')}
             </InputLabel>
@@ -111,12 +130,17 @@ export default function PromptRegister({
               value={category}
               label="카테고리 *"
               displayEmpty
+              renderValue={(value) =>
+                value
+                  ? promptItemLabel(String(value))
+                  : placeholder(type === '' ? '유형을 먼저 선택해주세요' : '카테고리를 선택해주세요')
+              }
               onChange={(e) => onCategoryChange(e.target.value)}
               sx={SELECT_SX}
             >
-              <MenuItem value="전체">전체</MenuItem>
-              <MenuItem value="카테고리1">카테고리1</MenuItem>
-              <MenuItem value="카테고리2">카테고리2</MenuItem>
+              {items.map((item) => (
+                <MenuItem key={item} value={item}>{promptItemLabel(item)}</MenuItem>
+              ))}
             </Select>
           </FormControl>
 

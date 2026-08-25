@@ -1,18 +1,20 @@
-/** POST /v1/get/customer/admin/touch/message/prompt/types — 프롬프트 유형 목록 조회 */
+/** POST /v1/get/customer/admin/touch/message/prompt/categories — 프롬프트 카테고리·항목 목록 조회 */
 
-/** 요청 body 없음 (등록 화면 셀렉트박스 소스) */
-export type PromptTypesRequest = void;
+/** 요청 body 없음 (등록/조회 화면 셀렉트박스 소스) */
+export type PromptCategoriesRequest = void;
 
-export interface PromptTypeItem {
-  /** 유형 코드 */
+export interface PromptCategoryItem {
+  /** 카테고리 코드(1-depth) — general|content|situation|relationship|tone|message_style */
   code: string;
-  /** 카테고리가 시나리오 네임스페이스('일반'|'콘텐츠')인지 여부. false면 카테고리가 곧 선택값 라벨. */
-  namespaced: boolean;
+  /** 카테고리 표기 — 일반|콘텐츠|고객상황|고객과의관계|메시지톤|문자유형 */
+  label: string;
+  /** 시나리오 계열(일반/콘텐츠) 여부. true면 항목이 common|guideline|validation 코드다. */
+  scenario: boolean;
+  /** 이 카테고리에서 등록 가능한 항목 전체(2-depth 셀렉트박스 소스) */
+  items: string[];
 }
 
-export interface PromptTypesResponse {
-  /** 등록 가능한 유형 전체 */
-  types: PromptTypeItem[];
-  /** 네임스페이스 유형이 쓰는 카테고리 후보 */
-  namespaceCategories: string[];
+export interface PromptCategoriesResponse {
+  /** 등록 가능한 카테고리 6종과 각각의 항목 후보 */
+  categories: PromptCategoryItem[];
 }

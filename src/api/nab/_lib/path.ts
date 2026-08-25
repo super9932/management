@@ -1,12 +1,12 @@
 /**
  * NAB API 경로 단일 관리
  *
- * - 모든 경로 앞에는 BASE_PATH('/nab')가 붙는다.
- * - axios baseURL('/api')과 합쳐져 최종 호출은 `/api/nab/v1/...` 형태가 된다.
+ * - 모든 경로 앞에 BASE_PATH가 붙는다(현재는 빈 값 — 서버가 /api 바로 아래에 라우팅한다).
+ * - axios baseURL(ENV_CONFIG.APP_API_BASE_URL)과 합쳐져 `{서버}/api/v1/...` 형태가 된다.
  * - 조회성 API도 경로에 /get/ 이 들어갈 뿐 HTTP 메서드는 모두 POST다.
  */
 
-export const BASE_PATH = '/nab';
+export const BASE_PATH = '';
 
 const withBase = (path: string) => `${BASE_PATH}${path}` as const;
 
@@ -23,7 +23,7 @@ export const NAB_CUSTOMER_TOUCH_API = {
   promptDelete: withBase('/v1/post/customer/admin/touch/message/prompt/delete'),
   promptGet: withBase('/v1/get/customer/admin/touch/message/prompt'),
   promptList: withBase('/v1/get/customer/admin/touch/message/prompt/list'),
-  promptTypes: withBase('/v1/get/customer/admin/touch/message/prompt/types'),
+  promptCategories: withBase('/v1/get/customer/admin/touch/message/prompt/categories'),
   promptDuplicate: withBase('/v1/get/customer/admin/touch/message/prompt/duplicate'),
 
   // ── 고객터치AI · 관리자 · Kill-Switch ──────────────────────────────────────

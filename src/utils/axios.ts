@@ -1,5 +1,6 @@
 import axios from 'axios';
 
+import { canRefreshNabToken, refreshNabToken } from '../auth/nab-token';
 import { ENV_CONFIG } from '../config-global';
 import { clearAccessToken, saveAccessToken, showAlertPop, store } from '../store';
 
@@ -131,6 +132,22 @@ const axiosInstance = (() => {
   };
 
   const adminError = async (error: AxiosError) => {
+    const original = error.config as (InternalAxiosRequestConfig & { _nabRetried?: boolean }) | undefined;
+
+    // NAB 은 AccessToken 만료를 401 로 알린다. 한 번만 갱신 후 재시도하고,
+    // 갱신이 실패하면(RefreshToken 없음·만료) 그대로 흘려보내 재로그인으로 이어지게 한다.
+    if (error.response?.status === 401 && original && !original._nabRetried && canRefreshNabToken()) {
+      original._nabRetried = true;
+
+      try {
+        await refreshNabToken();
+
+        return instance(original);
+      } catch {
+        // 갱신 실패 — 아래 공통 처리로 넘긴다
+      }
+    }
+
     console.error(error);
     return Promise.reject(error);
     // return Promise.reject((error.response && error.response.data) || 'Something went wrong');

@@ -77,7 +77,7 @@ export default function PromptTable({ rows, total, pageSize }: Props) {
               </TableRow>
             ) : rows.map((row) => (
               <TableRow
-                key={row.no}
+                key={row.id}
                 sx={{ '&:hover': { bgcolor: 'var(--nab-row-hover)', cursor: 'pointer' }, '& td': { borderBottom: `1px solid ${DIVIDER}` } }}
               >
                 <TableCell align="center" sx={{ fontSize: 13, color: DARK, py: 1.5, px: 2 }}>{row.no}</TableCell>

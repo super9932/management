@@ -10,6 +10,8 @@ import UnderwritingManual from './pages/nab/counsel/underwriting-manual';
 import CounselStatistics from './pages/nab/counsel/counsel-statistics';
 import Statistics from './pages/nab/customer-touch/statistics';
 import ServiceManagement from './pages/nab/customer-touch/service-management';
+// ⚠️ 개발 전용 — 정식 로그인 경로가 생기면 라우트와 함께 제거한다
+import DevLogin from './pages/dev-login';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -26,6 +28,7 @@ function App() {
       <CssBaseline />
       <BrowserRouter>
         <Routes>
+          {import.meta.env.DEV && <Route path="/dev-login" element={<DevLogin />} />}
           <Route element={<MainLayout />}>
             <Route path="/" element={<Navigate to="/prompt-management" replace />} />
             <Route path="/prompt-management" element={<PromptManagement />} />

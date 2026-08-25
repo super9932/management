@@ -9,7 +9,7 @@ import { promptUpdateHandlers } from './prompt-update/mock';
 import { promptDeleteHandlers } from './prompt-delete/mock';
 import { promptGetHandlers } from './prompt-get/mock';
 import { promptListHandlers } from './prompt-list/mock';
-import { promptTypesHandlers } from './prompt-types/mock';
+import { promptCategoriesHandlers } from './prompt-categories/mock';
 import { promptDuplicateHandlers } from './prompt-duplicate/mock';
 
 import { killSwitchSaveHandlers } from './killswitch-save/mock';
@@ -32,7 +32,7 @@ export const customerTouchAdminHandlers = [
   ...promptDeleteHandlers,
   ...promptGetHandlers,
   ...promptListHandlers,
-  ...promptTypesHandlers,
+  ...promptCategoriesHandlers,
   ...promptDuplicateHandlers,
 
   ...killSwitchSaveHandlers,
