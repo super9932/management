@@ -39,3 +39,25 @@ export const NAB_CUSTOMER_TOUCH_API = {
 } as const;
 
 export type NabCustomerTouchApiKey = keyof typeof NAB_CUSTOMER_TOUCH_API;
+
+export const NAB_COUNSEL_BACKOFFICE_API = {
+  // ── 상담AI · 백오피스 · 통계 ───────────────────────────────────────────────
+  statsMessageList: withBase('/v1/get/counsel/admin/statistics/message/list'),
+  statsMessageExcel: withBase('/v1/get/counsel/admin/statistics/message/excel'),
+
+  // ── 상담AI · 백오피스 · 매뉴얼 ─────────────────────────────────────────────
+  manualList: withBase('/v1/get/counsel/admin/manual/list'),
+  manualDetail: withBase('/v1/get/counsel/admin/manual/detail'),
+  manualHistoryList: withBase('/v1/get/counsel/admin/manual/history/list'),
+  manualSave: withBase('/v1/post/counsel/admin/manual/save'),
+  manualUpdate: withBase('/v1/post/counsel/admin/manual/update'),
+  manualDelete: withBase('/v1/delete/counsel/admin/manual'),
+
+  // ── 상담AI · 백오피스 · 약관 ───────────────────────────────────────────────
+  stipulationList: withBase('/v1/get/counsel/admin/stipulation/list'),
+  stipulationDetail: withBase('/v1/get/counsel/admin/stipulation/detail'),
+  stipulationSave: withBase('/v1/post/counsel/admin/stipulation/save'),
+  stipulationDelete: withBase('/v1/delete/counsel/admin/stipulation'),
+} as const;
+
+export type NabCounselBackofficeApiKey = keyof typeof NAB_COUNSEL_BACKOFFICE_API;

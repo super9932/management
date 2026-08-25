@@ -28,6 +28,8 @@ export interface DocumentFilterProps {
   onSearch: () => void;
   /** 검색기준 옵션 (기본: 보험약관 문서 기준) */
   searchTypeOptions?: readonly string[];
+  /** 노출상태 옵션 (기본: 전체/운영중/오류/미운영) */
+  operationFilterOptions?: readonly string[];
   /** 검색기준 셀렉트 노출 여부 (기본: true) */
   showSearchType?: boolean;
 }
@@ -53,6 +55,7 @@ export default function DocumentFilter({
   searchText, onSearchTextChange,
   onSearch,
   searchTypeOptions = SEARCH_TYPE_OPTIONS,
+  operationFilterOptions = OPERATION_FILTER_OPTIONS,
   showSearchType = true,
 }: DocumentFilterProps) {
   return (
@@ -86,7 +89,7 @@ export default function DocumentFilter({
           onChange={(e) => onOperationFilterChange(e.target.value)}
           sx={selectSx}
         >
-          {OPERATION_FILTER_OPTIONS.map((opt) => (
+          {operationFilterOptions.map((opt) => (
             <MenuItem key={opt} value={opt}>{opt}</MenuItem>
           ))}
         </Select>

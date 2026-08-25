@@ -119,7 +119,7 @@ export default function StatisticsTable({ rows, total, pageSize, onExcelDownload
           <TableBody>
             {rows.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={COLUMNS.length} sx={{ p: 2, border: 'none' }}>
+                <TableCell colSpan={COLUMNS.length} sx={{ p: 2, pb: 0, border: 'none' }}>
                   <DocumentEmptyState />
                 </TableCell>
               </TableRow>

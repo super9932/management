@@ -5,6 +5,7 @@ import { users, roles, settings, settingUpdateResult } from './data/permissions'
 import { userStats, queryStats, feedbackStats, feedbackDetails, tokenStats } from './data/stats';
 import { promptTypes, promptHistory, promptUpsertResult } from './data/prompts';
 import { customerTouchAdminHandlers } from '../api/nab/customer-touch/handlers';
+import { counselBackofficeHandlers } from '../api/nab/counsel-backoffice/handlers';
 
 const BASE = '/api/counsel';
 
@@ -201,4 +202,7 @@ export const handlers = [
 
   // ── 고객터치AI 관리자 (swagger 01. 고객AI — 20종) ──────────────────────────
   ...customerTouchAdminHandlers,
+
+  // ── 상담AI 백오피스 (swagger 04. 상담AI_백오피스 — 12종) ────────────────────
+  ...counselBackofficeHandlers,
 ];

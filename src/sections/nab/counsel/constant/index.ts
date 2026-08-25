@@ -1,4 +1,8 @@
 import type {
+  StipulationSearchType,
+  StipulationStatus,
+} from '../../../../api/nab/counsel-backoffice';
+import type {
   DocumentRow,
   InsuranceCommonRow,
   InsuranceReviewRow,
@@ -19,6 +23,34 @@ export const OPERATION_FILTER_OPTIONS = ['전체', '운영중', '오류', '미�
 
 /** 검색기준 필터 옵션 */
 export const SEARCH_TYPE_OPTIONS = ['전체', '보종코드', '문서명', '등록자'] as const;
+
+// ── 약관문서 목록 API(04. 상담AI_백오피스) 연동용 ────────────────────────────
+/** 약관은 노출상태가 PENDING/ERROR/OPERATING 뿐이라 '미운영'이 없다 */
+export const TERMS_OPERATION_FILTER_OPTIONS = ['전체', '운영중', '대기중', '오류'] as const;
+
+/** 화면 노출상태 → API status (전체는 미전송) */
+export const TERMS_STATUS_CODE: Record<string, StipulationStatus | undefined> = {
+  전체: undefined,
+  운영중: 'OPERATING',
+  대기중: 'PENDING',
+  오류: 'ERROR',
+};
+
+/** API status → 화면 운영상태 칩 라벨 */
+export const TERMS_STATUS_LABEL: Record<StipulationStatus, OperationStatus> = {
+  OPERATING: '운영중',
+  PENDING: '대기중',
+  ERROR: '오류',
+};
+
+/** 약관 검색기준 — API에 '전체' 옵션이 없다 */
+export const TERMS_SEARCH_TYPE_OPTIONS = ['문서명', '보종코드'] as const;
+
+/** 화면 검색기준 → API searchType */
+export const TERMS_SEARCH_TYPE_CODE: Record<string, StipulationSearchType> = {
+  문서명: 'STPL_PDF_FILE_NM',
+  보종코드: 'ISRN_KIND_CODE',
+};
 
 const SAMPLE_STATUSES: OperationStatus[] = [
   '오류', '미운영', '운영중', '운영중', '운영중',
@@ -50,10 +82,23 @@ export const REVIEW_MANAGING_DEPT = '보험심사팀';
 export const REVIEW_SEARCH_TYPE_OPTIONS = ['전체', '문서명', '등록자'] as const;
 
 /** 운영상태 선택 옵션 (상세 모달) */
-export const OPERATION_STATUS_OPTIONS = ['운영중', '오류', '미운영'] as const;
+/** 문서 상세 - 운영상태 드롭다운 옵션 (COM_공통정의_003 3-B) */
+export const OPERATION_STATUS_OPTIONS = ['운영중', '대기중'] as const;
 
-/** 반영/종료 일시 선택 옵션 */
-export const TIME_OPTIONS = ['00:00', '06:00', '12:00', '18:00', '24:00'] as const;
+/** 반영/종료 일시 선택 옵션 — 30분 단위 (COM_공통정의_003 3-C/3-D) */
+export const TIME_OPTIONS = Array.from({ length: 48 }, (_, i) => {
+  const hour = String(Math.floor(i / 2)).padStart(2, '0');
+  const minute = i % 2 === 0 ? '00' : '30';
+
+  return `${hour}:${minute}`;
+}).concat('24:00');
+
+/**
+ * 서버 시간 기준 작업 제한 시간 (COM_공통정의_003 10-E).
+ * 이 구간에는 변경내용 저장·문서 삭제를 막는다.
+ */
+export const RESTRICTED_WORK_HOUR_START = 23;
+export const RESTRICTED_WORK_HOUR_END = 24;
 
 /** 문서 상세 - 수정 이력 목업 */
 export const MOCK_REVIEW_HISTORY: ReviewHistoryEntry[] = [
@@ -183,4 +228,37 @@ export const DOCUMENT_ALERTS = {
     confirmLabel: '닫기',
     cancelLabel: '취소',
   },
+  // ── 문서 상세 (COM_공통정의_003 10. 관련 모달) ──────────────────────────────
+  detailLeaveConfirm: {
+    title: '변경사항 미저장',
+    message: '저장하지 않은 변경 내용이 있습니다.\n닫기를 선택하면 변경 내용이 저장되지 않습니다.',
+    confirmLabel: '닫기',
+    cancelLabel: '취소',
+  },
+  detailSaveConfirm: {
+    title: '변경내용 저장',
+    message: '변경 내용을 저장하시겠습니까?',
+    confirmLabel: '확인',
+    cancelLabel: '취소',
+  },
+  detailDeleteConfirm: {
+    title: '문서 삭제',
+    message: '문서를 삭제하시겠습니까?\n삭제한 문서는 복구할 수 없습니다.',
+    confirmLabel: '삭제',
+    cancelLabel: '취소',
+  },
+  restrictedTime: {
+    title: '작업 제한 시간',
+    message: '23:00 ~ 24:00 에는 문서 저장·삭제를 할 수 없습니다.\n작업 제한 시간이 지난 후 다시 시도해 주세요.',
+    confirmLabel: '확인',
+  },
+} as const;
+
+/** 문서 상세 - 작업 결과 토스트 문구 (COM_공통정의_003 10-B/10-C) */
+export const DOCUMENT_DETAIL_TOASTS = {
+  saveSuccess: '변경 내용을 저장했습니다.',
+  saveFail: '변경 내용 저장에 실패했습니다.',
+  deleteSuccess: '문서를 삭제했습니다.',
+  deleteFail: '문서 삭제에 실패했습니다.',
+  noChanges: '변경된 내용이 없습니다.',
 } as const;

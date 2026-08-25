@@ -99,7 +99,7 @@ export default function InsuranceCommonTable({
           <TableBody>
             {rows.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={COL_COUNT} sx={{ p: 2, border: 'none' }}>
+                <TableCell colSpan={COL_COUNT} sx={{ p: 2, pb: 0, border: 'none' }}>
                   <DocumentEmptyState />
                 </TableCell>
               </TableRow>

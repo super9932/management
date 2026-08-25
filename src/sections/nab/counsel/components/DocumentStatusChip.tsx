@@ -3,6 +3,8 @@ import type { OperationStatus } from '../type';
 
 const STATUS_STYLE: Record<OperationStatus, { fg: string; bg: string }> = {
   운영중: { fg: 'var(--nab-label-green-fg)', bg: 'var(--nab-label-green-bg)' },
+  // 반영일자 미도래 / 종료일자 도래 상태
+  대기중: { fg: 'var(--nab-label-gray-fg)', bg: 'var(--nab-label-gray-bg)' },
   오류: { fg: 'var(--nab-label-red-fg)', bg: 'var(--nab-label-red-bg)' },
   미운영: { fg: 'var(--nab-label-gray-fg)', bg: 'var(--nab-label-gray-bg)' },
 };

@@ -1,5 +1,5 @@
 // 문서 운영상태 (enum 금지 T-08 — as const 객체 + 유니언)
-export const OPERATION_STATUS = ['운영중', '오류', '미운영'] as const;
+export const OPERATION_STATUS = ['운영중', '대기중', '오류', '미운영'] as const;
 export type OperationStatus = (typeof OPERATION_STATUS)[number];
 
 // 문서관리 테이블 행
@@ -14,6 +14,8 @@ export interface DocumentRow {
   /** 판매기간 종료 */
   salePeriodEnd: string;
   documentName: string;
+  /** 약관 CSV 파일명 (목록 API가 내려준다) */
+  csvDocumentName?: string;
   /** 등록자 이름(사번) */
   registrantName: string;
   /** 등록자 소속 */

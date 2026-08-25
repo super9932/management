@@ -28,6 +28,7 @@ interface Props {
   selectedIds: ReadonlySet<number>;
   onToggle: (id: number) => void;
   onToggleAll: () => void;
+  onDocumentClick: (row: DocumentRow) => void;
 }
 
 const headCellSx = {
@@ -48,7 +49,7 @@ const bodyCellSx = {
 } as const;
 
 export default function DocumentTable({
-  rows, total, pageSize, selectedIds, onToggle, onToggleAll,
+  rows, total, pageSize, selectedIds, onToggle, onToggleAll, onDocumentClick,
 }: Props) {
   const allChecked = rows.length > 0 && rows.every((row) => selectedIds.has(row.id));
   const someChecked = rows.some((row) => selectedIds.has(row.id));
@@ -98,7 +99,7 @@ export default function DocumentTable({
           <TableBody>
             {rows.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={COL_COUNT} sx={{ p: 2, border: 'none' }}>
+                <TableCell colSpan={COL_COUNT} sx={{ p: 2, pb: 0, border: 'none' }}>
                   <DocumentEmptyState />
                 </TableCell>
               </TableRow>
@@ -126,6 +127,7 @@ export default function DocumentTable({
                     component="button"
                     type="button"
                     underline="none"
+                    onClick={() => onDocumentClick(row)}
                     sx={{
                       fontSize: 14, color: DARK, textAlign: 'left', display: 'block',
                       overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '100%',
