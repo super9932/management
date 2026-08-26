@@ -15,6 +15,10 @@ export const saveStipulation = async ({ pdfFile, csvFile }: StipulationSaveReque
   if (pdfFile) formData.append('pdfFile', pdfFile);
   if (csvFile) formData.append('csvFile', csvFile);
 
-  const response = await axiosInstance.post<ApiResponse<StipulationSaveResponse>>(url, formData);
+  const response = await axiosInstance.post<ApiResponse<StipulationSaveResponse>>(url, formData, {
+    // axiosInstance 기본 헤더가 application/json 이라 그대로 두면 boundary 가 빠져 서버가 파싱하지 못한다.
+    // undefined 로 지워 브라우저가 multipart/form-data; boundary=... 를 직접 채우게 한다.
+    headers: { 'Content-Type': undefined },
+  });
   return response.data;
 };

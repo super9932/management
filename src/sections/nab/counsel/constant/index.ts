@@ -1,16 +1,10 @@
 import type {
+  AdminTypeCode,
+  ManualStatus,
   StipulationSearchType,
   StipulationStatus,
 } from '../../../../api/nab/counsel-backoffice';
-import type {
-  DocumentRow,
-  InsuranceCommonRow,
-  InsuranceReviewRow,
-  OperationStatus,
-  ReviewHistoryEntry,
-  StatisticsRow,
-  UnderwritingManualRow,
-} from '../type';
+import type { OperationStatus } from '../type';
 
 /** 페이지당 문서 수 */
 export const PAGE_SIZE = 10;
@@ -43,6 +37,37 @@ export const TERMS_STATUS_LABEL: Record<StipulationStatus, OperationStatus> = {
   ERROR: '오류',
 };
 
+// ── 매뉴얼문서 목록 API(04. 상담AI_백오피스) 연동용 ──────────────────────────
+/** 화면 ↔ 관리주체 코드 (매뉴얼 API 하나를 세 화면이 공유한다) */
+export const MANUAL_ADMIN_TYPE = {
+  underwriting: 'UDW',
+  insuranceReview: 'ISRN_ADT',
+  insuranceCommon: 'ISRN_SVC',
+} as const satisfies Record<string, AdminTypeCode>;
+
+/** 매뉴얼 노출상태 옵션 — ManualStatus 4종 + 전체 */
+export const MANUAL_OPERATION_FILTER_OPTIONS = ['전체', '운영중', '대기중', '미운영', '오류'] as const;
+
+/** 화면 노출상태 → API status (전체는 미전송) */
+export const MANUAL_STATUS_CODE: Record<string, ManualStatus | undefined> = {
+  전체: undefined,
+  운영중: 'OPERATING',
+  대기중: 'PENDING',
+  미운영: 'NOT_OPERATING',
+  오류: 'ERROR',
+};
+
+/** API status → 화면 운영상태 칩 라벨 */
+export const MANUAL_STATUS_LABEL: Record<ManualStatus, OperationStatus> = {
+  OPERATING: '운영중',
+  PENDING: '대기중',
+  NOT_OPERATING: '미운영',
+  ERROR: '오류',
+};
+
+/** 매뉴얼 검색기준 — API가 매뉴얼명(keyword) 부분일치만 지원한다 */
+export const MANUAL_SEARCH_TYPE_OPTIONS = ['문서명'] as const;
+
 /** 약관 검색기준 — API에 '전체' 옵션이 없다 */
 export const TERMS_SEARCH_TYPE_OPTIONS = ['문서명', '보종코드'] as const;
 
@@ -51,28 +76,6 @@ export const TERMS_SEARCH_TYPE_CODE: Record<string, StipulationSearchType> = {
   문서명: 'STPL_PDF_FILE_NM',
   보종코드: 'ISRN_KIND_CODE',
 };
-
-const SAMPLE_STATUSES: OperationStatus[] = [
-  '오류', '미운영', '운영중', '운영중', '운영중',
-  '운영중', '운영중', '운영중', '운영중', '운영중',
-];
-
-export const MOCK_ROWS: DocumentRow[] = Array.from({ length: PAGE_SIZE }, (_, i) => ({
-  id: i + 1,
-  no: 99999,
-  productCodes: '1818-027, 1818-028,\n1818-029, 1818-030,\n1818-031, 1818-032,\n1818-033',
-  salePeriodStart: '2008.04.01~',
-  salePeriodEnd: '2008.06.30',
-  documentName:
-    '한화생명 프라임통합종신보험(무)[저해지환급형]_1818-027~050, 1832-002_약관_20170101~20170331.pdf',
-  registrantName: '김한화(2230204)',
-  registrantDept: '상품시스템팀',
-  registeredAt: '2026.06.01',
-  operationStatus: SAMPLE_STATUSES[i] ?? '운영중',
-}));
-
-/** 목업 총 건수 */
-export const MOCK_TOTAL = 99999;
 
 // ---------------------------------------------------------------- 보험심사 문서
 /** 보험심사 문서 관리 부서 */
@@ -100,99 +103,54 @@ export const TIME_OPTIONS = Array.from({ length: 48 }, (_, i) => {
 export const RESTRICTED_WORK_HOUR_START = 23;
 export const RESTRICTED_WORK_HOUR_END = 24;
 
-/** 문서 상세 - 수정 이력 목업 */
-export const MOCK_REVIEW_HISTORY: ReviewHistoryEntry[] = [
-  {
-    id: 1,
-    changedAt: '2026.01.12 08:30',
-    editor: '김한화(2230000)',
-    changes: [
-      '운영일자 : 2026.01.01 / 00:00 → 2026.06.01 / 23:30',
-      '종료일자 : 2026.12.31 / 00:00 → 2027.06.01 / 23:30',
-    ],
-  },
-  ...Array.from({ length: 7 }, (_, i) => ({
-    id: i + 2,
-    changedAt: '2026.01.11 08:30',
-    editor: '김한화(2230000)',
-    changes: ['운영일자 : 2026.01.01 / 00:00 → 2026.06.01 / 23:30'],
-  })),
-];
-
-export const MOCK_REVIEW_ROWS: InsuranceReviewRow[] = Array.from({ length: PAGE_SIZE }, (_, i) => ({
-  id: i + 1,
-  no: 99999,
-  documentName: '260430_보험심사팀_사고보험금 청구 관련 주요 사항 (1).docx',
-  registrantName: '이생명(2230205)',
-  registrantDept: '보험심사팀',
-  registeredAt: '2026.06.01',
-  effectiveStart: '2026.01.01 08:00:00~',
-  effectiveEnd: '-',
-  operationStatus: SAMPLE_STATUSES[i] ?? '운영중',
-}));
-
 // ---------------------------------------------------------------- 보험공통 문서
 /** 보험공통 문서 관리 부서 */
 export const COMMON_MANAGING_DEPT = '보험서비스팀';
 
-export const MOCK_COMMON_ROWS: InsuranceCommonRow[] = Array.from({ length: PAGE_SIZE }, (_, i) => ({
-  id: i + 1,
-  no: 99999,
-  documentName: '01. 인적사항 정정 업무지침.pdf',
-  registrantName: '박한화(2230206)',
-  registrantDept: '보험서비스팀',
-  registeredAt: '2026.06.01',
-  effectiveStart: '2026.01.01 08:00:00~',
-  effectiveEnd: '-',
-  operationStatus: SAMPLE_STATUSES[i] ?? '운영중',
-}));
-
 // ---------------------------------------------------------------- 상담 Plus AI 통계
-/** 통계 총 건수 */
-export const STATISTICS_TOTAL = 10285;
+/** 화면 구분 코드 → 표시명 (통계 API 는 코드만 내려주고 변환은 FE 몫) */
+export const COUNSEL_SCREEN_LABEL: Record<string, string> = {
+  '01': '타겟고객발굴',
+  '02': '고객계약관리',
+  '03': '신계약상담',
+};
 
-const STATISTICS_FEEDBACK = ['좋아요', '싫어요', '-', '-', '좋아요', '-', '싫어요', '-', '좋아요', '-'];
-
-export const MOCK_STATISTICS_ROWS: StatisticsRow[] = Array.from({ length: PAGE_SIZE }, (_, i) => ({
-  id: i + 1,
-  datetime: '2026.07.13',
-  userId: '22302051',
-  division: '1사업본부',
-  region: '서울권역',
-  district: '서울지역단',
-  branch: '서울지점',
-  roomId: '00001',
-  screen: '신계약',
-  code: '00001',
-  question: '질의 내용을 입력해 주세요 질의 내용을 입력해 주세요 질의 내용을 입력해 주세요',
-  answer: '답변 내용을 입력해 주세요 답변 내용을 입력해 주세요 답변 내용을 입력해 주세요',
-  model: 'gemini-3-flash',
-  elapsedSec: '123.45',
-  cost: '678.90',
-  feedback: STATISTICS_FEEDBACK[i] ?? '-',
-  feedbackReason: '-',
-}));
+/** 통계 화면 토스트 */
+export const STATISTICS_TOASTS = {
+  excelFail: '엑셀 다운로드에 실패했습니다.',
+} as const;
 
 // ---------------------------------------------------------------- 언더라이팅 매뉴얼
 /** 언더라이팅 매뉴얼 관리 부서 */
 export const UNDERWRITING_MANAGING_DEPT = '언더라이팅팀';
 
-export const MOCK_UNDERWRITING_ROWS: UnderwritingManualRow[] = Array.from({ length: PAGE_SIZE }, (_, i) => ({
-  id: i + 1,
-  no: 99999,
-  category: '업무매뉴얼',
-  documentName: 'H간병보험 UW 원시트_26.02.xlsx',
-  registrantName: '최금융(2230207)',
-  registrantDept: '언더라이팅팀',
-  registeredAt: '2026.06.01',
-  effectiveStart: '2026.01.01 08:00:00~',
-  effectiveEnd: '-',
-  operationStatus: SAMPLE_STATUSES[i] ?? '운영중',
-}));
-
 // ---------------------------------------------------------------- 문서 등록 모달
 /** 문서 첨부 지원 형식 (input accept) */
 export const DOCUMENT_ACCEPT = '.pdf,.csv,.docx';
+
+/**
+ * 첨부 가능한 최대 파일 용량(MB) — COM_공통정의_006 3-A/5-A 의 '최대 허용 용량'.
+ * TODO: 기획서·API 스펙에 수치가 없어 임시값이다. BE 확인 후 교체한다.
+ */
+export const MAX_ATTACHMENT_SIZE_MB = 50;
+
+/** 약관 등록 파일명 불일치 안내 (유효성 검사 실패 배너) */
+export const TERMS_FILENAME_MISMATCH_MESSAGE =
+  '등록하려는 약관 PDF와 CSV 파일이 일치하지 않습니다. 파일명을 확인한 후 다시 등록해 주세요.';
+
+/** 매뉴얼 등록 결과 토스트 */
+export const MANUAL_REGISTER_TOASTS = {
+  missingFile: '첨부할 파일을 등록해 주세요.',
+  saveSuccess: '문서가 등록되었습니다.',
+  saveFail: '문서 등록에 실패했습니다.',
+} as const;
+
+/** 약관 등록 유효성 검사 실패 토스트 (COM_공통정의_006 6-B) */
+export const TERMS_REGISTER_TOASTS = {
+  missingFile: 'PDF와 CSV 파일을 모두 첨부해 주세요.',
+  saveSuccess: '문서가 등록되었습니다.',
+  saveFail: '문서 등록에 실패했습니다.',
+} as const;
 
 /**
  * 문서 등록 관련 alert 프리셋 (파일형식/용량초과/첨부오류/등록확인/등록이탈).
@@ -229,36 +187,41 @@ export const DOCUMENT_ALERTS = {
     cancelLabel: '취소',
   },
   // ── 문서 상세 (COM_공통정의_003 10. 관련 모달) ──────────────────────────────
+  /** MOD_변경이탈_001 */
   detailLeaveConfirm: {
-    title: '변경사항 미저장',
-    message: '저장하지 않은 변경 내용이 있습니다.\n닫기를 선택하면 변경 내용이 저장되지 않습니다.',
+    title: '변경사항 닫기',
+    message: '저장되지 않은 변경사항이 있습니다.\n닫기를 선택하면 변경한 내용이 저장되지 않습니다.',
     confirmLabel: '닫기',
     cancelLabel: '취소',
   },
+  /** MOD_변경확인_001 */
   detailSaveConfirm: {
-    title: '변경내용 저장',
-    message: '변경 내용을 저장하시겠습니까?',
+    title: '변경사항 적용',
+    message: '운영 내용을 변경했습니다.\n확인을 선택하면 변경사항이 저장되며, 반영 정보는 익일부터 적용됩니다.',
     confirmLabel: '확인',
     cancelLabel: '취소',
   },
+  /** MOD_문서삭제_001 — 확인 버튼이 파괴적 액션(빨강)이다 */
   detailDeleteConfirm: {
-    title: '문서 삭제',
-    message: '문서를 삭제하시겠습니까?\n삭제한 문서는 복구할 수 없습니다.',
+    title: '문서삭제 확인',
+    message: '문서를 삭제하시겠습니까?\n삭제된 문서는 복구할 수 없습니다.',
     confirmLabel: '삭제',
     cancelLabel: '취소',
   },
+  /** MOD_작업안내_001 */
   restrictedTime: {
-    title: '작업 제한 시간',
-    message: '23:00 ~ 24:00 에는 문서 저장·삭제를 할 수 없습니다.\n작업 제한 시간이 지난 후 다시 시도해 주세요.',
+    title: '작업 가능 시간 안내',
+    message: '23:00 ~ 24:00는 작업이 제한되는 시간입니다.\n해당 시간 이후 다시 시도해주세요.',
     confirmLabel: '확인',
   },
 } as const;
 
 /** 문서 상세 - 작업 결과 토스트 문구 (COM_공통정의_003 10-B/10-C) */
 export const DOCUMENT_DETAIL_TOASTS = {
-  saveSuccess: '변경 내용을 저장했습니다.',
-  saveFail: '변경 내용 저장에 실패했습니다.',
-  deleteSuccess: '문서를 삭제했습니다.',
+  saveSuccess: '변경사항이 저장되었습니다.',
+  saveFail: '변경사항 저장에 실패했습니다.',
+  deleteSuccess: '문서가 삭제되었습니다.',
   deleteFail: '문서 삭제에 실패했습니다.',
+  /** 디자인 정의 외 — 변경 없이 저장을 누른 경우의 안내 */
   noChanges: '변경된 내용이 없습니다.',
 } as const;

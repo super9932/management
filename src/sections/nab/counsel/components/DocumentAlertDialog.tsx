@@ -14,6 +14,8 @@ interface Props {
   confirmLabel: string;
   /** 없으면 단일 확인 버튼 */
   cancelLabel?: string;
+  /** 파괴적 액션(문서 삭제 등) — 확인 버튼을 빨간색으로 */
+  danger?: boolean;
   onConfirm: () => void;
   onClose: () => void;
 }
@@ -23,7 +25,7 @@ interface Props {
  * 프리셋 문구는 constant 의 DOCUMENT_ALERTS 를 전달해 사용한다.
  */
 export default function DocumentAlertDialog({
-  open, title, message, confirmLabel, cancelLabel, onConfirm, onClose,
+  open, title, message, confirmLabel, cancelLabel, danger = false, onConfirm, onClose,
 }: Props) {
   return (
     <Dialog
@@ -58,8 +60,12 @@ export default function DocumentAlertDialog({
           onClick={onConfirm}
           sx={{
             height: 36, px: 1.5, borderRadius: 1, fontSize: 14, fontWeight: 400,
-            bgcolor: 'var(--nab-button)', color: 'white', boxShadow: 'none',
-            '&:hover': { bgcolor: 'var(--nab-button-hover)', boxShadow: 'none' },
+            color: 'white', boxShadow: 'none',
+            bgcolor: danger ? 'var(--nab-danger)' : 'var(--nab-button)',
+            '&:hover': {
+              bgcolor: danger ? 'var(--nab-danger-hover)' : 'var(--nab-button-hover)',
+              boxShadow: 'none',
+            },
           }}
         >
           {confirmLabel}

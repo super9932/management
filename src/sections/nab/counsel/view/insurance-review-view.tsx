@@ -1,55 +1,71 @@
 import { useState } from 'react';
 import {
+  Alert,
   Box,
   Breadcrumbs,
   Button,
   Card,
+  CircularProgress,
   Typography,
 } from '@mui/material';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import { NabThemeScope } from '../../_lib/NabThemeScope';
-import { CARD_SHADOW, DARK, DISABLED, SECONDARY } from '../../_lib/tokens';
+import { CARD_SHADOW, DARK, DISABLED, PRIMARY_ORANGE, SECONDARY } from '../../_lib/tokens';
 import DocumentFilter from '../components/DocumentFilter';
 import InsuranceReviewTable from '../components/InsuranceReviewTable';
 import InsuranceReviewDetailDialog from '../components/InsuranceReviewDetailDialog';
 import DocumentRegisterDialog from '../components/DocumentRegisterDialog';
 import DocumentPagination from '../components/DocumentPagination';
-import { MOCK_REVIEW_ROWS, MOCK_TOTAL, PAGE_SIZE, REVIEW_SEARCH_TYPE_OPTIONS } from '../constant';
+import {
+  MANUAL_ADMIN_TYPE,
+  MANUAL_OPERATION_FILTER_OPTIONS,
+  MANUAL_SEARCH_TYPE_OPTIONS,
+  PAGE_SIZE,
+} from '../constant';
+import { useManualDocuments } from '../hooks/use-manual-documents';
+import { DOCUMENT_ALERTS, DOCUMENT_DETAIL_TOASTS } from '../constant';
+import { isRestrictedWorkTime } from '../lib/document-attachment';
+import DocumentAlertDialog from '../components/DocumentAlertDialog';
+import DocumentToast from '../components/DocumentToast';
+import type { DocumentToastSeverity } from '../components/DocumentToast';
 import type { InsuranceReviewRow } from '../type';
 
 function InsuranceReviewViewInner() {
-  const [fromDate, setFromDate] = useState('2026.01.01');
-  const [toDate, setToDate] = useState('2026.12.31');
-  const [operationFilter, setOperationFilter] = useState('전체');
-  const [searchType, setSearchType] = useState('전체');
-  const [searchText, setSearchText] = useState('');
-  const [page, setPage] = useState(1);
-  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const {
+    fromDate, setFromDate,
+    toDate, setToDate,
+    operationFilter, setOperationFilter,
+    searchType, setSearchType,
+    searchText, setSearchText,
+    handleSearch,
+    rows, total, totalPages,
+    isFetching, isError, error, refetch,
+    page, setPage,
+    selectedIds, handleToggle, handleToggleAll, hasSelection,
+    deleteSelected, isDeleting,
+  } = useManualDocuments(MANUAL_ADMIN_TYPE.insuranceReview);
   const [detailRow, setDetailRow] = useState<InsuranceReviewRow | null>(null);
   const [registerOpen, setRegisterOpen] = useState(false);
+  const [deleteAlert, setDeleteAlert] = useState<'delete' | 'restricted' | null>(null);
+  const [toast, setToast] = useState<{ message: string; severity: DocumentToastSeverity }>({
+    message: '',
+    severity: 'success',
+  });
 
-  const rows = MOCK_REVIEW_ROWS;
+  /** 선택 삭제 — 작업 제한 시간을 먼저 확인하고 확인 모달을 띄운다 */
+  const handleDeleteSelected = async () => {
+    setDeleteAlert(null);
 
-  const handleToggle = (id: number) => {
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
-      } else {
-        next.add(id);
-      }
-      return next;
-    });
+    try {
+      await deleteSelected();
+      setToast({ message: DOCUMENT_DETAIL_TOASTS.deleteSuccess, severity: 'success' });
+    } catch (error) {
+      setToast({
+        message: (error as Error)?.message || DOCUMENT_DETAIL_TOASTS.deleteFail,
+        severity: 'error',
+      });
+    }
   };
-
-  const handleToggleAll = () => {
-    setSelectedIds((prev) => {
-      const allChecked = rows.length > 0 && rows.every((row) => prev.has(row.id));
-      return allChecked ? new Set() : new Set(rows.map((row) => row.id));
-    });
-  };
-
-  const hasSelection = selectedIds.size > 0;
 
   return (
     <>
@@ -77,22 +93,51 @@ function InsuranceReviewViewInner() {
           onSearchTypeChange={setSearchType}
           searchText={searchText}
           onSearchTextChange={setSearchText}
-          onSearch={() => setPage(1)}
-          searchTypeOptions={REVIEW_SEARCH_TYPE_OPTIONS}
+          onSearch={handleSearch}
+          operationFilterOptions={MANUAL_OPERATION_FILTER_OPTIONS}
+          searchTypeOptions={MANUAL_SEARCH_TYPE_OPTIONS}
         />
-        <InsuranceReviewTable
-          rows={rows}
-          total={MOCK_TOTAL}
-          pageSize={PAGE_SIZE}
-          selectedIds={selectedIds}
-          onToggle={handleToggle}
-          onToggleAll={handleToggleAll}
-          onDocumentClick={setDetailRow}
-        />
+        {isError && (
+          <Alert
+            severity="error"
+            sx={{ borderRadius: 0 }}
+            action={
+              <Button color="inherit" size="small" onClick={() => refetch()}>
+                재시도
+              </Button>
+            }
+          >
+            {error?.message ?? '문서 목록을 불러오지 못했습니다.'}
+          </Alert>
+        )}
+
+        <Box sx={{ position: 'relative' }}>
+          {isFetching && (
+            <Box
+              sx={{
+                position: 'absolute', inset: 0, zIndex: 1,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                bgcolor: 'rgba(255, 255, 255, 0.6)',
+              }}
+            >
+              <CircularProgress size={24} sx={{ color: PRIMARY_ORANGE }} />
+            </Box>
+          )}
+
+          <InsuranceReviewTable
+            rows={rows}
+            total={total}
+            pageSize={PAGE_SIZE}
+            selectedIds={selectedIds}
+            onToggle={handleToggle}
+            onToggleAll={handleToggleAll}
+            onDocumentClick={setDetailRow}
+          />
+        </Box>
 
         {/* 페이지네이션(중앙) + 액션(우측) */}
         <Box sx={{ position: 'relative' }}>
-          <DocumentPagination page={page} onChange={setPage} />
+          <DocumentPagination page={page} totalPages={totalPages} onChange={setPage} />
           <Box
             sx={{
               position: 'absolute', right: 20, top: 0, bottom: 0,
@@ -101,7 +146,8 @@ function InsuranceReviewViewInner() {
           >
             <Button
               variant="outlined"
-              disabled={!hasSelection}
+              disabled={!hasSelection || isDeleting}
+              onClick={() => setDeleteAlert(isRestrictedWorkTime() ? 'restricted' : 'delete')}
               sx={{
                 height: 40, px: 2, borderRadius: 2, fontSize: 14, fontWeight: 400,
                 color: DARK, borderColor: 'var(--nab-border-strong)',
@@ -109,7 +155,7 @@ function InsuranceReviewViewInner() {
                 '&.Mui-disabled': { color: DISABLED, borderColor: 'var(--nab-border)' },
               }}
             >
-              선택 삭제
+              {isDeleting ? '삭제 중…' : '선택 삭제'}
             </Button>
             <Button
               variant="contained"
@@ -134,8 +180,27 @@ function InsuranceReviewViewInner() {
 
       <DocumentRegisterDialog
         open={registerOpen}
+        adminType={MANUAL_ADMIN_TYPE.insuranceReview}
         title="보험심사 문서 등록"
         onClose={() => setRegisterOpen(false)}
+      />
+
+      {/* 선택 삭제 확인 / 작업 가능 시간 안내 */}
+      <DocumentAlertDialog
+        open={deleteAlert !== null}
+        title={deleteAlert === 'delete' ? DOCUMENT_ALERTS.detailDeleteConfirm.title : DOCUMENT_ALERTS.restrictedTime.title}
+        message={deleteAlert === 'delete' ? DOCUMENT_ALERTS.detailDeleteConfirm.message : DOCUMENT_ALERTS.restrictedTime.message}
+        confirmLabel={deleteAlert === 'delete' ? DOCUMENT_ALERTS.detailDeleteConfirm.confirmLabel : DOCUMENT_ALERTS.restrictedTime.confirmLabel}
+        cancelLabel={deleteAlert === 'delete' ? DOCUMENT_ALERTS.detailDeleteConfirm.cancelLabel : undefined}
+        danger={deleteAlert === 'delete'}
+        onConfirm={deleteAlert === 'delete' ? handleDeleteSelected : () => setDeleteAlert(null)}
+        onClose={() => setDeleteAlert(null)}
+      />
+
+      <DocumentToast
+        message={toast.message}
+        severity={toast.severity}
+        onClose={() => setToast((prev) => ({ ...prev, message: '' }))}
       />
     </>
   );

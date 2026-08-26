@@ -68,6 +68,9 @@ export const NAB_VARS_LIGHT = {
   '--nab-label-red-bg': 'rgba(245,63,63,0.16)',
   '--nab-label-gray-fg': '#737c85',
   '--nab-label-gray-bg': 'rgba(140,149,157,0.16)',
+  // 파괴적 액션 버튼(문서 삭제 확인 등)
+  '--nab-danger': '#f53f3f',
+  '--nab-danger-hover': '#d93636',
 } as const;
 
 /** 다크 모드 오버라이드 값 */
@@ -108,4 +111,6 @@ export const NAB_VARS_DARK = {
   '--nab-label-red-bg': 'rgba(255,138,138,0.16)',
   '--nab-label-gray-fg': '#9aa4ad',
   '--nab-label-gray-bg': 'rgba(255,255,255,0.12)',
+  '--nab-danger': '#ff6b6b',
+  '--nab-danger-hover': '#ff8a8a',
 } as const;

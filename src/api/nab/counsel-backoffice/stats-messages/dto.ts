@@ -17,14 +17,15 @@ export interface MsgeStatItem {
   rgstDttm: string;
   /** 사용자 사번 */
   fpUniqNo: string;
+  // 조직 4단계 — 스웨거에는 필수로 적혀 있으나 실제 응답에는 null 이 온다 (본사 소속 등 하위 조직이 없는 경우)
   /** 사업본부 */
-  lvl1OrgnNm: string;
+  lvl1OrgnNm: string | null;
   /** 권역 */
-  lvl2OrgnNm: string;
+  lvl2OrgnNm: string | null;
   /** 지역단 */
-  lvl3OrgnNm: string;
+  lvl3OrgnNm: string | null;
   /** 지점 */
-  lvl4OrgnNm: string;
+  lvl4OrgnNm: string | null;
   /** 대화방ID */
   convRoomId: string;
   /** 화면 구분 (01 타겟고객발굴 / 02 고객계약관리 / 03 신계약상담). 표시명 변환은 FE 공통코드가 한다 */

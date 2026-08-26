@@ -15,18 +15,18 @@ import FileDownloadOutlinedIcon from '@mui/icons-material/FileDownloadOutlined';
 import { DARK, DIVIDER, PRIMARY_ORANGE, SECONDARY } from '../../_lib/tokens';
 import type { StatisticsRow } from '../type';
 import DocumentEmptyState from './DocumentEmptyState';
+import EllipsisText from './EllipsisText';
 
 interface Column {
   key: keyof StatisticsRow;
   label: string;
   width: number;
   align?: 'left' | 'center';
-  /** 긴 텍스트 (말줄임) */
-  ellipsis?: boolean;
 }
 
 const COLUMNS: Column[] = [
-  { key: 'datetime', label: '일시', width: 108, align: 'center' },
+  // 일시는 'YYYY.MM.DD HH:MM' 이 항상 다 보여야 해서 말줄임이 걸리지 않을 폭을 준다
+  { key: 'datetime', label: '일시', width: 148, align: 'center' },
   { key: 'userId', label: '사용자(ID)', width: 110, align: 'center' },
   { key: 'division', label: '사업본부', width: 108 },
   { key: 'region', label: '권역', width: 100 },
@@ -35,8 +35,8 @@ const COLUMNS: Column[] = [
   { key: 'roomId', label: '룸ID', width: 80, align: 'center' },
   { key: 'screen', label: '화면', width: 100, align: 'center' },
   { key: 'code', label: '코드', width: 80, align: 'center' },
-  { key: 'question', label: '질문', width: 280, ellipsis: true },
-  { key: 'answer', label: '답변', width: 280, ellipsis: true },
+  { key: 'question', label: '질문', width: 280 },
+  { key: 'answer', label: '답변', width: 280 },
   { key: 'model', label: '생성 모델', width: 120, align: 'center' },
   { key: 'elapsedSec', label: '소요시간(초)', width: 110, align: 'center' },
   { key: 'cost', label: '비용(달러)', width: 110, align: 'center' },
@@ -45,6 +45,9 @@ const COLUMNS: Column[] = [
 ];
 
 const TABLE_MIN_WIDTH = COLUMNS.reduce((sum, col) => sum + col.width, 0);
+
+/** 셀 좌우 여백(px 2 → 16px씩) — 컬럼 폭에서 빼야 내용 영역 폭이 나온다 */
+const CELL_PADDING_X = 32;
 
 interface Props {
   rows: StatisticsRow[];
@@ -132,16 +135,13 @@ export default function StatisticsTable({ rows, total, pageSize, onExcelDownload
                   <TableCell
                     key={col.key}
                     align={col.align === 'center' ? 'center' : 'left'}
-                    sx={{
-                      ...bodyCellSx,
-                      width: col.width,
-                      maxWidth: col.width,
-                      ...(col.ellipsis
-                        ? { overflow: 'hidden', textOverflow: 'ellipsis' }
-                        : {}),
-                    }}
+                    sx={{ ...bodyCellSx, width: col.width, maxWidth: col.width }}
                   >
-                    {row[col.key]}
+                    <EllipsisText
+                      text={String(row[col.key])}
+                      maxWidth={col.width - CELL_PADDING_X}
+                      align={col.align === 'center' ? 'center' : 'left'}
+                    />
                   </TableCell>
                 ))}
               </TableRow>

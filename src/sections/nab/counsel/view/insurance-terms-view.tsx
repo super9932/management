@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useQuery } from 'react-query';
+import { useMutation, useQuery, useQueryClient } from 'react-query';
 import {
   Alert,
   Box,
@@ -17,8 +17,14 @@ import DocumentTable from '../components/DocumentTable';
 import DocumentTermsRegisterDialog from '../components/DocumentTermsRegisterDialog';
 import InsuranceTermsDetailDialog from '../components/InsuranceTermsDetailDialog';
 import DocumentPagination from '../components/DocumentPagination';
+import DocumentAlertDialog from '../components/DocumentAlertDialog';
+import DocumentToast from '../components/DocumentToast';
+import type { DocumentToastSeverity } from '../components/DocumentToast';
+import { isRestrictedWorkTime } from '../lib/document-attachment';
 import type { DocumentRow } from '../type';
 import {
+  DOCUMENT_ALERTS,
+  DOCUMENT_DETAIL_TOASTS,
   PAGE_SIZE,
   TERMS_OPERATION_FILTER_OPTIONS,
   TERMS_SEARCH_TYPE_CODE,
@@ -26,7 +32,7 @@ import {
   TERMS_STATUS_CODE,
   TERMS_STATUS_LABEL,
 } from '../constant';
-import { getStipulationList } from '../../../../api/nab/counsel-backoffice';
+import { deleteStipulation, getStipulationList } from '../../../../api/nab/counsel-backoffice';
 import type { StipulationItem, StipulationListRequest } from '../../../../api/nab/counsel-backoffice';
 
 /** 조회 버튼을 눌러야 실제 요청에 반영되는 값들 */
@@ -109,6 +115,44 @@ function InsuranceTermsViewInner() {
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [registerOpen, setRegisterOpen] = useState(false);
   const [detailRow, setDetailRow] = useState<DocumentRow | null>(null);
+  const [deleteAlert, setDeleteAlert] = useState<'delete' | 'restricted' | null>(null);
+  const [toast, setToast] = useState<{ message: string; severity: DocumentToastSeverity }>({
+    message: '',
+    severity: 'success',
+  });
+  const queryClient = useQueryClient();
+
+  /** 선택 삭제 — 체크한 약관문서를 한 번에 소프트삭제한다 */
+  const deleteMutation = useMutation(
+    async (ids: number[]) => {
+      const response = await deleteStipulation({ nabCuslIsrnStplDcmtIdList: ids });
+
+      if (response.error) {
+        throw new Error(response.error.message ?? DOCUMENT_DETAIL_TOASTS.deleteFail);
+      }
+
+      const failed = response.data?.failedList ?? [];
+      if (failed.length > 0) {
+        throw new Error(`${failed.length}건 삭제에 실패했습니다.`);
+      }
+    },
+    {
+      onSuccess: () => {
+        setSelectedIds(new Set());
+        setToast({ message: DOCUMENT_DETAIL_TOASTS.deleteSuccess, severity: 'success' });
+      },
+      onError: (error) => {
+        setToast({
+          message: (error as Error)?.message || DOCUMENT_DETAIL_TOASTS.deleteFail,
+          severity: 'error',
+        });
+      },
+      // 일부만 지워졌을 수 있어 실패해도 목록을 다시 읽는다
+      onSettled: () => {
+        queryClient.invalidateQueries(['nab', 'counsel-backoffice', 'stipulation-list']);
+      },
+    },
+  );
 
   const { data, isFetching, isError, error, refetch } = useQuery(
     ['nab', 'counsel-backoffice', 'stipulation-list', appliedFilter, page],
@@ -228,7 +272,8 @@ function InsuranceTermsViewInner() {
           >
             <Button
               variant="outlined"
-              disabled={!hasSelection}
+              disabled={!hasSelection || deleteMutation.isLoading}
+              onClick={() => setDeleteAlert(isRestrictedWorkTime() ? 'restricted' : 'delete')}
               sx={{
                 height: 40, px: 2, borderRadius: 2, fontSize: 14, fontWeight: 400,
                 color: DARK, borderColor: 'var(--nab-border-strong)',
@@ -236,7 +281,7 @@ function InsuranceTermsViewInner() {
                 '&.Mui-disabled': { color: DISABLED, borderColor: 'var(--nab-border)' },
               }}
             >
-              선택 삭제
+              {deleteMutation.isLoading ? '삭제 중…' : '선택 삭제'}
             </Button>
             <Button
               variant="contained"
@@ -262,6 +307,28 @@ function InsuranceTermsViewInner() {
       <DocumentTermsRegisterDialog
         open={registerOpen}
         onClose={() => setRegisterOpen(false)}
+      />
+
+      {/* 선택 삭제 확인 / 작업 가능 시간 안내 */}
+      <DocumentAlertDialog
+        open={deleteAlert !== null}
+        title={deleteAlert === 'delete' ? DOCUMENT_ALERTS.detailDeleteConfirm.title : DOCUMENT_ALERTS.restrictedTime.title}
+        message={deleteAlert === 'delete' ? DOCUMENT_ALERTS.detailDeleteConfirm.message : DOCUMENT_ALERTS.restrictedTime.message}
+        confirmLabel={deleteAlert === 'delete' ? DOCUMENT_ALERTS.detailDeleteConfirm.confirmLabel : DOCUMENT_ALERTS.restrictedTime.confirmLabel}
+        cancelLabel={deleteAlert === 'delete' ? DOCUMENT_ALERTS.detailDeleteConfirm.cancelLabel : undefined}
+        danger={deleteAlert === 'delete'}
+        onConfirm={() => {
+          const ids = [...selectedIds];
+          setDeleteAlert(null);
+          if (deleteAlert === 'delete') deleteMutation.mutate(ids);
+        }}
+        onClose={() => setDeleteAlert(null)}
+      />
+
+      <DocumentToast
+        message={toast.message}
+        severity={toast.severity}
+        onClose={() => setToast((prev) => ({ ...prev, message: '' }))}
       />
     </>
   );

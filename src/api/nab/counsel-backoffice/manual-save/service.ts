@@ -17,6 +17,10 @@ export const saveManual = async ({ file, meta }: ManualSaveRequest) => {
   if (file) formData.append('file', file);
   formData.append('meta', new Blob([JSON.stringify(meta)], { type: 'application/json' }));
 
-  const response = await axiosInstance.post<ApiResponse<ManualSaveResponse>>(url, formData);
+  const response = await axiosInstance.post<ApiResponse<ManualSaveResponse>>(url, formData, {
+    // axiosInstance 기본 헤더가 application/json 이라 그대로 두면 boundary 가 빠져 서버가 파싱하지 못한다.
+    // undefined 로 지워 브라우저가 multipart/form-data; boundary=... 를 직접 채우게 한다.
+    headers: { 'Content-Type': undefined },
+  });
   return response.data;
 };
