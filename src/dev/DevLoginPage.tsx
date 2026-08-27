@@ -1,15 +1,18 @@
 /* =============================================================================
- * ⚠️ [개발 전용] 사번 로그인 화면 — 운영 반입 금지
- * 정식 로그인 경로가 생기면 이 페이지와 App.tsx 의 /dev-login 라우트를 함께 지운다.
- * 배경은 src/auth/nab-dev-login.ts 상단 주석 참고.
+ * ⚠️ [로컬 개발 전용] 사번 로그인 화면 — 배포 환경 반입 금지
+ *
+ * 배포 환경(개발 서버 포함)에서는 로그인을 상위 템플릿이 담당한다.
+ * 이 화면은 개발자 로컬 머신에서 토큰을 직접 발급받기 위한 것으로,
+ * App.tsx 가 개발 빌드 + 로컬 호스트일 때만 라우트를 등록한다.
+ * 배경은 src/dev/nab-dev-login.ts 상단 주석 참고.
  * =============================================================================
  */
 import { useState } from 'react';
 import { Alert, Box, Button, Paper, Stack, TextField, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 
-import { nabDevLogin } from '../auth/nab-dev-login';
-import { setNabTokens } from '../auth/nab-token';
+import { nabDevLogin } from './nab-dev-login';
+import { setNabTokens } from './nab-token';
 
 /** 로그인 성공 후 이동할 기본 화면 */
 const REDIRECT_TO = '/prompt-management';

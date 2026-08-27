@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react';
 import { CssBaseline } from '@mui/material';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
@@ -10,8 +11,19 @@ import UnderwritingManual from './pages/nab/counsel/underwriting-manual';
 import CounselStatistics from './pages/nab/counsel/counsel-statistics';
 import Statistics from './pages/nab/customer-touch/statistics';
 import ServiceManagement from './pages/nab/customer-touch/service-management';
-// ⚠️ 개발 전용 — 정식 로그인 경로가 생기면 라우트와 함께 제거한다
-import DevLogin from './pages/dev-login';
+import { isLocalDevHost } from './utils/is-local-dev';
+
+/**
+ * ⚠️ 개발 전용 사번 로그인 — 로그인은 상위 템플릿이 담당한다.
+ *
+ * 두 겹으로 막는다.
+ * 1) 빌드: 삼항 조건이 false 로 치환되며 동적 import 가 제거돼 청크조차 생기지 않는다.
+ * 2) 실행: 개발 번들이라도 호스트가 로컬이 아니면 라우트를 등록하지 않는다
+ *    (배포된 개발 서버·`vite dev --host` 로 노출된 주소 대비).
+ *
+ * 템플릿 반입 시 src/dev 폴더와 아래 라우트만 지우면 된다.
+ */
+const DevLoginPage = import.meta.env.DEV ? lazy(() => import('./dev/DevLoginPage')) : null;
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -28,7 +40,16 @@ function App() {
       <CssBaseline />
       <BrowserRouter>
         <Routes>
-          {import.meta.env.DEV && <Route path="/dev-login" element={<DevLogin />} />}
+          {DevLoginPage && isLocalDevHost() && (
+            <Route
+              path="/dev-login"
+              element={
+                <Suspense fallback={null}>
+                  <DevLoginPage />
+                </Suspense>
+              }
+            />
+          )}
           <Route element={<MainLayout />}>
             <Route path="/" element={<Navigate to="/prompt-management" replace />} />
             <Route path="/prompt-management" element={<PromptManagement />} />

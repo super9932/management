@@ -1,17 +1,20 @@
 /* =============================================================================
- * ⚠️ [개발 전용] NAB 사번 로그인 — 운영 반입 금지
+ * ⚠️ [로컬 개발 전용] NAB 사번 로그인 — 배포 환경 반입 금지
  *
  * OTT 발급·토큰 교환에 필요한 자격증명(apiKey/apiSecret/clientId/clientSecret)을
  * 브라우저에서 직접 쓴다. Vite 는 이 값들을 번들에 그대로 박으므로,
  * 배포되면 누구나 꺼내 임의의 사번으로 토큰을 발급받을 수 있다.
  *
- * 운영으로 가려면 아래 둘 중 하나로 대체할 것:
- *   - 시크릿을 감춘 서버 엔드포인트 2개(OTT 발급·토큰 교환)를 두고 그쪽을 호출
- *   - 백엔드가 SPA 용 로그인 경로(clientSecret 불필요)를 제공하면 그것으로 교체
- * 어느 쪽이든 이 파일의 `nabDevLogin` 만 갈아끼우면 되고,
- * 토큰 저장·갱신(nab-token.ts)과 요청 인터셉터는 그대로 재사용된다.
+ * 그래서 개발 서버에 올라가더라도 동작하지 않도록 호스트를 확인한다 —
+ * 토큰을 직접 발급할 수 있는 곳은 **개발자 로컬 머신뿐**이다(isLocalDevHost).
+ *
+ * 운영에서는 로그인·토큰 갱신을 **상위 템플릿이 담당**하므로 이 경로가 아예 필요 없다.
+ * 템플릿에 반입할 때는 src/dev 폴더를 통째로 지우면 되고, 나머지 코드는 손댈 곳이 없다
+ * (axios 는 utils/token-refresh 의 등록 훅만 보고, 아무도 등록하지 않으면 그냥 넘어간다).
  * =============================================================================
  */
+
+import { isLocalDevHost } from '../utils/is-local-dev';
 
 /** NAB 인증 엔드포인트 (axios baseURL 과 무관하게 프록시 경유 절대경로로 호출한다) */
 const NAB_AUTH_API = {
@@ -48,6 +51,13 @@ interface NabOttIssueResponse extends NabEnvelope<{ ott?: string }> {
   ott?: string;
 }
 
+/** 로컬 머신이 아니면 토큰 발급·갱신을 거부한다 */
+const assertLocalDevHost = (): void => {
+  if (!isLocalDevHost()) {
+    throw new Error('개발자 로컬 환경에서만 사용할 수 있는 로그인입니다.');
+  }
+};
+
 /** 개발 전용 자격증명 — 값이 없으면 로그인 시점에 명확히 실패시킨다 */
 const credentials = () => ({
   apiKey: import.meta.env.VITE_OTT_API_KEY,
@@ -83,9 +93,9 @@ const postJson = async <T>(url: string, body: unknown): Promise<T> => {
  * @returns 발급된 토큰
  */
 export const nabDevLogin = async (emnb: string): Promise<NabTokens> => {
-  if (!import.meta.env.DEV) {
-    throw new Error('개발 환경에서만 사용할 수 있는 로그인입니다.');
-  }
+  // 라우트·갱신기 등록에 더해 마지막으로 한 번 더 막는다 —
+  // 배포된 개발 서버에서는 어떤 경로로 들어와도 토큰을 직접 발급할 수 없어야 한다.
+  assertLocalDevHost();
 
   const { apiKey, apiSecret, clientId, clientSecret } = credentials();
 
@@ -130,6 +140,8 @@ export const nabDevLogin = async (emnb: string): Promise<NabTokens> => {
  * @returns 새로 발급된 토큰
  */
 export const nabRefreshTokens = async (refreshToken: string): Promise<NabTokens> => {
+  assertLocalDevHost();
+
   const { clientId, clientSecret } = credentials();
 
   return postJson<NabTokens>(NAB_AUTH_API.tokenRefresh, { clientId, clientSecret, refreshToken });

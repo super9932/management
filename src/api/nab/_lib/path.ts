@@ -17,6 +17,13 @@ export const NAB_CUSTOMER_TOUCH_API = {
   statsExcel: withBase('/v1/post/customer/admin/touch/stats/excel'),
   statsAggregate: withBase('/v1/post/customer/admin/touch/stats/aggregate'),
 
+  // ── 고객터치AI · 관리자 · 서비스통계(일자별 큐브) ───────────────────────────
+  statsMessageDaily: withBase('/v1/get/customer/admin/touch/stats/message/daily'),
+  statsSearchDaily: withBase('/v1/get/customer/admin/touch/stats/search/daily'),
+  statsMessageExcel: withBase('/v1/post/customer/admin/touch/stats/message/excel'),
+  statsSearchExcel: withBase('/v1/post/customer/admin/touch/stats/search/excel'),
+  statsRecompute: withBase('/v1/post/customer/admin/touch/stats/recompute'),
+
   // ── 고객터치AI · 관리자 · 프롬프트 ─────────────────────────────────────────
   promptCreate: withBase('/v1/post/customer/admin/touch/message/prompt'),
   promptUpdate: withBase('/v1/post/customer/admin/touch/message/prompt/update'),
@@ -24,6 +31,7 @@ export const NAB_CUSTOMER_TOUCH_API = {
   promptGet: withBase('/v1/get/customer/admin/touch/message/prompt'),
   promptList: withBase('/v1/get/customer/admin/touch/message/prompt/list'),
   promptCategories: withBase('/v1/get/customer/admin/touch/message/prompt/categories'),
+  promptSlots: withBase('/v1/get/customer/admin/touch/message/prompt/slots'),
   promptDuplicate: withBase('/v1/get/customer/admin/touch/message/prompt/duplicate'),
 
   // ── 고객터치AI · 관리자 · Kill-Switch ──────────────────────────────────────

@@ -1,12 +1,17 @@
-/**
- * NAB 토큰 보관과 갱신.
+/* =============================================================================
+ * ⚠️ [로컬 개발 전용] NAB 토큰 보관과 갱신 — 배포 환경 반입 금지
  *
- * AccessToken 은 기존 axios 인터셉터가 store 에서 읽어 쓰므로 store 에 넣고,
+ * 배포 환경(개발 서버 포함)에서는 로그인·토큰 갱신을 상위 템플릿이 담당한다.
+ * 이 파일은 개발자 로컬 머신에서 사번 로그인으로 받은 토큰을 유지하기 위한 것이며,
+ * src/dev 폴더째 지우면 된다.
+ *
+ * AccessToken 은 axios 인터셉터가 store 에서 읽어 쓰므로 store 에 넣고,
  * RefreshToken 은 갱신에만 쓰이므로 **메모리에만** 둔다(새로고침 시 재로그인).
- * 발급 경로가 서버로 옮겨가도 이 파일은 그대로 쓸 수 있다.
+ * =============================================================================
  */
 import { nabRefreshTokens } from './nab-dev-login';
 import { clearAccessToken, saveAccessToken, store } from '../store';
+import { registerTokenRefresher } from '../utils/token-refresh';
 
 import type { NabTokens } from './nab-dev-login';
 
@@ -59,4 +64,12 @@ export const refreshNabToken = async (): Promise<void> => {
   });
 
   return refreshInFlight;
+};
+
+/**
+ * 401 재시도용 갱신기를 axios 에 등록한다.
+ * 개발 부트스트랩(main.tsx)에서만 호출되며, 운영 번들에는 이 호출이 없다.
+ */
+export const installNabTokenRefresher = (): void => {
+  registerTokenRefresher({ canRefresh: canRefreshNabToken, refresh: refreshNabToken });
 };

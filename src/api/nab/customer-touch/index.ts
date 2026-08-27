@@ -1,5 +1,5 @@
 /**
- * 고객터치AI 관리자 API (swagger: 01. 고객AI — 관리자 18종)
+ * 고객터치AI 관리자 API (swagger: 01. 고객AI — 관리자 24종)
  *
  * 모든 API는 POST + JSON body. 경로에 /get/ 이 들어가도 HTTP 메서드는 POST다.
  * 통신은 src/utils/axios.ts의 axiosInstance를 사용하고, 각 service는 엔벨로프
@@ -18,6 +18,18 @@ export * from './stats-excel/service';
 export * from './stats-aggregate/dto';
 export * from './stats-aggregate/service';
 
+// ── 서비스통계(일자별 큐브) ──────────────────────────────────────────────────
+export * from './stats-message-daily/dto';
+export * from './stats-message-daily/service';
+export * from './stats-search-daily/dto';
+export * from './stats-search-daily/service';
+export * from './stats-message-excel/dto';
+export * from './stats-message-excel/service';
+export * from './stats-search-excel/dto';
+export * from './stats-search-excel/service';
+export * from './stats-recompute/dto';
+export * from './stats-recompute/service';
+
 // ── 프롬프트 ─────────────────────────────────────────────────────────────────
 export * from './prompt-create/dto';
 export * from './prompt-create/service';
@@ -31,6 +43,8 @@ export * from './prompt-list/dto';
 export * from './prompt-list/service';
 export * from './prompt-categories/dto';
 export * from './prompt-categories/service';
+export * from './prompt-slots/dto';
+export * from './prompt-slots/service';
 export * from './prompt-duplicate/dto';
 export * from './prompt-duplicate/service';
 

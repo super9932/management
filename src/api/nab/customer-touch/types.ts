@@ -57,6 +57,10 @@ export interface Pagination {
   prevPage?: number;
   /** 다음 블럭 페이지 번호 — 응답에 따라 생략된다 */
   nextPage?: number;
+  /** 시작 오프셋 — 스웨거 스키마에는 없으나 실제 응답에 실린다 */
+  offset?: number;
+  /** 조회 한도(= pageSize) — 스웨거 스키마에는 없으나 실제 응답에 실린다 */
+  limit?: number;
 }
 
 /** 등록/수정/삭제 API 공통 응답 — 대상 리소스 ID */
@@ -81,6 +85,25 @@ export interface KillSwitchItem {
 
 /** 프롬프트 목록 검색어 적용 범위 (미지정 = ALL) */
 export type PromptSearchScope = 'ALL' | 'NAME' | 'MODIFIER';
+
+// ── 서비스통계(일자별 큐브) 공통 축 ───────────────────────────────────────────
+/**
+ * 메시지 생성 기준(진입점).
+ * TEXT_MESSAGE 문자하기 | CONTENT_SEND 콘텐츠 발송 | SITUATION_CUSTOM 고객상황맞춤
+ */
+export type StatsEntryPoint = 'ALL' | 'TEXT_MESSAGE' | 'CONTENT_SEND' | 'SITUATION_CUSTOM';
+
+/**
+ * 메시지 생성 유형(생성방식).
+ * GUIDELINE 지침사용 | DRAFT FP초안작성 | MANUAL_EDIT FP직접수정 | OTHER 그외
+ */
+export type StatsGenerationMethod = 'ALL' | 'GUIDELINE' | 'DRAFT' | 'MANUAL_EDIT' | 'OTHER';
+
+/** FP 유형 — HGS 한금서 | GA | LIFELAB 라이프랩. 현재 전 구간이 HGS 로 쌓인다(사번 판정 미도입) */
+export type StatsFpType = 'ALL' | 'HGS' | 'GA' | 'LIFELAB';
+
+/** 서비스통계 페이지 크기 — 이 5종 외 값은 400이다 */
+export type StatsPageSize = 10 | 30 | 50 | 70 | 100;
 
 /** NAH 콘텐츠 색인 상태 — description 비동기 생성 진행 상태 */
 export type ContentStatus = 'processing' | 'created' | 'updating' | 'updated';

@@ -8,7 +8,7 @@ interface ImportMetaEnv {
   /** 'true' 일 때만 MSW 목 서버를 켠다 (dev 한정). 기본값은 꺼짐 = 실서버 호출 */
   readonly VITE_USE_MSW?: string;
 
-  // ── ⚠️ 개발 전용 NAB 사번 로그인 (운영 반입 금지 — src/auth/nab-dev-login.ts 참고) ──
+  // ── ⚠️ 개발 전용 NAB 사번 로그인 (운영 반입 금지 — src/dev/nab-dev-login.ts 참고) ──
   /** OTT 발급용 API Key */
   readonly VITE_OTT_API_KEY?: string;
   /** OTT 발급용 API Secret */

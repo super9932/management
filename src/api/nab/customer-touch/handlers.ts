@@ -4,12 +4,19 @@ import { statsMessagesHandlers } from './stats-messages/mock';
 import { statsExcelHandlers } from './stats-excel/mock';
 import { statsAggregateHandlers } from './stats-aggregate/mock';
 
+import { statsMessageDailyHandlers } from './stats-message-daily/mock';
+import { statsSearchDailyHandlers } from './stats-search-daily/mock';
+import { statsMessageExcelHandlers } from './stats-message-excel/mock';
+import { statsSearchExcelHandlers } from './stats-search-excel/mock';
+import { statsRecomputeHandlers } from './stats-recompute/mock';
+
 import { promptCreateHandlers } from './prompt-create/mock';
 import { promptUpdateHandlers } from './prompt-update/mock';
 import { promptDeleteHandlers } from './prompt-delete/mock';
 import { promptGetHandlers } from './prompt-get/mock';
 import { promptListHandlers } from './prompt-list/mock';
 import { promptCategoriesHandlers } from './prompt-categories/mock';
+import { promptSlotsHandlers } from './prompt-slots/mock';
 import { promptDuplicateHandlers } from './prompt-duplicate/mock';
 
 import { killSwitchSaveHandlers } from './killswitch-save/mock';
@@ -27,12 +34,19 @@ export const customerTouchAdminHandlers = [
   ...statsExcelHandlers,
   ...statsAggregateHandlers,
 
+  ...statsMessageDailyHandlers,
+  ...statsSearchDailyHandlers,
+  ...statsMessageExcelHandlers,
+  ...statsSearchExcelHandlers,
+  ...statsRecomputeHandlers,
+
   ...promptCreateHandlers,
   ...promptUpdateHandlers,
   ...promptDeleteHandlers,
   ...promptGetHandlers,
   ...promptListHandlers,
   ...promptCategoriesHandlers,
+  ...promptSlotsHandlers,
   ...promptDuplicateHandlers,
 
   ...killSwitchSaveHandlers,
