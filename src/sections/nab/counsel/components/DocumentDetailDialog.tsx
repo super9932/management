@@ -36,6 +36,8 @@ import {
 import {
   DOCUMENT_ALERTS,
   DOCUMENT_DETAIL_TOASTS,
+  MANUAL_CLASS_BY_ADMIN_TYPE,
+  MANUAL_CLASS_LABEL,
   MANUAL_STATUS_LABEL,
   OPERATION_STATUS_OPTIONS,
   TIME_OPTIONS,
@@ -51,6 +53,7 @@ import {
   updateManual,
 } from '../../../../api/nab/counsel-backoffice';
 import type {
+  ManualClassCode,
   ManualDetailResponse,
   ManualHistoryItem,
 } from '../../../../api/nab/counsel-backoffice';
@@ -146,6 +149,8 @@ const labelSmallSx = { fontSize: 12, fontWeight: 700, color: SECONDARY } as cons
 /** 편집 가능한 운영 설정 — 변경 여부(dirty) 판정 단위 */
 interface OperationForm {
   operationStatus: OperationStatus;
+  /** 매뉴얼 분류. 상세가 오기 전이거나 분류 도입 이전 등록분이면 '' */
+  classCode: ManualClassCode | '';
   effectiveDate: string;
   effectiveTime: string;
   endDate: string;
@@ -197,6 +202,8 @@ const resolveOperationStatus = (row: DocumentDetailRow): OperationStatus => {
 
 const initialForm = (row: DocumentDetailRow): OperationForm => ({
   operationStatus: resolveOperationStatus(row),
+  // 목록에는 분류 코드가 없어 상세 응답이 도착하면 채워진다
+  classCode: '',
   effectiveDate: toDatePart(row.effectiveStart, '2026.01.01'),
   effectiveTime: '00:00',
   endDate: toDatePart(row.effectiveEnd, '2027.12.31'),
@@ -233,6 +240,7 @@ const toPersonLabel = (name: string, employeeNo: string): string =>
 /** 상세 응답으로 운영 설정 폼을 만든다 */
 const detailToForm = (detail: ManualDetailResponse): OperationForm => ({
   operationStatus: MANUAL_STATUS_LABEL[detail.status],
+  classCode: detail.manlClsfCode ?? '',
   effectiveDate: toFormDate(detail.valdStarDttm, '2026.01.01'),
   effectiveTime: toFormTime(detail.valdStarDttm, '00:00'),
   endDate: toFormDate(detail.valdEndDttm, '2027.12.31'),
@@ -245,6 +253,7 @@ const detailToForm = (detail: ManualDetailResponse): OperationForm => ({
 const HISTORY_COLUMN_LABEL: Record<string, string> = {
   VALD_STAR_DTTM: '반영일자',
   VALD_END_DTTM: '종료일자',
+  MANL_CLSF_CODE: '분류',
 };
 
 /** 이력 값 'yyyy-MM-dd HH:mm:ss' → 'YYYY.MM.DD HH:MM'. null 은 무기한(미지정) */
@@ -371,6 +380,11 @@ export default function DocumentDetailDialog({
     }
   }, [detail]);
 
+  // 분류 후보는 문서의 관리주체 하위로 좁힌다. 상세 도착 전에는 비워 둔다.
+  const classOptions = detail?.nabCuslAdmrTypeCode
+    ? MANUAL_CLASS_BY_ADMIN_TYPE[detail.nabCuslAdmrTypeCode]
+    : [];
+
   const queryClient = useQueryClient();
 
   /** 목록·상세를 다시 읽어 화면을 최신화한다 */
@@ -387,8 +401,13 @@ export default function DocumentDetailDialog({
         throw new Error(DOCUMENT_DETAIL_TOASTS.saveFail);
       }
 
+      if (!form.classCode) {
+        throw new Error('분류를 선택해주세요.');
+      }
+
       const response = await updateManual({
         nabCuslManlDcmtId: row.id,
+        manlClsfCode: form.classCode,
         valdStarDttm: toApiDateTime(form.effectiveDate, form.effectiveTime),
         // 종료일자 미지정은 '무기한'이라 null 을 명시적으로 보낸다
         valdEndDttm: form.noEndDate ? null : toApiDateTime(form.endDate, form.endTime),
@@ -685,6 +704,24 @@ export default function DocumentDetailDialog({
                   </Select>
                 </FormControl>
               </Box>
+
+              {/* 분류 — 문서의 관리주체 하위 값만 고를 수 있다. 바꾸면 수정이력에 남는다 */}
+              <FormControl sx={{ ...FIELD_SX }}>
+                <InputLabel shrink sx={labelSmallSx}>분류</InputLabel>
+                <Select
+                  value={form.classCode}
+                  label="분류"
+                  displayEmpty
+                  onChange={(e) => update('classCode', e.target.value as ManualClassCode)}
+                  sx={selectFieldSx}
+                >
+                  {/* 분류 도입 이전 등록분은 값이 없다 — 고를 수는 없고 표시만 한다 */}
+                  <MenuItem value="" disabled>미지정</MenuItem>
+                  {classOptions.map((code) => (
+                    <MenuItem key={code} value={code}>{MANUAL_CLASS_LABEL[code]}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
 
               <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
                 <TextField

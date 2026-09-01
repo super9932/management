@@ -22,7 +22,6 @@ export default function StatisticsTabs({ value, onChange }: Props) {
         >
           <Tab label="AI 메시지 생성" />
           <Tab label="AI 콘텐츠 검색" />
-          <Tab label="AI 고객 추천" />
         </Tabs>
       </Box>
       <Divider sx={{ borderColor: DIVIDER }} />

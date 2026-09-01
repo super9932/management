@@ -1,6 +1,6 @@
 // scripts/send-src.mjs
 //
-// src 디렉토리를 tar.gz로 압축해 인자로 받은 메일주소로 발송한다 (nodemailer / SMTP).
+// src 디렉토리를 zip으로 압축해 인자로 받은 메일주소로 발송한다 (nodemailer / SMTP).
 // 사용법:  npm run send-src -- <수신-메일주소>
 //          node --env-file-if-exists=.env.local scripts/send-src.mjs <수신-메일주소>
 //
@@ -55,27 +55,34 @@ try {
 // 3) src 압축 (임시 디렉토리)
 const workDir = mkdtempSync(join(tmpdir(), 'send-src-'));
 const stamp = new Date().toISOString().replace(/[:.]/g, '-');
-const fileName = `src-${stamp}.tar.gz`;
+const fileName = `src-${stamp}.zip`;
 const archivePath = join(workDir, fileName);
 
 try {
+  // zip 은 tar 의 -C 에 해당하는 옵션이 없어 cwd 를 프로젝트 루트로 두고 상대경로로 담는다.
+  // -r 재귀, -q 조용히, -x 제외 패턴.
   execFileSync(
-    'tar',
+    'zip',
     [
-      '-czf',
+      '-r',
+      '-q',
       archivePath,
-      '--exclude',
-      '.DS_Store',
-      '-C',
-      ROOT,
       'src/pages',
       'src/sections',
       'src/api',
+      '-x',
+      '*.DS_Store',
     ],
-    { stdio: 'inherit' },
+    { cwd: ROOT, stdio: 'inherit' },
   );
 } catch (error) {
   rmSync(workDir, { recursive: true, force: true });
+
+  // zip 미설치는 메시지만으로 원인을 알기 어려워 따로 안내한다
+  if (error && error.code === 'ENOENT') {
+    fail('zip 명령을 찾을 수 없습니다. (macOS 기본 포함 / Ubuntu: sudo apt install zip)');
+  }
+
   fail(`압축 실패: ${error instanceof Error ? error.message : String(error)}`);
 }
 

@@ -7,7 +7,13 @@ import type {
   ManualItem,
   ManualListRequest,
 } from '../../../../api/nab/counsel-backoffice';
-import { DOCUMENT_DETAIL_TOASTS, MANUAL_STATUS_CODE, MANUAL_STATUS_LABEL, PAGE_SIZE } from '../constant';
+import {
+  DOCUMENT_DETAIL_TOASTS,
+  MANUAL_CLASS_LABEL,
+  MANUAL_STATUS_CODE,
+  MANUAL_STATUS_LABEL,
+  PAGE_SIZE,
+} from '../constant';
 import type { UnderwritingManualRow } from '../type';
 
 /**
@@ -70,8 +76,8 @@ const toListRequest = (
 const toManualRow = (item: ManualItem): UnderwritingManualRow => ({
   id: item.nabCuslManlDcmtId,
   no: item.nabCuslManlDcmtId,
-  // TODO: 목록 API에 분류(category) 필드가 없다. BE 확인 후 교체한다.
-  category: '-',
+  // 분류 도입 이전 등록분은 manlClsfCode 가 null 로 내려온다
+  category: item.manlClsfCode ? MANUAL_CLASS_LABEL[item.manlClsfCode] : '-',
   documentName: item.manlNm,
   registrantName: item.rgsrNm,
   registrantDept: item.rgstOrgnNm,

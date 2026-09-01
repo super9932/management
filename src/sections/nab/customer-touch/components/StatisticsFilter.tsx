@@ -11,6 +11,7 @@ import {
 } from '@mui/material';
 import CalendarTodayOutlinedIcon from '@mui/icons-material/CalendarTodayOutlined';
 import { BUTTON_DARK, DIVIDER, FIELD_SX, SECONDARY } from '../../_lib/tokens';
+import { STAT_TYPE_OPTIONS } from '../constant';
 
 export interface StatisticsFilterProps {
   fromDate: string;
@@ -65,9 +66,9 @@ export default function StatisticsFilter({
           onChange={(e) => onTypeChange(e.target.value)}
           sx={{ fontSize: 14, '& .MuiOutlinedInput-notchedOutline': { borderColor: DIVIDER }, borderRadius: 2, height: 54 }}
         >
-          <MenuItem value="전체">전체</MenuItem>
-          <MenuItem value="유형1">유형1</MenuItem>
-          <MenuItem value="유형2">유형2</MenuItem>
+          {STAT_TYPE_OPTIONS.map((option) => (
+            <MenuItem key={option} value={option}>{option}</MenuItem>
+          ))}
         </Select>
       </FormControl>
 

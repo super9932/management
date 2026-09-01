@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useQuery } from 'react-query';
+import { useMutation, useQuery, useQueryClient } from 'react-query';
 import { NabThemeScope } from '../../_lib/NabThemeScope';
 import {
   Alert,
@@ -9,6 +9,7 @@ import {
   Breadcrumbs,
   Button,
   CircularProgress,
+  Snackbar,
 } from '@mui/material';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import AddIcon from '@mui/icons-material/Add';
@@ -23,8 +24,9 @@ import {
   promptItemLabel,
   todayDateString,
 } from '../constant';
-import { getPromptCategories, getPromptList } from '../../../../api/nab/customer-touch';
+import { createPrompt, getPromptCategories, getPromptList } from '../../../../api/nab/customer-touch';
 import type { PromptListRequest } from '../../../../api/nab/customer-touch';
+import { apiErrorStatus, toApiErrorMessage } from '../../../../api/nab/_lib/error';
 import type { PromptRow } from '../type';
 
 const PAGE_SIZE = 10;
@@ -116,6 +118,11 @@ function PromptManagementViewInner() {
   const [regCategory, setRegCategory] = useState('');
   const [regPromptName, setRegPromptName] = useState('');
   const [regInstruction, setRegInstruction] = useState('');
+  // 등록 결과 안내 — 성공은 스낵바, 실패는 등록 폼 위 배너로 보여준다
+  const [savedMessage, setSavedMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+
+  const queryClient = useQueryClient();
 
   const { data: categories = [] } = useQuery(
     ['nab', 'customer-touch', 'prompt-categories'],
@@ -143,6 +150,69 @@ function PromptManagementViewInner() {
   const handleRegTypeChange = (value: string) => {
     setRegType(value);
     setRegCategory('');
+  };
+
+  const resetRegisterForm = () => {
+    setRegType('');
+    setRegCategory('');
+    setRegPromptName('');
+    setRegInstruction('');
+  };
+
+  /**
+   * 프롬프트 등록 (POST /v1/post/customer/admin/touch/message/prompt).
+   *
+   * (유형, 카테고리) 조합이 곧 슬롯이라 이미 등록된 조합이면 서버가 409로 거절한다.
+   * 등록자 사번은 바디로 보내지 않고 서버가 토큰에서 채운다.
+   */
+  const createMutation = useMutation(
+    async () => {
+      const response = await createPrompt({
+        name: regPromptName.trim(),
+        category: regType,
+        item: regCategory,
+        content: regInstruction.trim(),
+      });
+
+      if (response.error) {
+        throw new Error(response.error.message ?? '프롬프트 등록에 실패했습니다.');
+      }
+
+      return response.data;
+    },
+    {
+      onSuccess: () => {
+        setSavedMessage('프롬프트가 등록되었습니다.');
+        resetRegisterForm();
+        setMode('list');
+        // 새 프롬프트가 목록에 보이도록 다시 읽는다
+        queryClient.invalidateQueries(['nab', 'customer-touch', 'prompt-list']);
+      },
+      // 실패하면 입력값을 살려둔 채 폼에 머문다
+      onError: (mutationError) => {
+        // 409 = 같은 (유형, 카테고리) 슬롯이 이미 있다. 서버 원문은 개발용이라 화면 용어로 바꾼다.
+        setErrorMessage(
+          apiErrorStatus(mutationError) === 409
+            ? '이미 등록된 유형·카테고리 조합입니다. 다른 조합을 선택해주세요.'
+            : toApiErrorMessage(mutationError, '프롬프트 등록에 실패했습니다.'),
+        );
+      },
+    },
+  );
+
+  /** 저장 — 필수값을 먼저 확인하고 등록 API 를 호출한다 */
+  const handleRegisterSave = () => {
+    if (!regType || !regCategory || !regPromptName.trim() || !regInstruction.trim()) {
+      setErrorMessage('유형·카테고리·프롬프트명·프롬프트 지침을 모두 입력해주세요.');
+      return;
+    }
+
+    createMutation.mutate();
+  };
+
+  const handleRegisterCancel = () => {
+    resetRegisterForm();
+    setMode('list');
   };
 
   /** 조회 — 현재 입력값을 조회 조건으로 확정하고 첫 페이지부터 다시 읽는다. */
@@ -173,20 +243,44 @@ function PromptManagementViewInner() {
       </Box>
 
       {mode === 'register' ? (
-        <PromptRegister
-          categories={categories}
-          type={regType}
-          onTypeChange={handleRegTypeChange}
-          category={regCategory}
-          onCategoryChange={setRegCategory}
-          promptName={regPromptName}
-          onPromptNameChange={setRegPromptName}
-          instruction={regInstruction}
-          onInstructionChange={setRegInstruction}
-          onList={() => setMode('list')}
-          onCancel={() => setMode('list')}
-          onSave={() => setMode('list')}
-        />
+        <Box sx={{ position: 'relative' }}>
+          {errorMessage && (
+            <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }} onClose={() => setErrorMessage('')}>
+              {errorMessage}
+            </Alert>
+          )}
+
+          {createMutation.isLoading && (
+            <Box
+              sx={{
+                position: 'absolute',
+                inset: 0,
+                zIndex: 1,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                bgcolor: 'rgba(255, 255, 255, 0.6)',
+              }}
+            >
+              <CircularProgress size={24} sx={{ color: PRIMARY_ORANGE }} />
+            </Box>
+          )}
+
+          <PromptRegister
+            categories={categories}
+            type={regType}
+            onTypeChange={handleRegTypeChange}
+            category={regCategory}
+            onCategoryChange={setRegCategory}
+            promptName={regPromptName}
+            onPromptNameChange={setRegPromptName}
+            instruction={regInstruction}
+            onInstructionChange={setRegInstruction}
+            onList={handleRegisterCancel}
+            onCancel={handleRegisterCancel}
+            onSave={handleRegisterSave}
+          />
+        </Box>
       ) : (
         <Card sx={{ borderRadius: 4, boxShadow: CARD_SHADOW }}>
           <PromptFilter
@@ -245,7 +339,10 @@ function PromptManagementViewInner() {
             <Button
               variant="contained"
               startIcon={<AddIcon />}
-              onClick={() => setMode('register')}
+              onClick={() => {
+                setErrorMessage('');
+                setMode('register');
+              }}
               sx={{
                 bgcolor: SECONDARY_16, color: DARK, borderRadius: 2,
                 fontSize: 14, fontWeight: 500, px: 2.5, py: 1.25,
@@ -258,6 +355,17 @@ function PromptManagementViewInner() {
           </Box>
         </Card>
       )}
+
+      <Snackbar
+        open={savedMessage !== ''}
+        autoHideDuration={3000}
+        onClose={() => setSavedMessage('')}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert severity="success" variant="filled" onClose={() => setSavedMessage('')}>
+          {savedMessage}
+        </Alert>
+      </Snackbar>
     </>
   );
 }

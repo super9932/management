@@ -8,11 +8,17 @@ import { manualHistoryHandlers } from './manual-history/mock';
 import { manualSaveHandlers } from './manual-save/mock';
 import { manualUpdateHandlers } from './manual-update/mock';
 import { manualDeleteHandlers } from './manual-delete/mock';
+import { manualInitLoadHandlers } from './manual-init-load/mock';
 
 import { stipulationListHandlers } from './stipulation-list/mock';
 import { stipulationDetailHandlers } from './stipulation-detail/mock';
 import { stipulationSaveHandlers } from './stipulation-save/mock';
 import { stipulationDeleteHandlers } from './stipulation-delete/mock';
+import { stipulationInitLoadHandlers } from './stipulation-init-load/mock';
+
+import { counselKillSwitchListHandlers } from './killswitch-list/mock';
+import { counselKillSwitchDetailHandlers } from './killswitch-detail/mock';
+import { counselKillSwitchSaveHandlers } from './killswitch-save/mock';
 
 export const counselBackofficeHandlers = [
   ...statsMessagesHandlers,
@@ -24,9 +30,15 @@ export const counselBackofficeHandlers = [
   ...manualSaveHandlers,
   ...manualUpdateHandlers,
   ...manualDeleteHandlers,
+  ...manualInitLoadHandlers,
 
   ...stipulationListHandlers,
   ...stipulationDetailHandlers,
   ...stipulationSaveHandlers,
   ...stipulationDeleteHandlers,
+  ...stipulationInitLoadHandlers,
+
+  ...counselKillSwitchListHandlers,
+  ...counselKillSwitchDetailHandlers,
+  ...counselKillSwitchSaveHandlers,
 ];

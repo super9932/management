@@ -1,4 +1,4 @@
-import type { AdminTypeCode, ManualStatus } from '../types';
+import type { AdminTypeCode, ManualClassCode, ManualStatus } from '../types';
 
 /** POST /v1/post/counsel/admin/manual/save — 매뉴얼문서등록 (multipart/form-data) */
 
@@ -6,6 +6,8 @@ import type { AdminTypeCode, ManualStatus } from '../types';
 export interface ManualUploadMeta {
   /** 관리주체(필수). AI 서버로 보내는 값과 같다 */
   nabCuslAdmrTypeCode: AdminTypeCode;
+  /** 매뉴얼 분류(필수). 관리주체에 속하지 않는 코드는 거절된다 */
+  manlClsfCode: ManualClassCode;
   /** 적용 시작일시 (KST, 필수). 미래로 두면 예약 게시가 된다 */
   valdStarDttm: string;
   /** 적용 종료일시 (KST). 미입력이면 무기한 */

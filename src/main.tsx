@@ -1,13 +1,15 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
+import { ENV_CONFIG } from './config-global';
 import { isLocalDevHost } from './utils/is-local-dev';
 
 /**
  * MSW 목 서버는 VITE_USE_MSW=true 일 때만 켠다.
  * 기본값은 꺼짐 — 실서버(NEXT_PUBLIC_NAB_SERVER_URL)로만 나간다.
+ * 켜지면 config-global 이 API 베이스를 same-origin 으로 돌려 인증 없이 개발할 수 있다.
  */
-const USE_MSW = import.meta.env.DEV && import.meta.env.VITE_USE_MSW === 'true';
+const USE_MSW = ENV_CONFIG.USE_MSW;
 
 const RELOAD_GUARD_KEY = 'msw-unregistered-reload';
 

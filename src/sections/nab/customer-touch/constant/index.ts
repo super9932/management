@@ -1,5 +1,11 @@
-import type { ServiceFeatureCode, ServiceToggleItem, ServiceToggleState, StatRow } from '../type';
-import type { PromptSearchScope } from '../../../../api/nab/customer-touch';
+import type {
+  ContentSearchStatRow,
+  MessageStatRow,
+  ServiceFeatureCode,
+  ServiceToggleItem,
+  ServiceToggleState,
+} from '../type';
+import type { PromptSearchScope, StatsFpType } from '../../../../api/nab/customer-touch';
 
 // ---------------------------------------------------------------- 프롬프트 관리
 /** 필터 셀렉트의 '전체' 옵션 값 */
@@ -72,35 +78,68 @@ export const INITIAL_TOGGLE_STATE: ServiceToggleState = SERVICE_TOGGLES.reduce(
 );
 
 // ---------------------------------------------------------------- 통계
-// 통계 테이블: 일자 + (채널 그룹 × 지표) 매트릭스
-export const STAT_GROUPS = ['전체', '한금서', 'GA', '라이프랩'] as const;
+/**
+ * AI 메시지 생성 탭 표 컬럼 (Figma 4932:31810).
+ *
+ * 채널 그룹 매트릭스를 쓰던 이전 양식에서 일자 + 지표 5종의 단일 헤더로 바뀌었다.
+ * 지표가 stats/message/daily 응답 필드와 1:1이라 조회도 fpType 한 번으로 끝난다.
+ */
+export const MESSAGE_STAT_COLUMNS = [
+  { key: 'date', label: '일자', width: 120 },
+  { key: 'fpUv', label: '접속 FP수(UV)', width: 288 },
+  { key: 'generate', label: '메시지 생성 건수', width: 288 },
+  { key: 'modify', label: '메시지 수정 건수', width: 288 },
+  { key: 'send', label: '메시지 발송 건수', width: 288 },
+  { key: 'sendCustomerUv', label: '발송 고객 수(UV)', width: 288 },
+] as const satisfies readonly { key: keyof MessageStatRow; label: string; width: number }[];
 
-// AI 메시지 생성 / AI 고객 추천 탭 지표
-export const MESSAGE_METRICS = [
-  '접속 FP수',
-  '메시지 생성 건수',
-  '메시지 수정 건수',
-  '메시지 발송 건수',
-  '발송 고객 수(UV)',
-  '열람 고객 수(UV)',
-  '발송 후 계약 고객 수(UV)',
-] as const;
+/**
+ * AI 콘텐츠 검색 탭 표 컬럼 (Figma 6240:117006).
+ * 메시지 탭과 마찬가지로 채널 그룹 매트릭스가 없어진 단일 헤더 표다.
+ */
+export const CONTENT_SEARCH_STAT_COLUMNS = [
+  { key: 'date', label: '일자', width: 120 },
+  { key: 'fpUv', label: '접속 FP수(UV)', width: 720 },
+  { key: 'search', label: '검색 실행 수', width: 720 },
+] as const satisfies readonly { key: keyof ContentSearchStatRow; label: string; width: number }[];
 
-// AI 콘텐츠 검색 탭 지표
-export const CONTENT_SEARCH_METRICS = ['접속 FP수', '검색 실행 수'] as const;
+/**
+ * 화면 '유형' 필터 → API fpType(FP 유형).
+ *
+ * 새 표 양식에서 채널 그룹(전체·한금서·GA·라이프랩) 컬럼이 없어지면서 그 축이 필터로 옮겨왔다.
+ * 메시지·검색 통계가 함께 받는 유일한 축이라 두 탭에서 모두 쓴다.
+ * (메시지 통계에만 있는 entryPoint·generationMethod 는 현재 전체로 고정한다)
+ */
+export const STAT_FP_TYPE: Record<string, StatsFpType> = {
+  [FILTER_ALL]: 'ALL',
+  한금서: 'HGS',
+  GA: 'GA',
+  라이프랩: 'LIFELAB',
+};
 
-const DATES = [
-  '2026-11-15', '2026-11-14', '2026-11-13', '2026-11-12', '2026-11-11',
-  '2026-11-10', '2026-11-09', '2026-11-08', '2026-11-07', '2026-11-06',
-];
+/** 유형 셀렉트 옵션 */
+export const STAT_TYPE_OPTIONS = Object.keys(STAT_FP_TYPE);
 
-export function makeMockStatRows(metricCount: number): StatRow[] {
-  const cellCount = STAT_GROUPS.length * metricCount;
-  return DATES.map((date) => ({
-    date,
-    cells: Array.from({ length: cellCount }, () => '000'),
-  }));
-}
+/** 통계 조회 기본 기간(일) — 집계 상한선이 어제라 오늘까지 잡아도 마지막 날은 0이다 */
+export const STAT_DEFAULT_PERIOD_DAYS = 30;
 
-export const MOCK_MESSAGE_ROWS: StatRow[] = makeMockStatRows(MESSAGE_METRICS.length);
-export const MOCK_CONTENT_SEARCH_ROWS: StatRow[] = makeMockStatRows(CONTENT_SEARCH_METRICS.length);
+/** 'YYYY.MM.DD' 화면 표기 (로컬 기준이라 UTC 로 밀리지 않는다) */
+export const toScreenDate = (date: Date): string => {
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+
+  return `${date.getFullYear()}.${month}.${day}`;
+};
+
+/** 기본 조회기간 — 오늘 포함 최근 STAT_DEFAULT_PERIOD_DAYS 일 */
+export const defaultStatPeriod = (): { from: string; to: string } => {
+  const today = new Date();
+  const from = new Date(today);
+  from.setDate(from.getDate() - (STAT_DEFAULT_PERIOD_DAYS - 1));
+
+  return { from: toScreenDate(from), to: toScreenDate(today) };
+};
+
+/** 화면 표기(YYYY.MM.DD) → API 형식(yyyy-MM-dd) */
+export const toStatApiDate = (value: string): string => value.trim().replace(/[./]/g, '-');
+

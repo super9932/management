@@ -9,7 +9,11 @@ export const manualUpdateHandlers = [
     const body = (await request.json().catch(() => ({}))) as ManualUpdateRequest;
 
     return HttpResponse.json({
-      data: { nabCuslManlDcmtId: body.nabCuslManlDcmtId, status: 'OPERATING' },
+      data: {
+        nabCuslManlDcmtId: body.nabCuslManlDcmtId,
+        status: 'OPERATING',
+        manlClsfCode: body.manlClsfCode,
+      },
       message: 'OK',
     });
   }),

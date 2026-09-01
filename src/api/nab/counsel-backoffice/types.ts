@@ -32,6 +32,52 @@ export type SortDirection = 'ASC' | 'DESC';
 export type AdminTypeCode = 'UDW' | 'ISRN_ADT' | 'ISRN_SVC';
 
 /**
+ * 매뉴얼 분류 — 관리주체 하위 분류다. 관리주체에 속하지 않는 코드를 보내면 거절된다.
+ *
+ * - UDW      : ONE_SHET 원시트 / BSWR_MANL 업무매뉴얼
+ * - ISRN_ADT : ISRN_UNDN 보험심사
+ * - ISRN_SVC : PLAN 기획 / DPST 입금 / RE_OTPY 재지급 / CTCN 계약변경 / CNTR_SUPT 센터지원
+ */
+export type ManualClassCode =
+  | 'ONE_SHET'
+  | 'BSWR_MANL'
+  | 'ISRN_UNDN'
+  | 'PLAN'
+  | 'DPST'
+  | 'RE_OTPY'
+  | 'CTCN'
+  | 'CNTR_SUPT';
+
+/** Y/N 플래그 */
+export type YnFlag = 'Y' | 'N';
+
+/**
+ * 점검 Kill-Switch 단건 — list/detail/save 공용.
+ *
+ * ⚠️ 일시 형식이 다른 백오피스 API 와 다르다. 문서·통계는 'yyyy-MM-dd HH:mm:ss'(KST)인데
+ * 여기는 ISO-8601 UTC('2026-08-31T06:53:31Z')로 내려온다(스테이징 확인). 화면에 쓸 때 변환할 것.
+ */
+export interface CounselKillSwitchItem {
+  /** 기능점검코드 (예: COUNSEL_SERVICE) */
+  ftreIspcCode: string;
+  /** 기능점검코드명 */
+  ftreIspcCodeNm: string;
+  /** 점검수행여부 — Y 면 점검모드 */
+  ispcAcmpYn: YnFlag;
+  /** 등록자 사번 */
+  rgsrEmnb: string;
+  /** 등록일시 (ISO-8601 UTC) */
+  rgstDttm: string;
+  /** 최종 수정자 사번 */
+  lastChnrEmnb: string;
+  /** 최종 수정일시 (ISO-8601 UTC) */
+  lastChngDttm: string;
+}
+
+/** 초기적재 건별 처리 결과 */
+export type InitLoadResult = 'LOADED' | 'SKIPPED' | 'FAILED';
+
+/**
  * 매뉴얼 노출상태 — 처리상태·유효기간으로부터 조회 시점에 계산하며 DB에 저장하지 않는다.
  */
 export type ManualStatus = 'OPERATING' | 'PENDING' | 'NOT_OPERATING' | 'ERROR';

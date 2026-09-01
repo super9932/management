@@ -60,12 +60,19 @@ export const NAB_COUNSEL_BACKOFFICE_API = {
   manualSave: withBase('/v1/post/counsel/admin/manual/save'),
   manualUpdate: withBase('/v1/post/counsel/admin/manual/update'),
   manualDelete: withBase('/v1/delete/counsel/admin/manual'),
+  manualInitLoad: withBase('/v1/post/counsel/admin/manual/init-load'),
 
   // ── 상담AI · 백오피스 · 약관 ───────────────────────────────────────────────
   stipulationList: withBase('/v1/get/counsel/admin/stipulation/list'),
   stipulationDetail: withBase('/v1/get/counsel/admin/stipulation/detail'),
   stipulationSave: withBase('/v1/post/counsel/admin/stipulation/save'),
   stipulationDelete: withBase('/v1/delete/counsel/admin/stipulation'),
+  stipulationInitLoad: withBase('/v1/post/counsel/admin/stipulation/init-load'),
+
+  // ── 상담AI · 백오피스 · 점검 Kill-Switch ───────────────────────────────────
+  killSwitchList: withBase('/v1/get/counsel/admin/killswitch/list'),
+  killSwitchDetail: withBase('/v1/get/counsel/admin/killswitch/detail'),
+  killSwitchSave: withBase('/v1/post/counsel/admin/killswitch/save'),
 } as const;
 
 export type NabCounselBackofficeApiKey = keyof typeof NAB_COUNSEL_BACKOFFICE_API;

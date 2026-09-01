@@ -20,10 +20,17 @@ import CalendarTodayOutlinedIcon from '@mui/icons-material/CalendarTodayOutlined
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import CancelIcon from '@mui/icons-material/Cancel';
 import { DARK, DISABLED, DIVIDER, FIELD_SX, PRIMARY_ORANGE, SECONDARY } from '../../_lib/tokens';
-import { DOCUMENT_ACCEPT, DOCUMENT_ALERTS, MANUAL_REGISTER_TOASTS, TIME_OPTIONS } from '../constant';
+import {
+  DOCUMENT_ACCEPT,
+  DOCUMENT_ALERTS,
+  MANUAL_CLASS_BY_ADMIN_TYPE,
+  MANUAL_CLASS_LABEL,
+  MANUAL_REGISTER_TOASTS,
+  TIME_OPTIONS,
+} from '../constant';
 import { checkAttachments, isRestrictedWorkTime, toApiDateTime } from '../lib/document-attachment';
 import { saveManual } from '../../../../api/nab/counsel-backoffice';
-import type { AdminTypeCode } from '../../../../api/nab/counsel-backoffice';
+import type { AdminTypeCode, ManualClassCode } from '../../../../api/nab/counsel-backoffice';
 import DocumentAlertDialog from './DocumentAlertDialog';
 import DocumentToast from './DocumentToast';
 import type { DocumentToastSeverity } from './DocumentToast';
@@ -77,6 +84,9 @@ export default function DocumentRegisterDialog({ open, title, adminType, onClose
   const [noEndDate, setNoEndDate] = useState<boolean>(INITIAL_SCHEDULE.noEndDate);
   const [files, setFiles] = useState<File[]>([]);
   const [dragOver, setDragOver] = useState(false);
+  // 분류는 관리주체 하위 값이라 관리주체마다 후보가 다르다 (등록 API 필수값)
+  const classOptions = MANUAL_CLASS_BY_ADMIN_TYPE[adminType];
+  const [classCode, setClassCode] = useState<ManualClassCode>(classOptions[0]);
   const [alert, setAlert] = useState<AlertKey | null>(null);
   const [toast, setToast] = useState<{ message: string; severity: DocumentToastSeverity }>({
     message: '',
@@ -122,6 +132,7 @@ export default function DocumentRegisterDialog({ open, title, adminType, onClose
     setEndDate(INITIAL_SCHEDULE.endDate);
     setEndTime(INITIAL_SCHEDULE.endTime);
     setNoEndDate(INITIAL_SCHEDULE.noEndDate);
+    setClassCode(classOptions[0]);
   };
 
   const handleRemove = (target: File) => {
@@ -146,6 +157,7 @@ export default function DocumentRegisterDialog({ open, title, adminType, onClose
     async () => {
       const meta = {
         nabCuslAdmrTypeCode: adminType,
+        manlClsfCode: classCode,
         valdStarDttm: toApiDateTime(effectiveDate, effectiveTime),
         // 종료일자 미지정은 무기한이라 값을 빼고 보낸다
         ...(noEndDate ? {} : { valdEndDttm: toApiDateTime(endDate, endTime) }),
@@ -264,6 +276,21 @@ export default function DocumentRegisterDialog({ open, title, adminType, onClose
 
         {/* 본문 (상단 필드 Fixed, 파일 영역 scrollable) */}
         <Box sx={{ px: 3, pb: 3, flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', gap: 3 }}>
+          {/* 분류 — 관리주체 하위 값이라 후보가 관리주체별로 다르다 */}
+          <FormControl sx={{ ...FIELD_SX }}>
+            <InputLabel shrink sx={labelSx}>분류</InputLabel>
+            <Select
+              value={classCode}
+              label="분류"
+              onChange={(e) => setClassCode(e.target.value as ManualClassCode)}
+              sx={selectFieldSx}
+            >
+              {classOptions.map((code) => (
+                <MenuItem key={code} value={code}>{MANUAL_CLASS_LABEL[code]}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
           {/* 반영/종료 일시 */}
           <Box>
             <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>

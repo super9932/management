@@ -1,0 +1,234 @@
+import { useEffect, useState } from 'react';
+import { useMutation, useQuery } from 'react-query';
+import {
+  Alert,
+  Box,
+  Breadcrumbs,
+  Button,
+  Card,
+  CircularProgress,
+  Typography,
+} from '@mui/material';
+import NavigateNextIcon from '@mui/icons-material/NavigateNext';
+import { NabThemeScope } from '../../_lib/NabThemeScope';
+import { CARD_SHADOW, DARK, DISABLED, PRIMARY_ORANGE } from '../../_lib/tokens';
+import SystemSettingToggleRow from '../components/SystemSettingToggleRow';
+import DocumentAlertDialog from '../components/DocumentAlertDialog';
+import DocumentToast from '../components/DocumentToast';
+import type { DocumentToastSeverity } from '../components/DocumentToast';
+import {
+  COUNSEL_SERVICE_SWITCH_CODE,
+  COUNSEL_SERVICE_SWITCH_NAME,
+  MAINTENANCE_CONFIRM,
+  SYSTEM_SETTING_TEXT,
+  SYSTEM_SETTING_TOASTS,
+} from '../constant';
+import {
+  getCounselKillSwitchDetail,
+  saveCounselKillSwitch,
+} from '../../../../api/nab/counsel-backoffice';
+import { toApiErrorMessage } from '../../../../api/nab/_lib/error';
+
+/**
+ * 시스템 설정 (DAS_시스템설정_001).
+ *
+ * 상담AI 서비스 전체 점검 스위치 하나를 켜고 끈다.
+ * 저장 값은 점검수행여부(ispcAcmpYn)라 화면 토글과 방향이 같다 — ON = 'Y'.
+ */
+
+/** 저장돼 있는 점검수행여부 → 화면 점검모드 토글 */
+const toMaintenanceOn = (ispcAcmpYn: string): boolean => ispcAcmpYn === 'Y';
+
+function SystemSettingViewInner() {
+  /** 화면에서 조작 중인 값 */
+  const [maintenanceOn, setMaintenanceOn] = useState(false);
+  /** 서버에 저장돼 있는 값 — 변경 여부 판단 기준 */
+  const [savedOn, setSavedOn] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [toast, setToast] = useState<{ message: string; severity: DocumentToastSeverity }>({
+    message: '',
+    severity: 'success',
+  });
+
+  const { data, isFetching, isError, error, refetch } = useQuery(
+    ['nab', 'counsel-backoffice', 'killswitch-detail', COUNSEL_SERVICE_SWITCH_CODE],
+    async () => {
+      const response = await getCounselKillSwitchDetail({
+        ftreIspcCode: COUNSEL_SERVICE_SWITCH_CODE,
+      });
+
+      if (response.error) {
+        throw new Error(response.error.message ?? SYSTEM_SETTING_TOASTS.loadFail);
+      }
+
+      return response.data?.killSwitch ?? null;
+    },
+  );
+
+  // 서버 값이 도착하면 화면과 기준값을 함께 맞춘다
+  useEffect(() => {
+    if (data) {
+      setMaintenanceOn(toMaintenanceOn(data.ispcAcmpYn));
+      setSavedOn(toMaintenanceOn(data.ispcAcmpYn));
+    }
+  }, [data]);
+
+  const saveMutation = useMutation(
+    async (nextOn: boolean) => {
+      const response = await saveCounselKillSwitch({
+        ftreIspcCode: COUNSEL_SERVICE_SWITCH_CODE,
+        // 코드명은 필수값이라 저장돼 있던 이름을 그대로 다시 보낸다
+        ftreIspcCodeNm: data?.ftreIspcCodeNm ?? COUNSEL_SERVICE_SWITCH_NAME,
+        ispcAcmpYn: nextOn ? 'Y' : 'N',
+      });
+
+      if (response.error) {
+        throw new Error(response.error.message ?? SYSTEM_SETTING_TOASTS.saveFail);
+      }
+
+      return nextOn;
+    },
+    {
+      onSuccess: (nextOn) => {
+        setSavedOn(nextOn);
+        setToast({
+          message: nextOn
+            ? SYSTEM_SETTING_TOASTS.maintenanceOn
+            : SYSTEM_SETTING_TOASTS.maintenanceOff,
+          severity: 'success',
+        });
+        refetch();
+      },
+      // 저장에 실패하면 서버 상태를 다시 읽어 화면을 되돌린다
+      onError: (saveError) => {
+        setToast({
+          message: toApiErrorMessage(saveError, SYSTEM_SETTING_TOASTS.saveFail),
+          severity: 'error',
+        });
+        refetch();
+      },
+    },
+  );
+
+  const isBusy = isFetching || saveMutation.isLoading;
+  const isDirty = maintenanceOn !== savedOn;
+
+  /**
+   * 저장 (1-A) — ON 으로 바꿔 저장할 때만 확인 팝업을 띄운다.
+   * OFF 는 별도 얼럿 없이 바로 처리하고 서비스가 정상 운영된다.
+   */
+  const handleSave = () => {
+    if (maintenanceOn) {
+      setConfirmOpen(true);
+      return;
+    }
+
+    saveMutation.mutate(false);
+  };
+
+  /** 적용 (2-A) — 팝업을 닫고 점검모드로 전환한다 */
+  const handleConfirm = () => {
+    setConfirmOpen(false);
+    saveMutation.mutate(true);
+  };
+
+  return (
+    <>
+      {/* Breadcrumb + Title */}
+      <Box sx={{ mb: 5, pt: 3 }}>
+        <Breadcrumbs separator={<NavigateNextIcon sx={{ fontSize: 14 }} />} sx={{ mb: 1 }}>
+          <Typography sx={{ fontSize: 14, color: DARK, cursor: 'pointer' }}>FP 비서</Typography>
+          <Typography sx={{ fontSize: 14, color: DARK, cursor: 'pointer' }}>상담 Plus AI</Typography>
+          <Typography sx={{ fontSize: 14, color: DISABLED }}>시스템 설정</Typography>
+        </Breadcrumbs>
+        <Typography variant="h4" sx={{ fontWeight: 700, color: DARK, fontSize: 24 }}>
+          시스템 설정
+        </Typography>
+      </Box>
+
+      <Card sx={{ borderRadius: 4, boxShadow: CARD_SHADOW }}>
+        {isError && (
+          <Alert
+            severity="error"
+            sx={{ borderRadius: 0 }}
+            action={
+              <Button color="inherit" size="small" onClick={() => refetch()}>
+                재시도
+              </Button>
+            }
+          >
+            {toApiErrorMessage(error, SYSTEM_SETTING_TOASTS.loadFail)}
+          </Alert>
+        )}
+
+        <Box sx={{ p: 2.5, position: 'relative' }}>
+          {isBusy && (
+            <Box
+              sx={{
+                position: 'absolute',
+                inset: 0,
+                zIndex: 1,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                bgcolor: 'rgba(255, 255, 255, 0.6)',
+              }}
+            >
+              <CircularProgress size={24} sx={{ color: PRIMARY_ORANGE }} />
+            </Box>
+          )}
+
+          <SystemSettingToggleRow
+            label={SYSTEM_SETTING_TEXT.toggleLabel}
+            helper={SYSTEM_SETTING_TEXT.toggleHelper}
+            checked={maintenanceOn}
+            disabled={isBusy || isError}
+            onChange={setMaintenanceOn}
+          />
+        </Box>
+
+        {/* 저장 — 값이 바뀌었을 때만 활성화 */}
+        <Box sx={{ p: 2.5, display: 'flex', justifyContent: 'flex-end' }}>
+          <Button
+            variant="contained"
+            disabled={isBusy || isError || !isDirty}
+            onClick={handleSave}
+            sx={{
+              height: 48, px: 2, minWidth: 64, borderRadius: 2,
+              bgcolor: PRIMARY_ORANGE, color: 'white',
+              fontSize: 15, fontWeight: 400, boxShadow: 'none',
+              '&:hover': { bgcolor: 'var(--nab-primary-hover)', boxShadow: 'none' },
+            }}
+          >
+            {saveMutation.isLoading ? '저장 중…' : '저장'}
+          </Button>
+        </Box>
+      </Card>
+
+      {/* 점검모드 전환 확인 (2-A) */}
+      <DocumentAlertDialog
+        open={confirmOpen}
+        title={MAINTENANCE_CONFIRM.title}
+        message={MAINTENANCE_CONFIRM.message}
+        confirmLabel={MAINTENANCE_CONFIRM.confirmLabel}
+        cancelLabel={MAINTENANCE_CONFIRM.cancelLabel}
+        onConfirm={handleConfirm}
+        onClose={() => setConfirmOpen(false)}
+      />
+
+      <DocumentToast
+        message={toast.message}
+        severity={toast.severity}
+        onClose={() => setToast((prev) => ({ ...prev, message: '' }))}
+      />
+    </>
+  );
+}
+
+export default function SystemSettingView() {
+  return (
+    <NabThemeScope>
+      <SystemSettingViewInner />
+    </NabThemeScope>
+  );
+}

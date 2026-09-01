@@ -1,4 +1,4 @@
-import type { AdminTypeCode, ManualStatus } from '../types';
+import type { AdminTypeCode, ManualClassCode, ManualStatus } from '../types';
 
 /** POST /v1/get/counsel/admin/manual/detail — 매뉴얼문서상세조회 */
 
@@ -13,6 +13,8 @@ export interface ManualDetailResponse {
   manlNm: string;
   /** 관리주체. 알 수 없는 저장 코드면 null */
   nabCuslAdmrTypeCode: AdminTypeCode | null;
+  /** 매뉴얼 분류. 수정 가능하며 바꾸면 수정이력에 남는다. 도입 이전 등록분은 null */
+  manlClsfCode: ManualClassCode | null;
   /**
    * 매뉴얼파일 다운로드 URL. 조회 시점에 발급되는 만료형 주소라 저장·재사용하면 안 된다.
    */

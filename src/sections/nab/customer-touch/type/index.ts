@@ -29,8 +29,28 @@ export interface ServiceToggleItem {
 export type ServiceToggleState = Record<ServiceFeatureCode, boolean>;
 
 // 통계
-export interface StatRow {
+/** AI 메시지 생성 통계 표의 한 행 — 지표가 API 응답 필드와 1:1이다 */
+export interface MessageStatRow {
+  /** 일자 (yyyy-MM-dd) */
   date: string;
-  /** STAT_GROUPS.length × metrics.length 길이의 셀 값 */
-  cells: string[];
+  /** 접속 FP수(UV) */
+  fpUv: string;
+  /** 메시지 생성 건수 */
+  generate: string;
+  /** 메시지 수정 건수 */
+  modify: string;
+  /** 메시지 발송 건수 */
+  send: string;
+  /** 발송 고객 수(UV) */
+  sendCustomerUv: string;
+}
+
+/** AI 콘텐츠 검색 통계 표의 한 행 */
+export interface ContentSearchStatRow {
+  /** 일자 (yyyy-MM-dd) */
+  date: string;
+  /** 접속 FP수(UV) */
+  fpUv: string;
+  /** 검색 실행 수 */
+  search: string;
 }

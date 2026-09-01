@@ -9,6 +9,7 @@ import InsuranceReview from './pages/nab/counsel/insurance-review';
 import InsuranceCommon from './pages/nab/counsel/insurance-common';
 import UnderwritingManual from './pages/nab/counsel/underwriting-manual';
 import CounselStatistics from './pages/nab/counsel/counsel-statistics';
+import SystemSetting from './pages/nab/counsel/system-setting';
 import Statistics from './pages/nab/customer-touch/statistics';
 import ServiceManagement from './pages/nab/customer-touch/service-management';
 import { isLocalDevHost } from './utils/is-local-dev';
@@ -58,6 +59,7 @@ function App() {
             <Route path="/insurance-common" element={<InsuranceCommon />} />
             <Route path="/underwriting-manual" element={<UnderwritingManual />} />
             <Route path="/counsel-statistics" element={<CounselStatistics />} />
+            <Route path="/system-setting" element={<SystemSetting />} />
             <Route path="/statistics" element={<Statistics />} />
             <Route path="/service-management" element={<ServiceManagement />} />
             <Route path="*" element={<Navigate to="/prompt-management" replace />} />

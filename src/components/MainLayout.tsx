@@ -43,7 +43,7 @@ function buildNavSections(pathname: string): NavSection[] {
             { label: '권한 관리', icon: <SecurityOutlinedIcon sx={{ fontSize: 20 }} />, active: false, disabled: false },
             { label: '질문항목 관리', icon: <ArticleOutlinedIcon sx={{ fontSize: 20 }} />, active: false, disabled: true },
             { label: '프롬프트 관리', icon: <ArticleOutlinedIcon sx={{ fontSize: 20 }} />, active: false, disabled: true },
-            { label: '서비스 설정', icon: <SettingsIcon sx={{ fontSize: 20 }} />, active: false, disabled: true },
+            { label: '시스템 설정', icon: <SettingsIcon sx={{ fontSize: 20 }} />, active: isActive('/system-setting'), disabled: false, path: '/system-setting' },
           ],
         },
         { label: '세일즈 Plus AI', children: [] },

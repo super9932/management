@@ -1,5 +1,6 @@
 import type {
   AdminTypeCode,
+  ManualClassCode,
   ManualStatus,
   StipulationSearchType,
   StipulationStatus,
@@ -67,6 +68,42 @@ export const MANUAL_STATUS_LABEL: Record<ManualStatus, OperationStatus> = {
 
 /** 매뉴얼 검색기준 — API가 매뉴얼명(keyword) 부분일치만 지원한다 */
 export const MANUAL_SEARCH_TYPE_OPTIONS = ['문서명'] as const;
+
+// ── 매뉴얼 분류 ──────────────────────────────────────────────────────────────
+/** API 분류코드 → 화면 표기 */
+export const MANUAL_CLASS_LABEL: Record<ManualClassCode, string> = {
+  ONE_SHET: '원시트',
+  BSWR_MANL: '업무매뉴얼',
+  ISRN_UNDN: '보험심사',
+  PLAN: '기획',
+  DPST: '입금',
+  RE_OTPY: '재지급',
+  CTCN: '계약변경',
+  CNTR_SUPT: '센터지원',
+};
+
+/**
+ * 관리주체별 선택 가능한 분류.
+ * 관리주체에 속하지 않는 코드를 보내면 서버가 거절하므로 셀렉트 후보를 여기서 좁힌다.
+ */
+export const MANUAL_CLASS_BY_ADMIN_TYPE: Record<AdminTypeCode, ManualClassCode[]> = {
+  UDW: ['ONE_SHET', 'BSWR_MANL'],
+  ISRN_ADT: ['ISRN_UNDN'],
+  ISRN_SVC: ['PLAN', 'DPST', 'RE_OTPY', 'CTCN', 'CNTR_SUPT'],
+};
+
+/** 분류 필터 옵션 — '전체' + 그 관리주체의 분류 표기 */
+export const manualClassFilterOptions = (adminType: AdminTypeCode): string[] => [
+  '전체',
+  ...MANUAL_CLASS_BY_ADMIN_TYPE[adminType].map((code) => MANUAL_CLASS_LABEL[code]),
+];
+
+/** 화면 표기 → API 분류코드 ('전체'는 미전송) */
+export const manualClassCode = (
+  adminType: AdminTypeCode,
+  label: string,
+): ManualClassCode | undefined =>
+  MANUAL_CLASS_BY_ADMIN_TYPE[adminType].find((code) => MANUAL_CLASS_LABEL[code] === label);
 
 /** 약관 검색기준 — API에 '전체' 옵션이 없다 */
 export const TERMS_SEARCH_TYPE_OPTIONS = ['문서명', '보종코드'] as const;
@@ -224,4 +261,39 @@ export const DOCUMENT_DETAIL_TOASTS = {
   deleteFail: '문서 삭제에 실패했습니다.',
   /** 디자인 정의 외 — 변경 없이 저장을 누른 경우의 안내 */
   noChanges: '변경된 내용이 없습니다.',
+} as const;
+
+// ---------------------------------------------------------------- 시스템 설정
+/**
+ * 상담AI 서비스 전체 점검 스위치 코드 (DAS_시스템설정_001).
+ * 저장 값은 점검수행여부(ispcAcmpYn)로, Y 가 곧 점검 모드다.
+ */
+export const COUNSEL_SERVICE_SWITCH_CODE = 'COUNSEL_SERVICE';
+
+/** 스위치가 없을 때 새로 만들며 넣는 이름 */
+export const COUNSEL_SERVICE_SWITCH_NAME = '상담AI 서비스';
+
+/** 시스템 설정 화면 문구 (DAS_시스템설정_001 1-A) */
+export const SYSTEM_SETTING_TEXT = {
+  toggleLabel: '점검 모드 사용 여부',
+  toggleHelper: '‘ON’ 설정 시 서비스 진입 시점에 점검 모드 화면이 노출됩니다.',
+} as const;
+
+/**
+ * 점검모드 전환 확인 팝업 (DAS_시스템설정_001 2-A).
+ * ON 으로 바꿔 저장할 때만 뜬다 — OFF 는 별도 얼럿 없이 바로 처리한다.
+ */
+export const MAINTENANCE_CONFIRM = {
+  title: '점검모드로 전환하시겠습니까?',
+  message: '점검모드를 적용하면 사용자의 서비스 이용이 즉시 제한됩니다.',
+  confirmLabel: '적용',
+  cancelLabel: '취소',
+} as const;
+
+/** 시스템 설정 저장 결과 안내 */
+export const SYSTEM_SETTING_TOASTS = {
+  maintenanceOn: '점검모드가 적용되었습니다.',
+  maintenanceOff: '점검모드가 해제되었습니다.',
+  saveFail: '설정 저장에 실패했습니다.',
+  loadFail: '시스템 설정을 불러오지 못했습니다.',
 } as const;

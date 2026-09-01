@@ -3,7 +3,7 @@ import type { PageRequest } from '../types';
 /** POST /v1/get/counsel/admin/manual/history/list — 매뉴얼문서수정이력목록조회 */
 
 /** 변경된 속성. 원천 컬럼ID를 그대로 내려주며 화면 라벨 매핑은 FE 가 한다 */
-export type ManualHistoryColumnId = 'VALD_STAR_DTTM' | 'VALD_END_DTTM';
+export type ManualHistoryColumnId = 'VALD_STAR_DTTM' | 'VALD_END_DTTM' | 'MANL_CLSF_CODE';
 
 export interface ManualHistoryRequest extends PageRequest {
   nabCuslManlDcmtId: number;
