@@ -2,14 +2,12 @@ import {
   Box,
   Button,
   FormControl,
-  InputAdornment,
   InputLabel,
   MenuItem,
   Select,
   TextField,
   Typography,
 } from '@mui/material';
-import CalendarTodayOutlinedIcon from '@mui/icons-material/CalendarTodayOutlined';
 import { BUTTON_DARK, DIVIDER, FIELD_SX, SECONDARY } from '../../_lib/tokens';
 import { STAT_TYPE_OPTIONS } from '../constant';
 
@@ -23,12 +21,6 @@ export interface StatisticsFilterProps {
   onSearch: () => void;
 }
 
-const calendarAdornment = (
-  <InputAdornment position="end">
-    <CalendarTodayOutlinedIcon sx={{ fontSize: 18, color: SECONDARY }} />
-  </InputAdornment>
-);
-
 export default function StatisticsFilter({
   fromDate, onFromDateChange,
   toDate, onToDateChange,
@@ -41,18 +33,18 @@ export default function StatisticsFilter({
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: 426 }}>
         <TextField
           label="조회기간"
+          type="date"
           value={fromDate}
           onChange={(e) => onFromDateChange(e.target.value)}
           InputLabelProps={{ shrink: true }}
-          InputProps={{ endAdornment: calendarAdornment }}
           sx={{ ...FIELD_SX, flex: 1 }}
         />
         <Typography sx={{ fontSize: 12, color: SECONDARY, flexShrink: 0 }}>~</Typography>
         <TextField
+          type="date"
           value={toDate}
           onChange={(e) => onToDateChange(e.target.value)}
           InputLabelProps={{ shrink: true }}
-          InputProps={{ endAdornment: calendarAdornment }}
           sx={{ ...FIELD_SX, flex: 1 }}
         />
       </Box>

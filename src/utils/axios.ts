@@ -1,7 +1,6 @@
 import axios from 'axios';
 
 import { ENV_CONFIG } from '../config-global';
-import { getTokenRefresher } from './token-refresh';
 import { clearAccessToken, saveAccessToken, showAlertPop, store } from '../store';
 
 import type {
@@ -12,6 +11,9 @@ import type {
   InternalAxiosRequestConfig,
 } from 'axios';
 import type { NextLabResponse } from '../types/response';
+
+/** NAB 인증 헤더 이름 (스테이징 확인: 이 헤더 하나로 인증된다) */
+const API_KEY_HEADER = 'x-api-header';
 
 const EXCEL_DOWNLOAD_API_PREFIX = '/cmmn/excl-dnld/';
 const GLOBAL_ERROR_CODES = new Set([
@@ -37,13 +39,10 @@ const axiosInstance = (() => {
   const adminReq = async (reqConfig: InternalAxiosRequestConfig) => {
     // TODO: 공통 로딩 처리
 
-    const { token } = store.getState();
-
-    // 새로고침 대비해서 store에서 가져와서 세팅
-    if (!reqConfig.headers.authorization) {
-      if (token.accessToken) {
-        reqConfig.headers.authorization = token.accessToken;
-      }
+    // NAB 은 사용자 토큰이 아니라 환경별 API 키로 인증한다.
+    // 값이 비어 있으면 헤더를 붙이지 않고 보내 서버가 403 으로 명확히 알려주게 둔다.
+    if (ENV_CONFIG.NAB_API_KEY) {
+      reqConfig.headers[API_KEY_HEADER] = ENV_CONFIG.NAB_API_KEY;
     }
 
     return reqConfig;
@@ -55,6 +54,17 @@ const axiosInstance = (() => {
       const newAccessToken = res.headers.authorization;
       instance.defaults.headers.authorization = `${newAccessToken}`;
       store.dispatch(saveAccessToken(newAccessToken));
+    }
+
+    // 바이너리 응답(엑셀 다운로드 등)은 공통 엔벨로프가 아니라 파일 그 자체다.
+    // isSuccess 같은 필드가 있을 수 없으므로 판정 대상에서 빼고 그대로 돌려준다.
+    // (이 가드가 없으면 falsy 검사로 판정하는 코드에서 정상 파일이 실패로 잡힌다)
+    const isBinaryBody =
+      (typeof Blob !== 'undefined' && res.data instanceof Blob) ||
+      (typeof ArrayBuffer !== 'undefined' && res.data instanceof ArrayBuffer);
+
+    if (isBinaryBody) {
+      return res;
     }
 
     // isSuccess를 내려주지 않는 API(NAB 고객AI 등)는 정상 응답으로 통과시킨다.
@@ -132,23 +142,7 @@ const axiosInstance = (() => {
   };
 
   const adminError = async (error: AxiosError) => {
-    const original = error.config as (InternalAxiosRequestConfig & { _nabRetried?: boolean }) | undefined;
-    const refresher = getTokenRefresher();
-
-    // NAB 은 AccessToken 만료를 401 로 알린다. 갱신기가 등록돼 있을 때만 한 번 갱신 후 재시도한다.
-    // 운영에서는 로그인·갱신을 상위 템플릿이 맡으므로 등록된 갱신기가 없어 그대로 흘려보낸다.
-    if (error.response?.status === 401 && original && !original._nabRetried && refresher?.canRefresh()) {
-      original._nabRetried = true;
-
-      try {
-        await refresher.refresh();
-
-        return instance(original);
-      } catch {
-        // 갱신 실패 — 아래 공통 처리로 넘긴다
-      }
-    }
-
+    // API 키 인증은 만료·갱신 개념이 없어 401/403 을 그대로 호출부로 넘긴다.
     console.error(error);
     return Promise.reject(error);
     // return Promise.reject((error.response && error.response.data) || 'Something went wrong');

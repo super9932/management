@@ -17,6 +17,7 @@ import type { DocumentRow } from '../type';
 import { MANAGING_DEPT } from '../constant';
 import DocumentStatusChip from './DocumentStatusChip';
 import DocumentEmptyState from './DocumentEmptyState';
+import EllipsisText from './EllipsisText';
 
 const COLUMNS = ['번호', '보종코드', '판매기간', '문서명', '등록자', '등록일자', '운영상태'];
 const COL_COUNT = COLUMNS.length + 1; // + 체크박스
@@ -40,6 +41,11 @@ const headCellSx = {
   borderBottom: `1px solid ${DIVIDER}`,
   whiteSpace: 'nowrap',
 } as const;
+
+/** 보종코드 컬럼 폭 — 코드가 여러 개여도 한 줄로 줄이고 나머지는 툴팁으로 보여준다 */
+const PRODUCT_CODE_WIDTH = 253;
+/** 셀 좌우 여백(px 2 → 16px씩) */
+const CELL_PADDING_X = 32;
 
 const bodyCellSx = {
   fontSize: 14,
@@ -117,7 +123,13 @@ export default function DocumentTable({
                   />
                 </TableCell>
                 <TableCell align="center" sx={{ ...bodyCellSx, whiteSpace: 'nowrap' }}>{row.no.toLocaleString()}</TableCell>
-                <TableCell align="center" sx={{ ...bodyCellSx, whiteSpace: 'pre-line' }}>{row.productCodes}</TableCell>
+                <TableCell align="center" sx={{ ...bodyCellSx, width: PRODUCT_CODE_WIDTH, maxWidth: PRODUCT_CODE_WIDTH }}>
+                  <EllipsisText
+                    text={row.productCodes}
+                    maxWidth={PRODUCT_CODE_WIDTH - CELL_PADDING_X}
+                    align="center"
+                  />
+                </TableCell>
                 <TableCell align="center" sx={{ ...bodyCellSx, whiteSpace: 'nowrap' }}>
                   <Typography sx={{ fontSize: 14, color: DARK }}>{row.salePeriodStart}</Typography>
                   <Typography sx={{ fontSize: 14, color: SECONDARY }}>{row.salePeriodEnd}</Typography>

@@ -1,8 +1,7 @@
 import { Box, Typography } from '@mui/material';
+import DescriptionOutlinedIcon from '@mui/icons-material/DescriptionOutlined';
 
-const imgGroup = 'http://localhost:3845/assets/a256c302b6c94b257528a5ce7f81022379ffac1c.svg';
-const imgRect = 'http://localhost:3845/assets/50058a164b4dc53b2de2e4f3e64212d8fa45fc93.png';
-
+/** 목록이 비었을 때의 안내. 아이콘은 상담AI 문서 목록(DocumentEmptyState)과 같은 것을 쓴다. */
 export default function PromptEmptyState() {
   return (
     <Box
@@ -20,47 +19,7 @@ export default function PromptEmptyState() {
         py: 5,
       }}
     >
-      {/* 일러스트 */}
-      <Box sx={{ position: 'relative', width: 64, height: 64 }}>
-        <Box
-          sx={{
-            position: 'absolute',
-            inset: '19.66% 14.51% 9.37% 14.53%',
-            bgcolor: 'var(--nab-text-disabled)',
-            opacity: 0.48,
-            borderRadius: '7.3px',
-          }}
-        />
-        <Box
-          component="img"
-          src={imgGroup}
-          alt=""
-          sx={{
-            position: 'absolute',
-            inset: '9.38% 24.12% 33.15% 24.08%',
-            width: '51.8%',
-            height: '57.5%',
-            opacity: 0.48,
-            objectFit: 'contain',
-          }}
-        />
-        <Box
-          component="img"
-          src={imgRect}
-          alt=""
-          sx={{
-            position: 'absolute',
-            top: '46.63%',
-            left: '14.53%',
-            width: 45,
-            height: 28,
-            opacity: 0.48,
-            objectFit: 'contain',
-          }}
-        />
-      </Box>
-
-      {/* 텍스트 */}
+      <DescriptionOutlinedIcon sx={{ fontSize: 56, color: 'var(--nab-text-disabled)', opacity: 0.48 }} />
       <Typography
         sx={{
           fontSize: 18,

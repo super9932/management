@@ -8,7 +8,6 @@ import {
   FormControl,
   FormControlLabel,
   IconButton,
-  InputAdornment,
   InputLabel,
   MenuItem,
   Select,
@@ -16,7 +15,6 @@ import {
   Typography,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
-import CalendarTodayOutlinedIcon from '@mui/icons-material/CalendarTodayOutlined';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import CancelIcon from '@mui/icons-material/Cancel';
 import { DARK, DISABLED, DIVIDER, FIELD_SX, PRIMARY_ORANGE, SECONDARY } from '../../_lib/tokens';
@@ -34,6 +32,7 @@ import type { AdminTypeCode, ManualClassCode } from '../../../../api/nab/counsel
 import DocumentAlertDialog from './DocumentAlertDialog';
 import DocumentToast from './DocumentToast';
 import type { DocumentToastSeverity } from './DocumentToast';
+import { useAuthContext } from 'src/auth/hooks';
 
 interface Props {
   open: boolean;
@@ -60,9 +59,9 @@ const ALERT_PRESET: Record<AlertKey, { title: string; message: string; confirmLa
 
 /** 반영/종료 일시 초기값 — 변경 여부(dirty) 판정 기준 */
 const INITIAL_SCHEDULE = {
-  effectiveDate: '2026/01/01',
+  effectiveDate: '2026-01-01',
   effectiveTime: '00:00',
-  endDate: '2026/01/01',
+  endDate: '2026-01-01',
   endTime: '24:00',
   noEndDate: true,
 } as const;
@@ -147,6 +146,11 @@ export default function DocumentRegisterDialog({ open, title, adminType, onClose
 
   const hasFiles = files.length > 0;
 
+  // 쓰기 API 는 작업자 사번을 요청 본문 emnb 필드로 받는다
+  const { user } = useAuthContext();
+  const effectiveUser = user;
+  const emnb = effectiveUser?.emnb ?? '';
+
   const queryClient = useQueryClient();
 
   /**
@@ -168,7 +172,7 @@ export default function DocumentRegisterDialog({ open, title, adminType, onClose
       for (const file of files) {
         try {
           // eslint-disable-next-line no-await-in-loop
-          const response = await saveManual({ file, meta });
+          const response = await saveManual({ file, meta }, emnb);
 
           if (response.error) {
             failed.push(file.name);
@@ -296,14 +300,10 @@ export default function DocumentRegisterDialog({ open, title, adminType, onClose
             <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
               <TextField
                 label="반영일자"
+                type="date"
                 value={effectiveDate}
                 onChange={(e) => setEffectiveDate(e.target.value)}
                 InputLabelProps={{ shrink: true }}
-                InputProps={{ endAdornment: (
-                  <InputAdornment position="end">
-                    <CalendarTodayOutlinedIcon sx={{ fontSize: 18, color: SECONDARY }} />
-                  </InputAdornment>
-                ) }}
                 sx={{ ...FIELD_SX, width: noEndDate ? 332 : undefined, flex: noEndDate ? 'none' : 1 }}
               />
               <FormControl sx={{ flex: 1, ...FIELD_SX }}>
@@ -317,14 +317,10 @@ export default function DocumentRegisterDialog({ open, title, adminType, onClose
                   <Typography sx={{ fontSize: 12, color: SECONDARY, flexShrink: 0 }}>~</Typography>
                   <TextField
                     label="종료일자"
+                    type="date"
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
                     InputLabelProps={{ shrink: true }}
-                    InputProps={{ endAdornment: (
-                      <InputAdornment position="end">
-                        <CalendarTodayOutlinedIcon sx={{ fontSize: 18, color: SECONDARY }} />
-                      </InputAdornment>
-                    ) }}
                     sx={{ ...FIELD_SX, flex: 1 }}
                   />
                   <FormControl sx={{ flex: 1, ...FIELD_SX }}>

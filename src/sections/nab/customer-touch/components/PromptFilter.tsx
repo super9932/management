@@ -58,7 +58,8 @@ export default function PromptFilter({
 }: PromptFilterProps) {
   const selected = categories.find((category) => category.code === typeFilter);
   // 유형이 '전체'면 하위 항목을 특정할 수 없어 카테고리는 '전체'뿐이다.
-  const items = selected?.items ?? [];
+  // 항목은 { item: '...' } 객체로 내려오므로 코드만 뽑아 쓴다
+  const items = (selected?.items ?? []).map((entry) => entry.item);
   // 게시일 기준이라 오늘 이후는 고를 수 없다.
   const today = todayDateString();
 

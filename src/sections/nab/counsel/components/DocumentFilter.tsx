@@ -9,7 +9,6 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import CalendarTodayOutlinedIcon from '@mui/icons-material/CalendarTodayOutlined';
 import SearchIcon from '@mui/icons-material/Search';
 import { DISABLED, DIVIDER, FIELD_SX, SECONDARY } from '../../_lib/tokens';
 import { OPERATION_FILTER_OPTIONS, SEARCH_TYPE_OPTIONS } from '../constant';
@@ -33,12 +32,6 @@ export interface DocumentFilterProps {
   /** 검색기준 셀렉트 노출 여부 (기본: true) */
   showSearchType?: boolean;
 }
-
-const calendarAdornment = (
-  <InputAdornment position="end">
-    <CalendarTodayOutlinedIcon sx={{ fontSize: 18, color: SECONDARY }} />
-  </InputAdornment>
-);
 
 const selectSx = {
   fontSize: 14,
@@ -64,18 +57,18 @@ export default function DocumentFilter({
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: 426 }}>
         <TextField
           label="등록일자"
+          type="date"
           value={fromDate}
           onChange={(e) => onFromDateChange(e.target.value)}
           InputLabelProps={{ shrink: true }}
-          InputProps={{ endAdornment: calendarAdornment }}
           sx={{ ...FIELD_SX, flex: 1 }}
         />
         <Typography sx={{ fontSize: 12, color: SECONDARY, flexShrink: 0 }}>~</Typography>
         <TextField
+          type="date"
           value={toDate}
           onChange={(e) => onToDateChange(e.target.value)}
           InputLabelProps={{ shrink: true }}
-          InputProps={{ endAdornment: calendarAdornment }}
           sx={{ ...FIELD_SX, flex: 1 }}
         />
       </Box>

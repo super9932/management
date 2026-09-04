@@ -7,7 +7,7 @@ import type { PromptSlotItem, PromptSlotsResponse } from './dto';
 
 /** 카탈로그와 어긋나지 않도록 카테고리 목업에서 슬롯 29종을 펼쳐 만든다 */
 const slots: PromptSlotItem[] = promptCategoriesMock.categories.flatMap((category) =>
-  category.items.map((item, index) => {
+  category.items.map(({ item }, index) => {
     // content/validation 한 자리만 비워 미등록 경로(503)를 재현한다
     const registered = !(category.code === 'content' && item === 'validation');
 

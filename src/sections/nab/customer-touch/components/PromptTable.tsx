@@ -1,7 +1,7 @@
 import {
   Box,
-  Button,
   Divider,
+  Link,
   Table,
   TableBody,
   TableCell,
@@ -11,7 +11,6 @@ import {
   Typography,
 } from '@mui/material';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-import FileDownloadOutlinedIcon from '@mui/icons-material/FileDownloadOutlined';
 import { DARK, DIVIDER, PRIMARY_ORANGE, SECONDARY } from '../../_lib/tokens';
 import type { PromptRow } from '../type';
 import PromptEmptyState from './PromptEmptyState';
@@ -22,9 +21,11 @@ interface Props {
   rows: PromptRow[];
   total: number;
   pageSize: string;
+  /** 프롬프트명 클릭 — 수정 화면으로 이동한다 */
+  onPromptClick: (row: PromptRow) => void;
 }
 
-export default function PromptTable({ rows, total, pageSize }: Props) {
+export default function PromptTable({ rows, total, pageSize, onPromptClick }: Props) {
   return (
     <>
       {/* Results bar */}
@@ -38,17 +39,6 @@ export default function PromptTable({ rows, total, pageSize }: Props) {
             <KeyboardArrowDownIcon sx={{ fontSize: 16, color: DARK }} />
           </Box>
         </Box>
-        <Button
-          variant="outlined"
-          startIcon={<FileDownloadOutlinedIcon sx={{ fontSize: 18 }} />}
-          sx={{
-            height: 36, px: 1.5, borderRadius: 2, fontSize: 14, fontWeight: 400,
-            color: DARK, borderColor: 'var(--nab-border-strong)',
-            '&:hover': { borderColor: SECONDARY, bgcolor: 'transparent' },
-          }}
-        >
-          엑셀 다운로드
-        </Button>
       </Box>
       <Divider sx={{ borderColor: DIVIDER }} />
 
@@ -85,9 +75,20 @@ export default function PromptTable({ rows, total, pageSize }: Props) {
                 <TableCell align="center" sx={{ fontSize: 12, color: DARK, py: 1.5, px: 2 }}>{row.type}</TableCell>
                 <TableCell align="center" sx={{ fontSize: 12, color: DARK, py: 1.5, px: 2 }}>{row.category}</TableCell>
                 <TableCell align="center" sx={{ fontSize: 12, color: DARK, py: 1.5, px: 2, maxWidth: 320 }}>
-                  <Typography sx={{ fontSize: 12, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 320, mx: 'auto' }}>
+                  <Link
+                    component="button"
+                    type="button"
+                    underline="none"
+                    onClick={() => onPromptClick(row)}
+                    sx={{
+                      fontSize: 12, color: DARK, maxWidth: 320,
+                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                      display: 'block', mx: 'auto', textAlign: 'center', cursor: 'pointer',
+                      '&:hover': { textDecoration: 'underline' },
+                    }}
+                  >
                     {row.promptName}
-                  </Typography>
+                  </Link>
                 </TableCell>
                 <TableCell align="center" sx={{ fontSize: 12, color: DARK, py: 1.5, px: 2, whiteSpace: 'nowrap' }}>{row.registeredAt}</TableCell>
                 <TableCell align="center" sx={{ fontSize: 12, color: DARK, py: 1.5, px: 2, whiteSpace: 'nowrap' }}>{row.updatedAt}</TableCell>

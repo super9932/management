@@ -29,6 +29,8 @@ export * from './manual-delete/dto';
 export * from './manual-delete/service';
 export * from './manual-init-load/dto';
 export * from './manual-init-load/service';
+export * from './manual-resend/dto';
+export * from './manual-resend/service';
 
 // ── 약관 ────────────────────────────────────────────────────────────────────
 export * from './stipulation-list/dto';
@@ -41,6 +43,8 @@ export * from './stipulation-delete/dto';
 export * from './stipulation-delete/service';
 export * from './stipulation-init-load/dto';
 export * from './stipulation-init-load/service';
+export * from './stipulation-resend/dto';
+export * from './stipulation-resend/service';
 
 // ── 점검 Kill-Switch ────────────────────────────────────────────────────────
 export * from './killswitch-list/dto';

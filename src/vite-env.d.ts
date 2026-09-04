@@ -8,15 +8,8 @@ interface ImportMetaEnv {
   /** 'true' 일 때만 MSW 목 서버를 켠다 (dev 한정). 기본값은 꺼짐 = 실서버 호출 */
   readonly VITE_USE_MSW?: string;
 
-  // ── ⚠️ 개발 전용 NAB 사번 로그인 (운영 반입 금지 — src/dev/nab-dev-login.ts 참고) ──
-  /** OTT 발급용 API Key */
-  readonly VITE_OTT_API_KEY?: string;
-  /** OTT 발급용 API Secret */
-  readonly VITE_OTT_API_SECRET?: string;
-  /** 토큰 교환·갱신용 client id */
-  readonly VITE_TOKEN_CLIENT_ID?: string;
-  /** 토큰 교환·갱신용 client secret */
-  readonly VITE_TOKEN_CLIENT_SECRET?: string;
+  /** NAB API 인증 키 — 모든 요청의 x-api-header 에 실린다 (환경별로 값이 다르다) */
+  readonly NEXT_PUBLIC_NAB_API_KEY?: string;
 }
 
 interface ImportMeta {

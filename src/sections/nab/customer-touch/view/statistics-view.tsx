@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { useMutation, useQuery } from 'react-query';
 import { NabThemeScope } from '../../_lib/NabThemeScope';
-import { Alert, Box, Typography, Card, Breadcrumbs, Button, CircularProgress } from '@mui/material';
+import { Alert, Box, Typography, Card, Breadcrumbs, Button } from '@mui/material';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import StatisticsTabs from '../components/StatisticsTabs';
 import StatisticsFilter from '../components/StatisticsFilter';
 import DailyStatsTable from '../components/DailyStatsTable';
 import StatisticsPagination from '../components/StatisticsPagination';
-import { DARK, DISABLED, CARD_SHADOW, PRIMARY_ORANGE } from '../../_lib/tokens';
+import { DARK, DISABLED, CARD_SHADOW } from '../../_lib/tokens';
 import {
   CONTENT_SEARCH_STAT_COLUMNS,
   FILTER_ALL,
@@ -140,7 +140,7 @@ function StatisticsViewInner() {
   // 탭 0 = AI 메시지 생성, 탭 1 = AI 콘텐츠 검색 — 표 양식이 서로 달라 컴포넌트도 나뉜다
   const isContentSearch = tabValue === 1;
 
-  const { data, isFetching, isError, error, refetch } = useQuery(
+  const { data, isError, error, refetch } = useQuery(
     ['nab', 'customer-touch', 'service-stats', isContentSearch ? 'search' : 'message', appliedFilter, page],
     () =>
       isContentSearch
@@ -221,22 +221,6 @@ function StatisticsViewInner() {
         )}
 
         <Box sx={{ position: 'relative' }}>
-          {(isFetching || excelMutation.isLoading) && (
-            <Box
-              sx={{
-                position: 'absolute',
-                inset: 0,
-                zIndex: 1,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                bgcolor: 'rgba(255, 255, 255, 0.6)',
-              }}
-            >
-              <CircularProgress size={24} sx={{ color: PRIMARY_ORANGE }} />
-            </Box>
-          )}
-
           {isContentSearch ? (
             <DailyStatsTable
               rows={data?.kind === 'search' ? data.rows : []}

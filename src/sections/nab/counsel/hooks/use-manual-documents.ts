@@ -15,6 +15,7 @@ import {
   PAGE_SIZE,
 } from '../constant';
 import type { UnderwritingManualRow } from '../type';
+import { useAuthContext } from 'src/auth/hooks';
 
 /**
  * 매뉴얼문서 목록 조회 (POST /v1/get/counsel/admin/manual/list).
@@ -32,8 +33,8 @@ interface AppliedFilter {
 }
 
 const DEFAULT_FILTER: AppliedFilter = {
-  fromDate: '2026.01.01',
-  toDate: '2026.12.31',
+  fromDate: '2026-01-01',
+  toDate: '2026-12-31',
   operationFilter: '전체',
   keyword: '',
 };
@@ -121,12 +122,17 @@ export function useManualDocuments(adminType: AdminTypeCode) {
 
   const rows = data?.rows ?? [];
 
+  // 쓰기 API 는 작업자 사번을 요청 본문 emnb 필드로 받는다
+  const { user } = useAuthContext();
+  const effectiveUser = user;
+  const emnb = effectiveUser?.emnb ?? '';
+
   const queryClient = useQueryClient();
 
   /** 선택 삭제 — 체크한 문서를 한 번에 소프트삭제한다 */
   const deleteMutation = useMutation(
     async (ids: number[]) => {
-      const response = await deleteManual({ nabCuslManlDcmtIdList: ids });
+      const response = await deleteManual({ nabCuslManlDcmtIdList: ids }, emnb);
 
       if (response.error) {
         throw new Error(response.error.message ?? DOCUMENT_DETAIL_TOASTS.deleteFail);

@@ -6,12 +6,11 @@ import {
   Breadcrumbs,
   Button,
   Card,
-  CircularProgress,
   Typography,
 } from '@mui/material';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import { NabThemeScope } from '../../_lib/NabThemeScope';
-import { CARD_SHADOW, DARK, DISABLED, PRIMARY_ORANGE, SECONDARY } from '../../_lib/tokens';
+import { CARD_SHADOW, DARK, DISABLED, SECONDARY } from '../../_lib/tokens';
 import DocumentFilter from '../components/DocumentFilter';
 import DocumentTable from '../components/DocumentTable';
 import DocumentTermsRegisterDialog from '../components/DocumentTermsRegisterDialog';
@@ -34,6 +33,7 @@ import {
 } from '../constant';
 import { deleteStipulation, getStipulationList } from '../../../../api/nab/counsel-backoffice';
 import type { StipulationItem, StipulationListRequest } from '../../../../api/nab/counsel-backoffice';
+import { useAuthContext } from 'src/auth/hooks';
 
 /** 조회 버튼을 눌러야 실제 요청에 반영되는 값들 */
 interface AppliedFilter {
@@ -45,8 +45,8 @@ interface AppliedFilter {
 }
 
 const DEFAULT_FILTER: AppliedFilter = {
-  fromDate: '2026.01.01',
-  toDate: '2026.12.31',
+  fromDate: '2026-01-01',
+  toDate: '2026-12-31',
   operationFilter: '전체',
   searchType: '문서명',
   keyword: '',
@@ -120,12 +120,17 @@ function InsuranceTermsViewInner() {
     message: '',
     severity: 'success',
   });
+  // 쓰기 API 는 작업자 사번을 요청 본문 emnb 필드로 받는다
+  const { user } = useAuthContext();
+  const effectiveUser = user;
+  const emnb = effectiveUser?.emnb ?? '';
+
   const queryClient = useQueryClient();
 
   /** 선택 삭제 — 체크한 약관문서를 한 번에 소프트삭제한다 */
   const deleteMutation = useMutation(
     async (ids: number[]) => {
-      const response = await deleteStipulation({ nabCuslIsrnStplDcmtIdList: ids });
+      const response = await deleteStipulation({ nabCuslIsrnStplDcmtIdList: ids }, emnb);
 
       if (response.error) {
         throw new Error(response.error.message ?? DOCUMENT_DETAIL_TOASTS.deleteFail);
@@ -154,7 +159,7 @@ function InsuranceTermsViewInner() {
     },
   );
 
-  const { data, isFetching, isError, error, refetch } = useQuery(
+  const { data, isError, error, refetch } = useQuery(
     ['nab', 'counsel-backoffice', 'stipulation-list', appliedFilter, page],
     () => fetchStipulations(appliedFilter, page),
     { keepPreviousData: true },
@@ -238,18 +243,6 @@ function InsuranceTermsViewInner() {
         )}
 
         <Box sx={{ position: 'relative' }}>
-          {isFetching && (
-            <Box
-              sx={{
-                position: 'absolute', inset: 0, zIndex: 1,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                bgcolor: 'rgba(255, 255, 255, 0.6)',
-              }}
-            >
-              <CircularProgress size={24} sx={{ color: PRIMARY_ORANGE }} />
-            </Box>
-          )}
-
           <DocumentTable
             rows={rows}
             total={total}

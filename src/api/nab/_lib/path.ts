@@ -61,6 +61,7 @@ export const NAB_COUNSEL_BACKOFFICE_API = {
   manualUpdate: withBase('/v1/post/counsel/admin/manual/update'),
   manualDelete: withBase('/v1/delete/counsel/admin/manual'),
   manualInitLoad: withBase('/v1/post/counsel/admin/manual/init-load'),
+  manualResend: withBase('/v1/post/counsel/admin/manual/resend'),
 
   // ── 상담AI · 백오피스 · 약관 ───────────────────────────────────────────────
   stipulationList: withBase('/v1/get/counsel/admin/stipulation/list'),
@@ -68,6 +69,7 @@ export const NAB_COUNSEL_BACKOFFICE_API = {
   stipulationSave: withBase('/v1/post/counsel/admin/stipulation/save'),
   stipulationDelete: withBase('/v1/delete/counsel/admin/stipulation'),
   stipulationInitLoad: withBase('/v1/post/counsel/admin/stipulation/init-load'),
+  stipulationResend: withBase('/v1/post/counsel/admin/stipulation/resend'),
 
   // ── 상담AI · 백오피스 · 점검 Kill-Switch ───────────────────────────────────
   killSwitchList: withBase('/v1/get/counsel/admin/killswitch/list'),

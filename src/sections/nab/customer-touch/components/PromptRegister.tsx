@@ -24,7 +24,11 @@ import { promptItemLabel } from '../constant';
 import type { PromptCategoryItem } from '../../../../api/nab/customer-touch';
 
 interface Props {
+  /** 'register' = 등록(취소 버튼) / 'edit' = 수정(삭제 버튼) */
+  mode?: 'register' | 'edit';
   contentsId?: string;
+  /** 조회·저장 중에는 입력과 버튼을 잠근다 */
+  busy?: boolean;
   /** 서버 카탈로그(prompt/categories) — 유형·카테고리 셀렉트 소스 */
   categories: PromptCategoryItem[];
   /** 유형 = API category 코드. 미선택은 빈 문자열 ('전체'는 조회 전용이라 등록에는 없다) */
@@ -38,7 +42,10 @@ interface Props {
   instruction: string;
   onInstructionChange: (v: string) => void;
   onList: () => void;
+  /** 등록 모드의 '취소' */
   onCancel: () => void;
+  /** 수정 모드의 '삭제' */
+  onDelete?: () => void;
   onSave: () => void;
 }
 
@@ -59,7 +66,9 @@ const SELECT_SX = {
 const placeholder = (text: string) => <Typography sx={{ fontSize: 14, color: DISABLED }}>{text}</Typography>;
 
 export default function PromptRegister({
+  mode = 'register',
   contentsId = '',
+  busy = false,
   categories,
   type,
   onTypeChange,
@@ -71,10 +80,13 @@ export default function PromptRegister({
   onInstructionChange,
   onList,
   onCancel,
+  onDelete,
   onSave,
 }: Props) {
+  const isEdit = mode === 'edit';
   const selected = categories.find((category) => category.code === type);
-  const items = selected?.items ?? [];
+  // 항목은 { item: '...' } 객체로 내려오므로 코드만 뽑아 쓴다
+  const items = (selected?.items ?? []).map((entry) => entry.item);
 
   return (
     <Card sx={{ borderRadius: 4, boxShadow: CARD_SHADOW }}>
@@ -182,6 +194,7 @@ export default function PromptRegister({
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Button
             onClick={onList}
+            disabled={busy}
             startIcon={<ChevronLeftIcon sx={{ fontSize: 24 }} />}
             sx={{
               height: 48, px: 2, minWidth: 64, borderRadius: 2, color: DARK,
@@ -193,7 +206,8 @@ export default function PromptRegister({
           </Button>
           <Box sx={{ display: 'flex', gap: 1.5 }}>
             <Button
-              onClick={onCancel}
+              onClick={isEdit ? onDelete : onCancel}
+              disabled={busy}
               variant="contained"
               sx={{
                 height: 48, px: 2, minWidth: 64, borderRadius: 2, bgcolor: BUTTON_DARK, color: 'white',
@@ -201,10 +215,11 @@ export default function PromptRegister({
                 '&:hover': { bgcolor: 'var(--nab-button-hover)', boxShadow: 'none' },
               }}
             >
-              취소
+              {isEdit ? '삭제' : '취소'}
             </Button>
             <Button
               onClick={onSave}
+              disabled={busy}
               variant="contained"
               sx={{
                 height: 48, px: 2, minWidth: 64, borderRadius: 2, bgcolor: PRIMARY_ORANGE, color: 'white',

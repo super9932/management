@@ -5,12 +5,11 @@ import {
   Breadcrumbs,
   Button,
   Card,
-  CircularProgress,
   Typography,
 } from '@mui/material';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import { NabThemeScope } from '../../_lib/NabThemeScope';
-import { CARD_SHADOW, DARK, DISABLED, PRIMARY_ORANGE, SECONDARY } from '../../_lib/tokens';
+import { CARD_SHADOW, DARK, DISABLED, SECONDARY } from '../../_lib/tokens';
 import DocumentFilter from '../components/DocumentFilter';
 import InsuranceCommonTable from '../components/InsuranceCommonTable';
 import InsuranceCommonDetailDialog from '../components/InsuranceCommonDetailDialog';
@@ -38,7 +37,7 @@ function InsuranceCommonViewInner() {
     searchText, setSearchText,
     handleSearch,
     rows, total, totalPages,
-    isFetching, isError, error, refetch,
+    isError, error, refetch,
     page, setPage,
     selectedIds, handleToggle, handleToggleAll, hasSelection,
     deleteSelected, isDeleting,
@@ -111,18 +110,6 @@ function InsuranceCommonViewInner() {
         )}
 
         <Box sx={{ position: 'relative' }}>
-          {isFetching && (
-            <Box
-              sx={{
-                position: 'absolute', inset: 0, zIndex: 1,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                bgcolor: 'rgba(255, 255, 255, 0.6)',
-              }}
-            >
-              <CircularProgress size={24} sx={{ color: PRIMARY_ORANGE }} />
-            </Box>
-          )}
-
           <InsuranceCommonTable
             rows={rows}
             total={total}

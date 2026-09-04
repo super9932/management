@@ -25,8 +25,15 @@ const apiBaseUrl = () => {
     : (import.meta.env.VITE_APP_API_BASE_URL ?? '/api');
 };
 
+/**
+ * NAB API 인증 키 — 모든 요청의 x-api-header 에 실린다.
+ * 환경(dev·stg·prd)마다 값이 달라 빌드 시 환경변수로 주입한다.
+ */
+const NAB_API_KEY = import.meta.env.NEXT_PUBLIC_NAB_API_KEY ?? '';
+
 export const ENV_CONFIG = {
   NAB_SERVER_URL,
+  NAB_API_KEY,
   USE_MSW,
   /** NAB API 베이스 — 목 모드면 same-origin, 서버 오리진이 있으면 절대경로, 없으면 `/api` */
   APP_API_BASE_URL: apiBaseUrl(),

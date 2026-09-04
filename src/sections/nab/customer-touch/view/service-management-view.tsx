@@ -8,7 +8,6 @@ import {
   Card,
   Breadcrumbs,
   Button,
-  CircularProgress,
   Snackbar,
 } from '@mui/material';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
@@ -27,6 +26,7 @@ import {
 } from '../../../../api/nab/customer-touch';
 import type { ApiResponse } from '../../../../api/nab/customer-touch';
 import type { ServiceFeatureCode, ServiceToggleState } from '../type';
+import { useAuthContext } from 'src/auth/hooks';
 
 const QUERY_KEY = ['nab', 'customer-touch', 'service-killswitches'];
 
@@ -74,6 +74,11 @@ const fetchSaveMeta = async (code: ServiceFeatureCode) => {
 };
 
 function ServiceManagementViewInner() {
+  // 쓰기 API 는 작업자 사번을 요청 본문 emnb 필드로 받는다
+  const { user } = useAuthContext();
+  const effectiveUser = user;
+  const emnb = effectiveUser?.emnb ?? '';
+
   const [toggles, setToggles] = useState<ServiceToggleState>(INITIAL_TOGGLE_STATE);
   const [savedMessage, setSavedMessage] = useState('');
 
@@ -109,7 +114,7 @@ function ServiceManagementViewInner() {
           featureName,
           state: toggles[code] ? 'ENABLED' : 'DISABLED',
           description,
-        });
+        }, emnb);
 
         unwrap(response, `${SERVICE_TOGGLE_LABEL[code]} 저장에 실패했습니다.`);
       }
@@ -171,22 +176,6 @@ function ServiceManagementViewInner() {
 
         {/* 스위치 목록 */}
         <Box sx={{ p: 2.5, display: 'flex', flexDirection: 'column', gap: 2.5, position: 'relative' }}>
-          {isBusy && (
-            <Box
-              sx={{
-                position: 'absolute',
-                inset: 0,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                bgcolor: 'rgba(255, 255, 255, 0.6)',
-                zIndex: 1,
-              }}
-            >
-              <CircularProgress size={24} sx={{ color: PRIMARY_ORANGE }} />
-            </Box>
-          )}
-
           {SERVICE_TOGGLES.map((item) => (
             <ServiceToggleRow
               key={item.key}

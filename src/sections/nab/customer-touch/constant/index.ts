@@ -123,12 +123,12 @@ export const STAT_TYPE_OPTIONS = Object.keys(STAT_FP_TYPE);
 /** 통계 조회 기본 기간(일) — 집계 상한선이 어제라 오늘까지 잡아도 마지막 날은 0이다 */
 export const STAT_DEFAULT_PERIOD_DAYS = 30;
 
-/** 'YYYY.MM.DD' 화면 표기 (로컬 기준이라 UTC 로 밀리지 않는다) */
+/** 입력값 형식(yyyy-MM-dd) — 네이티브 date 인풋이 받는 형식이다. 로컬 기준이라 UTC 로 밀리지 않는다 */
 export const toScreenDate = (date: Date): string => {
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
 
-  return `${date.getFullYear()}.${month}.${day}`;
+  return `${date.getFullYear()}-${month}-${day}`;
 };
 
 /** 기본 조회기간 — 오늘 포함 최근 STAT_DEFAULT_PERIOD_DAYS 일 */
@@ -140,6 +140,6 @@ export const defaultStatPeriod = (): { from: string; to: string } => {
   return { from: toScreenDate(from), to: toScreenDate(today) };
 };
 
-/** 화면 표기(YYYY.MM.DD) → API 형식(yyyy-MM-dd) */
+/** 입력값 → API 형식(yyyy-MM-dd). 점·슬래시가 들어와도 정규화한다 */
 export const toStatApiDate = (value: string): string => value.trim().replace(/[./]/g, '-');
 

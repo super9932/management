@@ -6,15 +6,12 @@ import {
   Breadcrumbs,
   Button,
   Card,
-  CircularProgress,
-  InputAdornment,
   TextField,
   Typography,
 } from '@mui/material';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
-import CalendarTodayOutlinedIcon from '@mui/icons-material/CalendarTodayOutlined';
 import { NabThemeScope } from '../../_lib/NabThemeScope';
-import { CARD_SHADOW, DARK, DISABLED, FIELD_SX, PRIMARY_ORANGE, SECONDARY } from '../../_lib/tokens';
+import { CARD_SHADOW, DARK, DISABLED, FIELD_SX, SECONDARY } from '../../_lib/tokens';
 import StatisticsTable from '../components/StatisticsTable';
 import DocumentPagination from '../components/DocumentPagination';
 import DocumentToast from '../components/DocumentToast';
@@ -28,24 +25,18 @@ import { downloadMsgeStatExcel, getMsgeStatList } from '../../../../api/nab/coun
 import type { MsgeStatItem, MsgeStatRequest } from '../../../../api/nab/counsel-backoffice';
 import type { StatisticsRow } from '../type';
 
-const calendarAdornment = (
-  <InputAdornment position="end">
-    <CalendarTodayOutlinedIcon sx={{ fontSize: 18, color: SECONDARY }} />
-  </InputAdornment>
-);
-
 /** 조회 버튼을 눌러야 실제 요청에 반영되는 값들 */
 interface AppliedFilter {
   fromDate: string;
   toDate: string;
 }
 
-/** 화면 표기(YYYY.MM.DD)로 만든 날짜 — 로컬 기준이라 UTC 로 밀리지 않는다 */
+/** 입력값 형식(yyyy-MM-dd) — 네이티브 date 인풋이 받는 형식이다. 로컬 기준이라 UTC 로 밀리지 않는다 */
 const toScreenDate = (date: Date): string => {
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
 
-  return `${date.getFullYear()}.${month}.${day}`;
+  return `${date.getFullYear()}-${month}-${day}`;
 };
 
 /**
@@ -137,7 +128,7 @@ function CounselStatisticsViewInner() {
     severity: 'success',
   });
 
-  const { data, isFetching, isError, error, refetch } = useQuery(
+  const { data, isError, error, refetch } = useQuery(
     ['nab', 'counsel-backoffice', 'statistics-message-list', appliedFilter, page],
     () => fetchStatistics(appliedFilter, page),
     { keepPreviousData: true },
@@ -190,18 +181,18 @@ function CounselStatisticsViewInner() {
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: 426 }}>
             <TextField
               label="조회일자"
+              type="date"
               value={fromDate}
               onChange={(e) => setFromDate(e.target.value)}
               InputLabelProps={{ shrink: true }}
-              InputProps={{ endAdornment: calendarAdornment }}
               sx={{ ...FIELD_SX, flex: 1 }}
             />
             <Typography sx={{ fontSize: 12, color: SECONDARY, flexShrink: 0 }}>~</Typography>
             <TextField
+              type="date"
               value={toDate}
               onChange={(e) => setToDate(e.target.value)}
               InputLabelProps={{ shrink: true }}
-              InputProps={{ endAdornment: calendarAdornment }}
               sx={{ ...FIELD_SX, flex: 1 }}
             />
           </Box>
@@ -233,18 +224,6 @@ function CounselStatisticsViewInner() {
         )}
 
         <Box sx={{ position: 'relative' }}>
-          {(isFetching || excelMutation.isLoading) && (
-            <Box
-              sx={{
-                position: 'absolute', inset: 0, zIndex: 1,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                bgcolor: 'rgba(255, 255, 255, 0.6)',
-              }}
-            >
-              <CircularProgress size={24} sx={{ color: PRIMARY_ORANGE }} />
-            </Box>
-          )}
-
           <StatisticsTable
             rows={rows}
             total={data?.totalElements ?? 0}

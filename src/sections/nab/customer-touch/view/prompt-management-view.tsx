@@ -8,7 +8,10 @@ import {
   Card,
   Breadcrumbs,
   Button,
-  CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   Snackbar,
 } from '@mui/material';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
@@ -17,17 +20,25 @@ import PromptFilter from '../components/PromptFilter';
 import PromptTable from '../components/PromptTable';
 import PromptPagination from '../components/PromptPagination';
 import PromptRegister from '../components/PromptRegister';
-import { DARK, SECONDARY_16, DISABLED, CARD_SHADOW, PRIMARY_ORANGE } from '../../_lib/tokens';
+import { DARK, SECONDARY_16, DISABLED, CARD_SHADOW } from '../../_lib/tokens';
 import {
   FILTER_ALL,
   PROMPT_SEARCH_SCOPE_CODE,
   promptItemLabel,
   todayDateString,
 } from '../constant';
-import { createPrompt, getPromptCategories, getPromptList } from '../../../../api/nab/customer-touch';
+import {
+  createPrompt,
+  deletePrompt,
+  getPrompt,
+  getPromptCategories,
+  getPromptList,
+  updatePrompt,
+} from '../../../../api/nab/customer-touch';
 import type { PromptListRequest } from '../../../../api/nab/customer-touch';
 import { apiErrorStatus, toApiErrorMessage } from '../../../../api/nab/_lib/error';
 import type { PromptRow } from '../type';
+import { useAuthContext } from 'src/auth/hooks';
 
 const PAGE_SIZE = 10;
 
@@ -111,8 +122,11 @@ function PromptManagementViewInner() {
     keyword: '',
   }));
 
-  // 등록 폼 모드/상태
-  const [mode, setMode] = useState<'list' | 'register'>('list');
+  // 폼 모드/상태 — register(신규) 와 edit(수정) 가 같은 폼을 쓴다
+  const [mode, setMode] = useState<'list' | 'register' | 'edit'>('list');
+  /** 수정 중인 프롬프트ID (등록 모드면 null) */
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   // 등록은 실제 값을 골라야 하므로 '전체' 없이 미선택('')에서 시작한다.
   const [regType, setRegType] = useState('');
   const [regCategory, setRegCategory] = useState('');
@@ -124,13 +138,49 @@ function PromptManagementViewInner() {
 
   const queryClient = useQueryClient();
 
+  // 등록·수정·삭제 API 는 작업자 사번을 요청 본문 emnb 필드로 받는다
+  const { user } = useAuthContext();
+  const effectiveUser = user;
+  const emnb = effectiveUser?.emnb ?? '';
+
   const { data: categories = [] } = useQuery(
     ['nab', 'customer-touch', 'prompt-categories'],
     fetchCategories,
     { staleTime: Infinity },
   );
 
-  const { data, isFetching, isError, error, refetch } = useQuery(
+  /**
+   * 프롬프트 단건 조회 — 목록의 프롬프트명을 클릭하면 수정 폼을 이 값으로 채운다.
+   * 목록에는 본문(content)이 없어 상세를 따로 읽어야 한다.
+   */
+  const { isFetching: isDetailLoading } = useQuery(
+    ['nab', 'customer-touch', 'prompt-detail', editingId],
+    async () => {
+      const response = await getPrompt({ id: editingId! });
+
+      if (response.error) {
+        throw new Error(response.error.message ?? '프롬프트 조회에 실패했습니다.');
+      }
+
+      return response.data ?? null;
+    },
+    {
+      enabled: editingId !== null,
+      onSuccess: (detail) => {
+        if (!detail) return;
+
+        setRegType(detail.category);
+        setRegCategory(detail.item);
+        setRegPromptName(detail.name);
+        setRegInstruction(detail.content);
+      },
+      onError: (detailError) => {
+        setErrorMessage(toApiErrorMessage(detailError, '프롬프트 조회에 실패했습니다.'));
+      },
+    },
+  );
+
+  const { data, isError, error, refetch } = useQuery(
     ['nab', 'customer-touch', 'prompt-list', appliedFilter, page],
     () => fetchPromptRows(appliedFilter, page),
     { keepPreviousData: true },
@@ -152,6 +202,14 @@ function PromptManagementViewInner() {
     setRegCategory('');
   };
 
+  /** 폼을 닫고 목록으로 — 입력값·수정 대상·에러를 모두 비운다 */
+  const closeForm = () => {
+    resetRegisterForm();
+    setEditingId(null);
+    setErrorMessage('');
+    setMode('list');
+  };
+
   const resetRegisterForm = () => {
     setRegType('');
     setRegCategory('');
@@ -167,12 +225,15 @@ function PromptManagementViewInner() {
    */
   const createMutation = useMutation(
     async () => {
-      const response = await createPrompt({
+      const response = await createPrompt(
+        {
         name: regPromptName.trim(),
         category: regType,
         item: regCategory,
         content: regInstruction.trim(),
-      });
+        },
+        emnb,
+      );
 
       if (response.error) {
         throw new Error(response.error.message ?? '프롬프트 등록에 실패했습니다.');
@@ -200,10 +261,87 @@ function PromptManagementViewInner() {
     },
   );
 
-  /** 저장 — 필수값을 먼저 확인하고 등록 API 를 호출한다 */
+  /** 프롬프트 수정 — 등록과 같은 형상에 id 가 붙는 전량 교체다 */
+  const updateMutation = useMutation(
+    async () => {
+      const response = await updatePrompt(
+        {
+          id: editingId!,
+          name: regPromptName.trim(),
+          category: regType,
+          item: regCategory,
+          content: regInstruction.trim(),
+        },
+        emnb,
+      );
+
+      if (response.error) {
+        throw new Error(response.error.message ?? '프롬프트 수정에 실패했습니다.');
+      }
+    },
+    {
+      onSuccess: () => {
+        setSavedMessage('프롬프트가 수정되었습니다.');
+        closeForm();
+        queryClient.invalidateQueries(['nab', 'customer-touch', 'prompt-list']);
+      },
+      onError: (mutationError) => {
+        setErrorMessage(
+          apiErrorStatus(mutationError) === 409
+            ? '이미 등록된 유형·카테고리 조합입니다. 다른 조합을 선택해주세요.'
+            : toApiErrorMessage(mutationError, '프롬프트 수정에 실패했습니다.'),
+        );
+      },
+    },
+  );
+
+  /** 프롬프트 삭제 */
+  const deleteMutation = useMutation(
+    async () => {
+      const response = await deletePrompt({ id: editingId! }, emnb);
+
+      if (response.error) {
+        throw new Error(response.error.message ?? '프롬프트 삭제에 실패했습니다.');
+      }
+    },
+    {
+      onSuccess: () => {
+        setSavedMessage('프롬프트가 삭제되었습니다.');
+        closeForm();
+        queryClient.invalidateQueries(['nab', 'customer-touch', 'prompt-list']);
+      },
+      onError: (mutationError) => {
+        setErrorMessage(toApiErrorMessage(mutationError, '프롬프트 삭제에 실패했습니다.'));
+      },
+    },
+  );
+
+  const isFormBusy =
+    isDetailLoading || createMutation.isLoading || updateMutation.isLoading || deleteMutation.isLoading;
+
+  /** 목록의 프롬프트명 클릭 — 수정 폼으로 들어간다 */
+  const handlePromptClick = (row: PromptRow) => {
+    setErrorMessage('');
+    resetRegisterForm();
+    setEditingId(row.id);
+    setMode('edit');
+  };
+
+  /** 저장 — 필수값을 먼저 확인하고 등록/수정 API 를 호출한다 */
   const handleRegisterSave = () => {
     if (!regType || !regCategory || !regPromptName.trim() || !regInstruction.trim()) {
       setErrorMessage('유형·카테고리·프롬프트명·프롬프트 지침을 모두 입력해주세요.');
+      return;
+    }
+
+    // 사번이 없으면 서버가 거절하므로 요청 전에 막는다
+    if (!emnb) {
+      setErrorMessage('로그인 정보를 확인할 수 없어 등록할 수 없습니다.');
+      return;
+    }
+
+    if (mode === 'edit') {
+      updateMutation.mutate();
       return;
     }
 
@@ -211,8 +349,7 @@ function PromptManagementViewInner() {
   };
 
   const handleRegisterCancel = () => {
-    resetRegisterForm();
-    setMode('list');
+    closeForm();
   };
 
   /** 조회 — 현재 입력값을 조회 조건으로 확정하고 첫 페이지부터 다시 읽는다. */
@@ -238,11 +375,11 @@ function PromptManagementViewInner() {
           <Typography sx={{ fontSize: 14, color: DISABLED }}>프롬프트 관리</Typography>
         </Breadcrumbs>
         <Typography variant="h4" sx={{ fontWeight: 700, color: DARK, fontSize: 24 }}>
-          {mode === 'register' ? '프롬프트 등록' : '프롬프트 관리'}
+          {mode === 'register' ? '프롬프트 등록' : mode === 'edit' ? '프롬프트 수정' : '프롬프트 관리'}
         </Typography>
       </Box>
 
-      {mode === 'register' ? (
+      {mode !== 'list' ? (
         <Box sx={{ position: 'relative' }}>
           {errorMessage && (
             <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }} onClose={() => setErrorMessage('')}>
@@ -250,23 +387,10 @@ function PromptManagementViewInner() {
             </Alert>
           )}
 
-          {createMutation.isLoading && (
-            <Box
-              sx={{
-                position: 'absolute',
-                inset: 0,
-                zIndex: 1,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                bgcolor: 'rgba(255, 255, 255, 0.6)',
-              }}
-            >
-              <CircularProgress size={24} sx={{ color: PRIMARY_ORANGE }} />
-            </Box>
-          )}
-
           <PromptRegister
+            mode={mode === 'edit' ? 'edit' : 'register'}
+            contentsId={editingId !== null ? String(editingId) : ''}
+            busy={isFormBusy}
             categories={categories}
             type={regType}
             onTypeChange={handleRegTypeChange}
@@ -278,6 +402,7 @@ function PromptManagementViewInner() {
             onInstructionChange={setRegInstruction}
             onList={handleRegisterCancel}
             onCancel={handleRegisterCancel}
+            onDelete={() => setDeleteConfirmOpen(true)}
             onSave={handleRegisterSave}
           />
         </Box>
@@ -315,23 +440,12 @@ function PromptManagementViewInner() {
           )}
 
           <Box sx={{ position: 'relative' }}>
-            {isFetching && (
-              <Box
-                sx={{
-                  position: 'absolute',
-                  inset: 0,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  bgcolor: 'rgba(255, 255, 255, 0.6)',
-                  zIndex: 1,
-                }}
-              >
-                <CircularProgress size={24} sx={{ color: PRIMARY_ORANGE }} />
-              </Box>
-            )}
-
-            <PromptTable rows={rows} total={totalCount} pageSize={String(PAGE_SIZE)} />
+            <PromptTable
+              rows={rows}
+              total={totalCount}
+              pageSize={String(PAGE_SIZE)}
+              onPromptClick={handlePromptClick}
+            />
             <PromptPagination page={page} totalPages={totalPages} onChange={setPage} />
           </Box>
 
@@ -355,6 +469,49 @@ function PromptManagementViewInner() {
           </Box>
         </Card>
       )}
+
+      {/* 삭제는 되돌릴 수 없어 확인을 받는다 */}
+      <Dialog
+        open={deleteConfirmOpen}
+        onClose={() => setDeleteConfirmOpen(false)}
+        PaperProps={{ sx: { borderRadius: 4, width: 480, maxWidth: 480 } }}
+      >
+        <DialogTitle sx={{ fontSize: 18, fontWeight: 700, color: DARK, px: 3, pt: 3, pb: 0.5 }}>
+          프롬프트를 삭제하시겠습니까?
+        </DialogTitle>
+        <DialogContent sx={{ px: 3, py: 1 }}>
+          <Typography sx={{ fontSize: 16, color: DISABLED }}>
+            삭제한 프롬프트는 복구할 수 없습니다.
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, py: 3, gap: 1.5 }}>
+          <Button
+            variant="outlined"
+            onClick={() => setDeleteConfirmOpen(false)}
+            sx={{
+              height: 36, px: 1.5, borderRadius: 1, fontSize: 14, fontWeight: 400,
+              color: DARK, borderColor: 'var(--nab-border-strong)',
+              '&:hover': { borderColor: DISABLED, bgcolor: 'transparent' },
+            }}
+          >
+            취소
+          </Button>
+          <Button
+            variant="contained"
+            onClick={() => {
+              setDeleteConfirmOpen(false);
+              deleteMutation.mutate();
+            }}
+            sx={{
+              height: 36, px: 1.5, borderRadius: 1, fontSize: 14, fontWeight: 400,
+              bgcolor: 'var(--nab-danger)', color: 'white', boxShadow: 'none',
+              '&:hover': { bgcolor: 'var(--nab-danger-hover)', boxShadow: 'none' },
+            }}
+          >
+            삭제
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <Snackbar
         open={savedMessage !== ''}

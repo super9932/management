@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from 'react-query';
-import { Box, Button, CircularProgress, Dialog, IconButton, TextField, Typography } from '@mui/material';
+import { Box, Button, Dialog, IconButton, TextField, Typography } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
-import { DARK, DISABLED, DIVIDER, FIELD_SX, POPUP_BG, PRIMARY_ORANGE, SECONDARY } from '../../_lib/tokens';
+import { DARK, DISABLED, DIVIDER, FIELD_SX, POPUP_BG, SECONDARY } from '../../_lib/tokens';
 import {
   deleteStipulation,
   getStipulationDetail,
@@ -13,6 +13,7 @@ import DocumentAlertDialog from './DocumentAlertDialog';
 import DocumentToast from './DocumentToast';
 import type { DocumentToastSeverity } from './DocumentToast';
 import type { DocumentRow } from '../type';
+import { useAuthContext } from 'src/auth/hooks';
 
 interface Props {
   open: boolean;
@@ -97,12 +98,16 @@ export default function InsuranceTermsDetailDialog({ open, row, onClose }: Props
     message: '',
     severity: 'success',
   });
+  // 쓰기 API 는 작업자 사번을 요청 본문 emnb 필드로 받는다
+  const { user } = useAuthContext();
+  const effectiveUser = user;
+  const emnb = effectiveUser?.emnb ?? '';
+
   const queryClient = useQueryClient();
 
   // 팝업이 열릴 때 상세를 조회한다. 목록에 없는 다운로드 URL·등록자 사번이 여기서 온다.
   const {
     data: detail,
-    isFetching: isDetailLoading,
   } = useQuery(
     ['nab', 'counsel-backoffice', 'stipulation-detail', row?.id],
     async () => {
@@ -124,7 +129,7 @@ export default function InsuranceTermsDetailDialog({ open, row, onClose }: Props
         throw new Error(DOCUMENT_DETAIL_TOASTS.deleteFail);
       }
 
-      const response = await deleteStipulation({ nabCuslIsrnStplDcmtIdList: [row.id] });
+      const response = await deleteStipulation({ nabCuslIsrnStplDcmtIdList: [row.id] }, emnb);
 
       if (response.error) {
         throw new Error(response.error.message ?? DOCUMENT_DETAIL_TOASTS.deleteFail);
@@ -238,17 +243,6 @@ export default function InsuranceTermsDetailDialog({ open, row, onClose }: Props
             overflow: 'auto',
           }}
         >
-          {isDetailLoading && (
-            <Box
-              sx={{
-                position: 'absolute', inset: 0, zIndex: 1,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                bgcolor: 'rgba(255, 255, 255, 0.6)',
-              }}
-            >
-              <CircularProgress size={24} sx={{ color: PRIMARY_ORANGE }} />
-            </Box>
-          )}
           {/* 문서번호 / 운영상태 — 둘 다 조회 전용 */}
           <Box sx={{ ...sectionSx, display: 'flex', gap: 2 }}>
             <TextField

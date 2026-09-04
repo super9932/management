@@ -21,6 +21,7 @@ import { saveStipulation } from '../../../../api/nab/counsel-backoffice';
 import DocumentAlertDialog from './DocumentAlertDialog';
 import DocumentToast from './DocumentToast';
 import type { DocumentToastSeverity } from './DocumentToast';
+import { useAuthContext } from 'src/auth/hooks';
 
 /**
  * 보험약관 문서 등록 모달 (Figma COM_공통정의_006).
@@ -106,12 +107,17 @@ export default function DocumentTermsRegisterDialog({ open, onClose, onSubmit }:
   const canSubmit = pdfFile !== null || csvFile !== null;
   const isDirty = pdfFile !== null || csvFile !== null;
 
+  // 쓰기 API 는 작업자 사번을 요청 본문 emnb 필드로 받는다
+  const { user } = useAuthContext();
+  const effectiveUser = user;
+  const emnb = effectiveUser?.emnb ?? '';
+
   const queryClient = useQueryClient();
 
   /** 문서 등록 — 약관은 PDF·CSV 를 한 쌍으로 올린다 */
   const saveMutation = useMutation(
     async ({ pdf, csv }: { pdf: File; csv: File }) => {
-      const response = await saveStipulation({ pdfFile: pdf, csvFile: csv });
+      const response = await saveStipulation({ pdfFile: pdf, csvFile: csv }, emnb);
 
       if (response.error) {
         throw new Error(response.error.message ?? TERMS_REGISTER_TOASTS.saveFail);

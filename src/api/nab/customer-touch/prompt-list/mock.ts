@@ -12,7 +12,7 @@ const CHANGERS = [
 
 /** 카테고리 카탈로그의 (카테고리, 항목) 조합을 그대로 슬롯 하나씩 채운 목록 */
 export const prompts: PromptItem[] = promptCategoriesMock.categories
-  .flatMap((category) => category.items.map((item) => ({ category, item })))
+  .flatMap((category) => category.items.map(({ item }) => ({ category, item })))
   .map(({ category, item }, i) => {
     const changer = CHANGERS[i % CHANGERS.length];
     const day = String((i % 28) + 1).padStart(2, '0');

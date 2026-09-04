@@ -6,7 +6,6 @@ import {
   Breadcrumbs,
   Button,
   Card,
-  CircularProgress,
   Typography,
 } from '@mui/material';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
@@ -28,6 +27,7 @@ import {
   saveCounselKillSwitch,
 } from '../../../../api/nab/counsel-backoffice';
 import { toApiErrorMessage } from '../../../../api/nab/_lib/error';
+import { useAuthContext } from 'src/auth/hooks';
 
 /**
  * 시스템 설정 (DAS_시스템설정_001).
@@ -49,6 +49,11 @@ function SystemSettingViewInner() {
     message: '',
     severity: 'success',
   });
+
+  // 쓰기 API 는 작업자 사번을 요청 본문 emnb 필드로 받는다
+  const { user } = useAuthContext();
+  const effectiveUser = user;
+  const emnb = effectiveUser?.emnb ?? '';
 
   const { data, isFetching, isError, error, refetch } = useQuery(
     ['nab', 'counsel-backoffice', 'killswitch-detail', COUNSEL_SERVICE_SWITCH_CODE],
@@ -80,7 +85,7 @@ function SystemSettingViewInner() {
         // 코드명은 필수값이라 저장돼 있던 이름을 그대로 다시 보낸다
         ftreIspcCodeNm: data?.ftreIspcCodeNm ?? COUNSEL_SERVICE_SWITCH_NAME,
         ispcAcmpYn: nextOn ? 'Y' : 'N',
-      });
+      }, emnb);
 
       if (response.error) {
         throw new Error(response.error.message ?? SYSTEM_SETTING_TOASTS.saveFail);
@@ -162,22 +167,6 @@ function SystemSettingViewInner() {
         )}
 
         <Box sx={{ p: 2.5, position: 'relative' }}>
-          {isBusy && (
-            <Box
-              sx={{
-                position: 'absolute',
-                inset: 0,
-                zIndex: 1,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                bgcolor: 'rgba(255, 255, 255, 0.6)',
-              }}
-            >
-              <CircularProgress size={24} sx={{ color: PRIMARY_ORANGE }} />
-            </Box>
-          )}
-
           <SystemSettingToggleRow
             label={SYSTEM_SETTING_TEXT.toggleLabel}
             helper={SYSTEM_SETTING_TEXT.toggleHelper}

@@ -5,12 +5,10 @@ import {
   Box,
   Button,
   Checkbox,
-  CircularProgress,
   Dialog,
   FormControl,
   FormControlLabel,
   IconButton,
-  InputAdornment,
   InputLabel,
   MenuItem,
   Select,
@@ -20,7 +18,6 @@ import {
   Typography,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
-import CalendarTodayOutlinedIcon from '@mui/icons-material/CalendarTodayOutlined';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import {
@@ -58,6 +55,7 @@ import type {
   ManualHistoryItem,
 } from '../../../../api/nab/counsel-backoffice';
 import type { OperationStatus, ReviewHistoryEntry } from '../type';
+import { useAuthContext } from 'src/auth/hooks';
 
 /**
  * 문서 상세 팝업 (Figma COM_공통정의_003).
@@ -204,17 +202,17 @@ const initialForm = (row: DocumentDetailRow): OperationForm => ({
   operationStatus: resolveOperationStatus(row),
   // 목록에는 분류 코드가 없어 상세 응답이 도착하면 채워진다
   classCode: '',
-  effectiveDate: toDatePart(row.effectiveStart, '2026.01.01'),
+  effectiveDate: toDatePart(row.effectiveStart, '2026-01-01'),
   effectiveTime: '00:00',
-  endDate: toDatePart(row.effectiveEnd, '2027.12.31'),
+  endDate: toDatePart(row.effectiveEnd, '2027-12-31'),
   endTime: '24:00',
   // 종료일자 미지정은 최초 진입 시 선택 상태 (3-E)
   noEndDate: isBlankDate(row.effectiveEnd),
 });
 
-/** 'yyyy-MM-dd HH:mm:ss' → 화면 일자 'YYYY.MM.DD' */
+/** 'yyyy-MM-dd HH:mm:ss' → 화면 일자 'yyyy-MM-dd' (네이티브 date 인풋 형식) */
 const toFormDate = (value: string | null, fallback: string): string =>
-  value ? value.trim().split(' ')[0].replace(/-/g, '.') : fallback;
+  value ? value.trim().split(' ')[0] : fallback;
 
 /**
  * 'yyyy-MM-dd HH:mm:ss' → 화면 일시 'HH:MM'.
@@ -241,9 +239,9 @@ const toPersonLabel = (name: string, employeeNo: string): string =>
 const detailToForm = (detail: ManualDetailResponse): OperationForm => ({
   operationStatus: MANUAL_STATUS_LABEL[detail.status],
   classCode: detail.manlClsfCode ?? '',
-  effectiveDate: toFormDate(detail.valdStarDttm, '2026.01.01'),
+  effectiveDate: toFormDate(detail.valdStarDttm, '2026-01-01'),
   effectiveTime: toFormTime(detail.valdStarDttm, '00:00'),
-  endDate: toFormDate(detail.valdEndDttm, '2027.12.31'),
+  endDate: toFormDate(detail.valdEndDttm, '2027-12-31'),
   endTime: toFormTime(detail.valdEndDttm, '24:00'),
   // 유효종료일시가 없으면 무기한 운영 = 종료일자 미지정
   noEndDate: detail.valdEndDttm === null,
@@ -343,7 +341,6 @@ export default function DocumentDetailDialog({
   // 팝업이 열릴 때 상세를 조회한다. 목록에 없는 파일 URL·사번·수정 정보가 여기서 온다.
   const {
     data: detail,
-    isFetching: isDetailLoading,
     isError: isDetailError,
     error: detailError,
     refetch: refetchDetail,
@@ -385,6 +382,11 @@ export default function DocumentDetailDialog({
     ? MANUAL_CLASS_BY_ADMIN_TYPE[detail.nabCuslAdmrTypeCode]
     : [];
 
+  // 쓰기 API 는 작업자 사번을 요청 본문 emnb 필드로 받는다
+  const { user } = useAuthContext();
+  const effectiveUser = user;
+  const emnb = effectiveUser?.emnb ?? '';
+
   const queryClient = useQueryClient();
 
   /** 목록·상세를 다시 읽어 화면을 최신화한다 */
@@ -411,7 +413,7 @@ export default function DocumentDetailDialog({
         valdStarDttm: toApiDateTime(form.effectiveDate, form.effectiveTime),
         // 종료일자 미지정은 '무기한'이라 null 을 명시적으로 보낸다
         valdEndDttm: form.noEndDate ? null : toApiDateTime(form.endDate, form.endTime),
-      });
+      }, emnb);
 
       if (response.error) {
         throw new Error(response.error.message ?? DOCUMENT_DETAIL_TOASTS.saveFail);
@@ -441,7 +443,7 @@ export default function DocumentDetailDialog({
         throw new Error(DOCUMENT_DETAIL_TOASTS.deleteFail);
       }
 
-      const response = await deleteManual({ nabCuslManlDcmtIdList: [row.id] });
+      const response = await deleteManual({ nabCuslManlDcmtIdList: [row.id] }, emnb);
 
       if (response.error) {
         throw new Error(response.error.message ?? DOCUMENT_DETAIL_TOASTS.deleteFail);
@@ -667,18 +669,6 @@ export default function DocumentDetailDialog({
 
         {/* 본문 — 두 탭 모두 마운트해 두고 감춘다(입력값 유지, 재조회 없음) */}
         <Box sx={{ position: 'relative', px: 3, py: 3, maxHeight: 'min(640px, calc(100vh - 260px))', overflow: 'auto', bgcolor: POPUP_BG }}>
-          {isDetailLoading && (
-            <Box
-              sx={{
-                position: 'absolute', inset: 0, zIndex: 1,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                bgcolor: 'rgba(255, 255, 255, 0.6)',
-              }}
-            >
-              <CircularProgress size={24} sx={{ color: PRIMARY_ORANGE }} />
-            </Box>
-          )}
-
           <Box sx={{ display: tab === 0 ? 'flex' : 'none', flexDirection: 'column', gap: 3 }}>
             {/* 3. 문서기본 정보 */}
             <Box sx={{ ...sectionSx, display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -726,14 +716,10 @@ export default function DocumentDetailDialog({
               <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
                 <TextField
                   label="반영일자"
+                  type="date"
                   value={form.effectiveDate}
                   onChange={(e) => update('effectiveDate', e.target.value)}
                   InputLabelProps={{ shrink: true }}
-                  InputProps={{ endAdornment: (
-                    <InputAdornment position="end">
-                      <CalendarTodayOutlinedIcon sx={{ fontSize: 18, color: SECONDARY }} />
-                    </InputAdornment>
-                  ) }}
                   sx={{ ...FIELD_SX, flex: 1 }}
                 />
                 <FormControl sx={{ flex: 1, ...FIELD_SX }}>
@@ -753,14 +739,10 @@ export default function DocumentDetailDialog({
                     <Typography sx={{ fontSize: 12, color: SECONDARY, flexShrink: 0 }}>~</Typography>
                     <TextField
                       label="종료일자"
+                      type="date"
                       value={form.endDate}
                       onChange={(e) => update('endDate', e.target.value)}
                       InputLabelProps={{ shrink: true }}
-                      InputProps={{ endAdornment: (
-                        <InputAdornment position="end">
-                          <CalendarTodayOutlinedIcon sx={{ fontSize: 18, color: SECONDARY }} />
-                        </InputAdornment>
-                      ) }}
                       sx={{ ...FIELD_SX, flex: 1 }}
                     />
                     <FormControl sx={{ flex: 1, ...FIELD_SX }}>
@@ -839,12 +821,6 @@ export default function DocumentDetailDialog({
           {/* 8. 수정 이력 — 변경일시 내림차순 아코디언 */}
           <Box sx={{ display: tab === 1 ? 'block' : 'none' }}>
             <Box sx={sectionSx}>
-              {isHistoryLoading && (
-                <Box sx={{ py: 5, display: 'flex', justifyContent: 'center' }}>
-                  <CircularProgress size={24} sx={{ color: PRIMARY_ORANGE }} />
-                </Box>
-              )}
-
               {!isHistoryLoading && isHistoryError && (
                 <Typography sx={{ py: 5, textAlign: 'center', fontSize: 14, color: SECONDARY }}>
                   수정 이력을 불러오지 못했습니다.
