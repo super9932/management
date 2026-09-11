@@ -19,7 +19,6 @@ import {
   MANUAL_ADMIN_TYPE,
   MANUAL_OPERATION_FILTER_OPTIONS,
   MANUAL_SEARCH_TYPE_OPTIONS,
-  PAGE_SIZE,
 } from '../constant';
 import { useManualDocuments } from '../hooks/use-manual-documents';
 import { DOCUMENT_ALERTS, DOCUMENT_DETAIL_TOASTS } from '../constant';
@@ -40,6 +39,7 @@ function InsuranceReviewViewInner() {
     rows, total, totalPages,
     isError, error, refetch,
     page, setPage,
+    pageSize, handlePageSizeChange,
     selectedIds, handleToggle, handleToggleAll, hasSelection,
     deleteSelected, isDeleting,
   } = useManualDocuments(MANUAL_ADMIN_TYPE.insuranceReview);
@@ -114,7 +114,8 @@ function InsuranceReviewViewInner() {
           <InsuranceReviewTable
             rows={rows}
             total={total}
-            pageSize={PAGE_SIZE}
+            pageSize={pageSize}
+            onPageSizeChange={handlePageSizeChange}
             selectedIds={selectedIds}
             onToggle={handleToggle}
             onToggleAll={handleToggleAll}

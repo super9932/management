@@ -11,8 +11,9 @@ import {
   TableRow,
   Typography,
 } from '@mui/material';
-import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import { DARK, DIVIDER, PRIMARY_ORANGE, SECONDARY } from '../../_lib/tokens';
+import PageSizeSelect from '../../_lib/PageSizeSelect';
+import type { PageSizeOption } from '../../_lib/PageSizeSelect';
 import type { DocumentRow } from '../type';
 import { MANAGING_DEPT } from '../constant';
 import DocumentStatusChip from './DocumentStatusChip';
@@ -26,6 +27,7 @@ interface Props {
   rows: DocumentRow[];
   total: number;
   pageSize: number;
+  onPageSizeChange: (value: PageSizeOption) => void;
   selectedIds: ReadonlySet<number>;
   onToggle: (id: number) => void;
   onToggleAll: () => void;
@@ -55,7 +57,7 @@ const bodyCellSx = {
 } as const;
 
 export default function DocumentTable({
-  rows, total, pageSize, selectedIds, onToggle, onToggleAll, onDocumentClick,
+  rows, total, pageSize, onPageSizeChange, selectedIds, onToggle, onToggleAll, onDocumentClick,
 }: Props) {
   const allChecked = rows.length > 0 && rows.every((row) => selectedIds.has(row.id));
   const someChecked = rows.some((row) => selectedIds.has(row.id));
@@ -72,10 +74,7 @@ export default function DocumentTable({
             </Box>{' '}
             건
           </Typography>
-          <Box sx={{ pl: 2, display: 'flex', alignItems: 'center', gap: 0.5, cursor: 'pointer' }}>
-            <Typography sx={{ fontSize: 14, color: DARK }}>{pageSize}건</Typography>
-            <KeyboardArrowDownIcon sx={{ fontSize: 16, color: DARK }} />
-          </Box>
+          <PageSizeSelect value={pageSize} onChange={onPageSizeChange} />
         </Box>
         <Typography sx={{ fontSize: 14, color: SECONDARY }}>
           관리 부서 : {MANAGING_DEPT}
@@ -134,6 +133,7 @@ export default function DocumentTable({
                   <Typography sx={{ fontSize: 14, color: DARK }}>{row.salePeriodStart}</Typography>
                   <Typography sx={{ fontSize: 14, color: SECONDARY }}>{row.salePeriodEnd}</Typography>
                 </TableCell>
+                {/* PDF 파일명 위, CSV 파일명 아래 — 판매기간·등록자와 같은 2줄 표기 */}
                 <TableCell sx={{ ...bodyCellSx, minWidth: 520, maxWidth: 640 }}>
                   <Link
                     component="button"
@@ -147,6 +147,14 @@ export default function DocumentTable({
                   >
                     {row.documentName}
                   </Link>
+                  <Typography
+                    sx={{
+                      fontSize: 14, color: SECONDARY,
+                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '100%',
+                    }}
+                  >
+                    {row.csvDocumentName || '-'}
+                  </Typography>
                 </TableCell>
                 <TableCell align="center" sx={{ ...bodyCellSx, whiteSpace: 'nowrap' }}>
                   <Typography sx={{ fontSize: 14, color: DARK }}>{row.registrantName}</Typography>

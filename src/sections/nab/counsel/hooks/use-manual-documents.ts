@@ -13,6 +13,7 @@ import {
   MANUAL_STATUS_CODE,
   MANUAL_STATUS_LABEL,
   PAGE_SIZE,
+  defaultSearchPeriod,
 } from '../constant';
 import type { UnderwritingManualRow } from '../type';
 import { useAuthContext } from 'src/auth/hooks';
@@ -33,8 +34,7 @@ interface AppliedFilter {
 }
 
 const DEFAULT_FILTER: AppliedFilter = {
-  fromDate: '2026-01-01',
-  toDate: '2026-12-31',
+  ...defaultSearchPeriod(),
   operationFilter: '전체',
   keyword: '',
 };
@@ -58,6 +58,7 @@ const toListRequest = (
   adminType: AdminTypeCode,
   filter: AppliedFilter,
   page: number,
+  size: number,
 ): ManualListRequest => ({
   nabCuslAdmrTypeCode: adminType,
   rgstDttmFrom: toApiDate(filter.fromDate),
@@ -65,7 +66,7 @@ const toListRequest = (
   status: MANUAL_STATUS_CODE[filter.operationFilter],
   keyword: filter.keyword.trim() || undefined,
   page,
-  size: PAGE_SIZE,
+  size,
 });
 
 /**
@@ -88,8 +89,13 @@ const toManualRow = (item: ManualItem): UnderwritingManualRow => ({
   operationStatus: MANUAL_STATUS_LABEL[item.status],
 });
 
-const fetchManuals = async (adminType: AdminTypeCode, filter: AppliedFilter, page: number) => {
-  const response = await getManualList(toListRequest(adminType, filter, page));
+const fetchManuals = async (
+  adminType: AdminTypeCode,
+  filter: AppliedFilter,
+  page: number,
+  size: number,
+) => {
+  const response = await getManualList(toListRequest(adminType, filter, page, size));
 
   if (response.error) {
     throw new Error(response.error.message ?? '문서 목록 조회에 실패했습니다.');
@@ -111,12 +117,13 @@ export function useManualDocuments(adminType: AdminTypeCode) {
   const [searchType, setSearchType] = useState('문서명');
   const [searchText, setSearchText] = useState(DEFAULT_FILTER.keyword);
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState<number>(PAGE_SIZE);
   const [appliedFilter, setAppliedFilter] = useState<AppliedFilter>(DEFAULT_FILTER);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
 
   const { data, isFetching, isError, error, refetch } = useQuery(
-    ['nab', 'counsel-backoffice', 'manual-list', adminType, appliedFilter, page],
-    () => fetchManuals(adminType, appliedFilter, page),
+    ['nab', 'counsel-backoffice', 'manual-list', adminType, appliedFilter, page, pageSize],
+    () => fetchManuals(adminType, appliedFilter, page, pageSize),
     { keepPreviousData: true },
   );
 
@@ -163,6 +170,13 @@ export function useManualDocuments(adminType: AdminTypeCode) {
     setAppliedFilter({ fromDate, toDate, operationFilter, keyword: searchText });
   };
 
+  /** 페이지 크기 변경 — 보이는 구간이 통째로 달라지므로 첫 페이지부터 다시 읽는다 */
+  const handlePageSizeChange = (size: number) => {
+    setPageSize(size);
+    setPage(1);
+    setSelectedIds(new Set());
+  };
+
   const handleToggle = (id: number) =>
     setSelectedIds((prev) => {
       const next = new Set(prev);
@@ -200,6 +214,8 @@ export function useManualDocuments(adminType: AdminTypeCode) {
 
     // 페이지·선택
     page, setPage,
+    pageSize,
+    handlePageSizeChange,
     selectedIds,
     handleToggle,
     handleToggleAll,

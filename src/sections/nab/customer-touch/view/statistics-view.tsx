@@ -39,8 +39,8 @@ type StatsQueryResult =
   | { kind: 'message'; rows: MessageStatRow[]; pagination?: Pagination }
   | { kind: 'search'; rows: ContentSearchStatRow[]; pagination?: Pagination };
 
-/** 페이지 크기 — API 가 10/30/50/70/100 만 받는다 */
-const PAGE_SIZE: StatsPageSize = 10;
+/** 기본 페이지 크기 — API 가 10/30/50/70/100 만 받는다 */
+const DEFAULT_PAGE_SIZE: StatsPageSize = 10;
 
 const DEFAULT_PERIOD = defaultStatPeriod();
 
@@ -69,13 +69,17 @@ const toContentSearchStatRow = (item: SearchStatsRow): ContentSearchStatRow => (
 });
 
 /** 메시지 탭 — 채널 그룹 컬럼이 없어져 조회가 1회로 끝난다. 유형(FP유형)은 필터로 받는다 */
-const fetchMessageStats = async (filter: AppliedFilter, page: number): Promise<StatsQueryResult> => {
+const fetchMessageStats = async (
+  filter: AppliedFilter,
+  page: number,
+  pageSize: StatsPageSize,
+): Promise<StatsQueryResult> => {
   const response = await getStatsMessageDaily({
     from: toStatApiDate(filter.fromDate),
     to: toStatApiDate(filter.toDate),
     fpType: STAT_FP_TYPE[filter.type] ?? 'ALL',
     pageNum: page,
-    pageSize: PAGE_SIZE,
+    pageSize,
   });
 
   if (response.error) {
@@ -91,13 +95,17 @@ const fetchMessageStats = async (filter: AppliedFilter, page: number): Promise<S
 };
 
 /** 콘텐츠 검색 탭 — 메시지 탭과 같은 축(기간·유형)을 쓴다 */
-const fetchSearchStats = async (filter: AppliedFilter, page: number): Promise<StatsQueryResult> => {
+const fetchSearchStats = async (
+  filter: AppliedFilter,
+  page: number,
+  pageSize: StatsPageSize,
+): Promise<StatsQueryResult> => {
   const response = await getStatsSearchDaily({
     from: toStatApiDate(filter.fromDate),
     to: toStatApiDate(filter.toDate),
     fpType: STAT_FP_TYPE[filter.type] ?? 'ALL',
     pageNum: page,
-    pageSize: PAGE_SIZE,
+    pageSize,
   });
 
   if (response.error) {
@@ -131,6 +139,7 @@ function StatisticsViewInner() {
   const [toDate, setToDate] = useState(DEFAULT_PERIOD.to);
   const [typeFilter, setTypeFilter] = useState(FILTER_ALL);
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState<StatsPageSize>(DEFAULT_PAGE_SIZE);
   const [appliedFilter, setAppliedFilter] = useState<AppliedFilter>({
     fromDate: DEFAULT_PERIOD.from,
     toDate: DEFAULT_PERIOD.to,
@@ -141,11 +150,11 @@ function StatisticsViewInner() {
   const isContentSearch = tabValue === 1;
 
   const { data, isError, error, refetch } = useQuery(
-    ['nab', 'customer-touch', 'service-stats', isContentSearch ? 'search' : 'message', appliedFilter, page],
+    ['nab', 'customer-touch', 'service-stats', isContentSearch ? 'search' : 'message', appliedFilter, page, pageSize],
     () =>
       isContentSearch
-        ? fetchSearchStats(appliedFilter, page)
-        : fetchMessageStats(appliedFilter, page),
+        ? fetchSearchStats(appliedFilter, page, pageSize)
+        : fetchMessageStats(appliedFilter, page, pageSize),
     { keepPreviousData: true },
   );
 
@@ -172,6 +181,12 @@ function StatisticsViewInner() {
   const handleSearch = () => {
     setPage(1);
     setAppliedFilter({ fromDate, toDate, type: typeFilter });
+  };
+
+  /** 페이지 크기 변경 — 보이는 구간이 통째로 달라지므로 첫 페이지부터 다시 읽는다 */
+  const handlePageSizeChange = (size: number) => {
+    setPageSize(size as StatsPageSize);
+    setPage(1);
   };
 
   /** 탭이 바뀌면 지표·API 가 통째로 달라지므로 첫 페이지부터 다시 읽는다 */
@@ -226,7 +241,8 @@ function StatisticsViewInner() {
               rows={data?.kind === 'search' ? data.rows : []}
               columns={CONTENT_SEARCH_STAT_COLUMNS}
               total={totalElements}
-              pageSize={String(PAGE_SIZE)}
+              pageSize={pageSize}
+              onPageSizeChange={handlePageSizeChange}
               onExcelDownload={() => excelMutation.mutate()}
             />
           ) : (
@@ -234,7 +250,8 @@ function StatisticsViewInner() {
               rows={data?.kind === 'message' ? data.rows : []}
               columns={MESSAGE_STAT_COLUMNS}
               total={totalElements}
-              pageSize={String(PAGE_SIZE)}
+              pageSize={pageSize}
+              onPageSizeChange={handlePageSizeChange}
               onExcelDownload={() => excelMutation.mutate()}
             />
           )}

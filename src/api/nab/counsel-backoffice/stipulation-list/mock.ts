@@ -34,6 +34,13 @@ export const stipulationListHandlers = [
     let list = stipulations;
 
     if (body.status) list = list.filter((doc) => doc.status === body.status);
+    // 판매일자가 비어 있는(전처리 전) 문서는 판매기간 조건과 무관하게 남긴다
+    if (body.saleStarDate) {
+      list = list.filter((doc) => !doc.saleStarDate || doc.saleStarDate >= body.saleStarDate!);
+    }
+    if (body.saleEndDate) {
+      list = list.filter((doc) => !doc.saleEndDate || doc.saleEndDate <= body.saleEndDate!);
+    }
     if (body.keyword) {
       const keyword = body.keyword.trim().toLowerCase();
       list = list.filter((doc) =>

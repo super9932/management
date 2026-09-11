@@ -34,13 +34,27 @@ export const PROMPT_SEARCH_SCOPE_CODE: Record<string, PromptSearchScope> = {
   '최종 수정자': 'MODIFIER',
 };
 
-/** 오늘 날짜(yyyy-MM-dd) — date 인풋과 목록 API가 쓰는 형식 */
-export const todayDateString = (): string => {
-  const now = new Date();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const date = String(now.getDate()).padStart(2, '0');
+/** 입력값 형식(yyyy-MM-dd) — 네이티브 date 인풋이 받는 형식이다. 로컬 기준이라 UTC 로 밀리지 않는다 */
+export const toScreenDate = (date: Date): string => {
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
 
-  return `${now.getFullYear()}-${month}-${date}`;
+  return `${date.getFullYear()}-${month}-${day}`;
+};
+
+/** 오늘 날짜(yyyy-MM-dd) — date 인풋과 목록 API가 쓰는 형식 */
+export const todayDateString = (): string => toScreenDate(new Date());
+
+/** 프롬프트 목록 기본 조회기간(일) — 오늘부터 이만큼 이전까지 */
+export const PROMPT_SEARCH_PERIOD_DAYS = 90;
+
+/** 기본 조회기간(게시일 기준) — 오늘부터 90일 전까지 */
+export const defaultPromptPeriod = (): { from: string; to: string } => {
+  const today = new Date();
+  const from = new Date(today);
+  from.setDate(from.getDate() - PROMPT_SEARCH_PERIOD_DAYS);
+
+  return { from: toScreenDate(from), to: toScreenDate(today) };
 };
 
 // ---------------------------------------------------------------- 서비스 관리
@@ -85,23 +99,23 @@ export const INITIAL_TOGGLE_STATE: ServiceToggleState = SERVICE_TOGGLES.reduce(
  * 지표가 stats/message/daily 응답 필드와 1:1이라 조회도 fpType 한 번으로 끝난다.
  */
 export const MESSAGE_STAT_COLUMNS = [
-  { key: 'date', label: '일자', width: 120 },
-  { key: 'fpUv', label: '접속 FP수(UV)', width: 288 },
-  { key: 'generate', label: '메시지 생성 건수', width: 288 },
-  { key: 'modify', label: '메시지 수정 건수', width: 288 },
-  { key: 'send', label: '메시지 발송 건수', width: 288 },
-  { key: 'sendCustomerUv', label: '발송 고객 수(UV)', width: 288 },
-] as const satisfies readonly { key: keyof MessageStatRow; label: string; width: number }[];
+  { key: 'date', label: '일자' },
+  { key: 'fpUv', label: '접속 FP수(UV)' },
+  { key: 'generate', label: '메시지 생성 건수' },
+  { key: 'modify', label: '메시지 수정 건수' },
+  { key: 'send', label: '메시지 발송 건수' },
+  { key: 'sendCustomerUv', label: '발송 고객 수(UV)' },
+] as const satisfies readonly { key: keyof MessageStatRow; label: string }[];
 
 /**
  * AI 콘텐츠 검색 탭 표 컬럼 (Figma 6240:117006).
  * 메시지 탭과 마찬가지로 채널 그룹 매트릭스가 없어진 단일 헤더 표다.
  */
 export const CONTENT_SEARCH_STAT_COLUMNS = [
-  { key: 'date', label: '일자', width: 120 },
-  { key: 'fpUv', label: '접속 FP수(UV)', width: 720 },
-  { key: 'search', label: '검색 실행 수', width: 720 },
-] as const satisfies readonly { key: keyof ContentSearchStatRow; label: string; width: number }[];
+  { key: 'date', label: '일자' },
+  { key: 'fpUv', label: '접속 FP수(UV)' },
+  { key: 'search', label: '검색 실행 수' },
+] as const satisfies readonly { key: keyof ContentSearchStatRow; label: string }[];
 
 /**
  * 화면 '유형' 필터 → API fpType(FP 유형).
@@ -122,14 +136,6 @@ export const STAT_TYPE_OPTIONS = Object.keys(STAT_FP_TYPE);
 
 /** 통계 조회 기본 기간(일) — 집계 상한선이 어제라 오늘까지 잡아도 마지막 날은 0이다 */
 export const STAT_DEFAULT_PERIOD_DAYS = 30;
-
-/** 입력값 형식(yyyy-MM-dd) — 네이티브 date 인풋이 받는 형식이다. 로컬 기준이라 UTC 로 밀리지 않는다 */
-export const toScreenDate = (date: Date): string => {
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-
-  return `${date.getFullYear()}-${month}-${day}`;
-};
 
 /** 기본 조회기간 — 오늘 포함 최근 STAT_DEFAULT_PERIOD_DAYS 일 */
 export const defaultStatPeriod = (): { from: string; to: string } => {

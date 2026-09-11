@@ -10,38 +10,43 @@ import {
   TableRow,
   Typography,
 } from '@mui/material';
-import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import FileDownloadOutlinedIcon from '@mui/icons-material/FileDownloadOutlined';
 import { DARK, DIVIDER, PRIMARY_ORANGE, SECONDARY } from '../../_lib/tokens';
+import PageSizeSelect from '../../_lib/PageSizeSelect';
+import type { PageSizeOption } from '../../_lib/PageSizeSelect';
 import type { StatisticsRow } from '../type';
 import DocumentEmptyState from './DocumentEmptyState';
 import EllipsisText from './EllipsisText';
 
+/** 모든 컬럼을 가운데 정렬한다 — 별도 정렬 지정 없이 폭만 갖는다 */
 interface Column {
   key: keyof StatisticsRow;
   label: string;
   width: number;
-  align?: 'left' | 'center';
 }
 
 const COLUMNS: Column[] = [
   // 일시는 'YYYY.MM.DD HH:MM' 이 항상 다 보여야 해서 말줄임이 걸리지 않을 폭을 준다
-  { key: 'datetime', label: '일시', width: 148, align: 'center' },
-  { key: 'userId', label: '사용자(ID)', width: 110, align: 'center' },
+  { key: 'datetime', label: '일시', width: 148 },
+  { key: 'userId', label: '사용자(ID)', width: 110 },
   { key: 'division', label: '사업본부', width: 108 },
   { key: 'region', label: '권역', width: 100 },
   { key: 'district', label: '지역단', width: 108 },
   { key: 'branch', label: '지점', width: 108 },
-  { key: 'roomId', label: '룸ID', width: 80, align: 'center' },
-  { key: 'screen', label: '화면', width: 100, align: 'center' },
-  { key: 'code', label: '코드', width: 80, align: 'center' },
+  { key: 'roomId', label: '룸ID', width: 80 },
+  { key: 'screen', label: '화면', width: 100 },
+  // 답변이 참조한 매뉴얼 — 한 턴이 여러 건을 참조할 수 있어 값이 길어진다(넘치면 말줄임 + 툴팁)
+  { key: 'dept', label: '담당부서', width: 110 },
+  { key: 'manualClass', label: '분류', width: 100 },
+  { key: 'documentName', label: '문서명', width: 240 },
+  { key: 'code', label: '코드', width: 80 },
   { key: 'question', label: '질문', width: 280 },
   { key: 'answer', label: '답변', width: 280 },
-  { key: 'model', label: '생성 모델', width: 120, align: 'center' },
-  { key: 'elapsedSec', label: '소요시간(초)', width: 110, align: 'center' },
-  { key: 'cost', label: '비용(달러)', width: 110, align: 'center' },
-  { key: 'feedback', label: '피드백', width: 90, align: 'center' },
-  { key: 'feedbackReason', label: '피드백 사유', width: 120, align: 'center' },
+  { key: 'model', label: '생성 모델', width: 120 },
+  { key: 'elapsedSec', label: '소요시간(초)', width: 110 },
+  { key: 'cost', label: '비용(달러)', width: 110 },
+  { key: 'feedback', label: '피드백', width: 90 },
+  { key: 'feedbackReason', label: '피드백 사유', width: 120 },
 ];
 
 const TABLE_MIN_WIDTH = COLUMNS.reduce((sum, col) => sum + col.width, 0);
@@ -53,6 +58,7 @@ interface Props {
   rows: StatisticsRow[];
   total: number;
   pageSize: number;
+  onPageSizeChange: (value: PageSizeOption) => void;
   onExcelDownload: () => void;
 }
 
@@ -74,7 +80,9 @@ const bodyCellSx = {
   whiteSpace: 'nowrap',
 } as const;
 
-export default function StatisticsTable({ rows, total, pageSize, onExcelDownload }: Props) {
+export default function StatisticsTable({
+  rows, total, pageSize, onPageSizeChange, onExcelDownload,
+}: Props) {
   return (
     <>
       {/* 결과 바 */}
@@ -87,10 +95,7 @@ export default function StatisticsTable({ rows, total, pageSize, onExcelDownload
             </Box>{' '}
             건
           </Typography>
-          <Box sx={{ pl: 2, display: 'flex', alignItems: 'center', gap: 0.5, cursor: 'pointer' }}>
-            <Typography sx={{ fontSize: 14, color: DARK }}>{pageSize}건</Typography>
-            <KeyboardArrowDownIcon sx={{ fontSize: 16, color: DARK }} />
-          </Box>
+          <PageSizeSelect value={pageSize} onChange={onPageSizeChange} />
         </Box>
         <Button
           variant="outlined"
@@ -134,13 +139,13 @@ export default function StatisticsTable({ rows, total, pageSize, onExcelDownload
                 {COLUMNS.map((col) => (
                   <TableCell
                     key={col.key}
-                    align={col.align === 'center' ? 'center' : 'left'}
+                    align="center"
                     sx={{ ...bodyCellSx, width: col.width, maxWidth: col.width }}
                   >
                     <EllipsisText
                       text={String(row[col.key])}
                       maxWidth={col.width - CELL_PADDING_X}
-                      align={col.align === 'center' ? 'center' : 'left'}
+                      align="center"
                     />
                   </TableCell>
                 ))}

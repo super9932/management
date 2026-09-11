@@ -30,6 +30,7 @@ import {
   TERMS_SEARCH_TYPE_OPTIONS,
   TERMS_STATUS_CODE,
   TERMS_STATUS_LABEL,
+  defaultSearchPeriod,
 } from '../constant';
 import { deleteStipulation, getStipulationList } from '../../../../api/nab/counsel-backoffice';
 import type { StipulationItem, StipulationListRequest } from '../../../../api/nab/counsel-backoffice';
@@ -39,14 +40,20 @@ import { useAuthContext } from 'src/auth/hooks';
 interface AppliedFilter {
   fromDate: string;
   toDate: string;
+  /** 판매시작일 하한 — 비어 있으면 조건을 걸지 않는다 */
+  saleFromDate: string;
+  /** 판매종료일 상한 — 비어 있으면 조건을 걸지 않는다 */
+  saleToDate: string;
   operationFilter: string;
   searchType: string;
   keyword: string;
 }
 
 const DEFAULT_FILTER: AppliedFilter = {
-  fromDate: '2026-01-01',
-  toDate: '2026-12-31',
+  ...defaultSearchPeriod(),
+  // 판매기간은 기본 미지정 — 판매일자가 없는(전처리 전) 문서까지 그대로 보인다
+  saleFromDate: '',
+  saleToDate: '',
   operationFilter: '전체',
   searchType: '문서명',
   keyword: '',
@@ -63,14 +70,20 @@ const toApiDate = (value: string): string | undefined => {
 const toDisplayDate = (value: string | null): string =>
   value ? value.trim().split(' ')[0].replace(/-/g, '.') : '-';
 
-const toListRequest = (filter: AppliedFilter, page: number): StipulationListRequest => ({
+const toListRequest = (
+  filter: AppliedFilter,
+  page: number,
+  size: number,
+): StipulationListRequest => ({
   rgstDttmFrom: toApiDate(filter.fromDate),
   rgstDttmTo: toApiDate(filter.toDate),
+  saleStarDate: toApiDate(filter.saleFromDate),
+  saleEndDate: toApiDate(filter.saleToDate),
   status: TERMS_STATUS_CODE[filter.operationFilter],
   searchType: TERMS_SEARCH_TYPE_CODE[filter.searchType],
   keyword: filter.keyword.trim() || undefined,
   page,
-  size: PAGE_SIZE,
+  size,
 });
 
 /** 목록 API 항목을 화면 행으로 옮긴다 */
@@ -89,8 +102,8 @@ const toDocumentRow = (item: StipulationItem): DocumentRow => ({
   operationStatus: TERMS_STATUS_LABEL[item.status],
 });
 
-const fetchStipulations = async (filter: AppliedFilter, page: number) => {
-  const response = await getStipulationList(toListRequest(filter, page));
+const fetchStipulations = async (filter: AppliedFilter, page: number, size: number) => {
+  const response = await getStipulationList(toListRequest(filter, page, size));
 
   if (response.error) {
     throw new Error(response.error.message ?? '약관문서 목록 조회에 실패했습니다.');
@@ -107,10 +120,13 @@ const fetchStipulations = async (filter: AppliedFilter, page: number) => {
 function InsuranceTermsViewInner() {
   const [fromDate, setFromDate] = useState(DEFAULT_FILTER.fromDate);
   const [toDate, setToDate] = useState(DEFAULT_FILTER.toDate);
+  const [saleFromDate, setSaleFromDate] = useState(DEFAULT_FILTER.saleFromDate);
+  const [saleToDate, setSaleToDate] = useState(DEFAULT_FILTER.saleToDate);
   const [operationFilter, setOperationFilter] = useState(DEFAULT_FILTER.operationFilter);
   const [searchType, setSearchType] = useState(DEFAULT_FILTER.searchType);
   const [searchText, setSearchText] = useState(DEFAULT_FILTER.keyword);
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState<number>(PAGE_SIZE);
   const [appliedFilter, setAppliedFilter] = useState<AppliedFilter>(DEFAULT_FILTER);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [registerOpen, setRegisterOpen] = useState(false);
@@ -160,8 +176,8 @@ function InsuranceTermsViewInner() {
   );
 
   const { data, isError, error, refetch } = useQuery(
-    ['nab', 'counsel-backoffice', 'stipulation-list', appliedFilter, page],
-    () => fetchStipulations(appliedFilter, page),
+    ['nab', 'counsel-backoffice', 'stipulation-list', appliedFilter, page, pageSize],
+    () => fetchStipulations(appliedFilter, page, pageSize),
     { keepPreviousData: true },
   );
 
@@ -173,7 +189,16 @@ function InsuranceTermsViewInner() {
   const handleSearch = () => {
     setPage(1);
     setSelectedIds(new Set());
-    setAppliedFilter({ fromDate, toDate, operationFilter, searchType, keyword: searchText });
+    setAppliedFilter({
+      fromDate, toDate, saleFromDate, saleToDate, operationFilter, searchType, keyword: searchText,
+    });
+  };
+
+  /** 페이지 크기 변경 — 보이는 구간이 통째로 달라지므로 첫 페이지부터 다시 읽는다 */
+  const handlePageSizeChange = (size: number) => {
+    setPageSize(size);
+    setPage(1);
+    setSelectedIds(new Set());
   };
 
   const handleToggle = (id: number) => {
@@ -217,6 +242,11 @@ function InsuranceTermsViewInner() {
           onFromDateChange={setFromDate}
           toDate={toDate}
           onToDateChange={setToDate}
+          showSalePeriod
+          saleFromDate={saleFromDate}
+          onSaleFromDateChange={setSaleFromDate}
+          saleToDate={saleToDate}
+          onSaleToDateChange={setSaleToDate}
           operationFilter={operationFilter}
           onOperationFilterChange={setOperationFilter}
           operationFilterOptions={TERMS_OPERATION_FILTER_OPTIONS}
@@ -246,7 +276,8 @@ function InsuranceTermsViewInner() {
           <DocumentTable
             rows={rows}
             total={total}
-            pageSize={PAGE_SIZE}
+            pageSize={pageSize}
+            onPageSizeChange={handlePageSizeChange}
             selectedIds={selectedIds}
             onToggle={handleToggle}
             onToggleAll={handleToggleAll}

@@ -18,7 +18,6 @@ import DocumentPagination from '../components/DocumentPagination';
 import {
   MANUAL_ADMIN_TYPE,
   MANUAL_OPERATION_FILTER_OPTIONS,
-  PAGE_SIZE,
 } from '../constant';
 import { useManualDocuments } from '../hooks/use-manual-documents';
 import { DOCUMENT_ALERTS, DOCUMENT_DETAIL_TOASTS } from '../constant';
@@ -39,6 +38,7 @@ function UnderwritingManualViewInner() {
     rows, total, totalPages,
     isError, error, refetch,
     page, setPage,
+    pageSize, handlePageSizeChange,
     selectedIds, handleToggle, handleToggleAll, hasSelection,
     deleteSelected, isDeleting,
   } = useManualDocuments(MANUAL_ADMIN_TYPE.underwriting);
@@ -113,7 +113,8 @@ function UnderwritingManualViewInner() {
           <UnderwritingManualTable
             rows={rows}
             total={total}
-            pageSize={PAGE_SIZE}
+            pageSize={pageSize}
+            onPageSizeChange={handlePageSizeChange}
             selectedIds={selectedIds}
             onToggle={handleToggle}
             onToggleAll={handleToggleAll}

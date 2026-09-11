@@ -18,6 +18,16 @@ export type StipulationSortBy =
   | 'pdfDcmtFileNm';
 
 export interface StipulationListRequest extends PageRequest, RegisteredDateRange {
+  /**
+   * 판매시작일 하한(yyyy-MM-dd). 이 날짜 이후에 판매를 시작한 문서만 조회한다.
+   * 미입력 시 조건 미적용. 판매시작일이 비어 있는(전처리 전) 문서는 조건과 무관하게 조회된다
+   */
+  saleStarDate?: string;
+  /**
+   * 판매종료일 상한(yyyy-MM-dd). 이 날짜 이전에 판매를 종료한 문서만 조회한다.
+   * 미입력 시 조건 미적용. 판매종료일이 비어 있는(전처리 전·무기한) 문서는 조건과 무관하게 조회된다
+   */
+  saleEndDate?: string;
   /** 노출상태 필터. 미입력 시 전체 */
   status?: StipulationStatus;
   /** 검색기준. 미입력 시 STPL_PDF_FILE_NM (PDF 파일명 부분일치 / 보종세목코드 전방일치) */

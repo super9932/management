@@ -11,8 +11,9 @@ import {
   TableRow,
   Typography,
 } from '@mui/material';
-import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import { DARK, DIVIDER, PRIMARY_ORANGE, SECONDARY } from '../../_lib/tokens';
+import PageSizeSelect from '../../_lib/PageSizeSelect';
+import type { PageSizeOption } from '../../_lib/PageSizeSelect';
 import type { UnderwritingManualRow } from '../type';
 import { UNDERWRITING_MANAGING_DEPT } from '../constant';
 import DocumentStatusChip from './DocumentStatusChip';
@@ -25,6 +26,7 @@ interface Props {
   rows: UnderwritingManualRow[];
   total: number;
   pageSize: number;
+  onPageSizeChange: (value: PageSizeOption) => void;
   selectedIds: ReadonlySet<number>;
   onToggle: (id: number) => void;
   onToggleAll: () => void;
@@ -49,7 +51,7 @@ const bodyCellSx = {
 } as const;
 
 export default function UnderwritingManualTable({
-  rows, total, pageSize, selectedIds, onToggle, onToggleAll, onDocumentClick,
+  rows, total, pageSize, onPageSizeChange, selectedIds, onToggle, onToggleAll, onDocumentClick,
 }: Props) {
   const allChecked = rows.length > 0 && rows.every((row) => selectedIds.has(row.id));
   const someChecked = rows.some((row) => selectedIds.has(row.id));
@@ -66,10 +68,7 @@ export default function UnderwritingManualTable({
             </Box>{' '}
             건
           </Typography>
-          <Box sx={{ pl: 2, display: 'flex', alignItems: 'center', gap: 0.5, cursor: 'pointer' }}>
-            <Typography sx={{ fontSize: 14, color: DARK }}>{pageSize}건</Typography>
-            <KeyboardArrowDownIcon sx={{ fontSize: 16, color: DARK }} />
-          </Box>
+          <PageSizeSelect value={pageSize} onChange={onPageSizeChange} />
         </Box>
         <Typography sx={{ fontSize: 14, color: SECONDARY }}>
           관리 부서 : {UNDERWRITING_MANAGING_DEPT}

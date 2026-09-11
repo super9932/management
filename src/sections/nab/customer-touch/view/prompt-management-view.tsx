@@ -24,8 +24,8 @@ import { DARK, SECONDARY_16, DISABLED, CARD_SHADOW } from '../../_lib/tokens';
 import {
   FILTER_ALL,
   PROMPT_SEARCH_SCOPE_CODE,
+  defaultPromptPeriod,
   promptItemLabel,
-  todayDateString,
 } from '../constant';
 import {
   createPrompt,
@@ -40,7 +40,8 @@ import { apiErrorStatus, toApiErrorMessage } from '../../../../api/nab/_lib/erro
 import type { PromptRow } from '../type';
 import { useAuthContext } from 'src/auth/hooks';
 
-const PAGE_SIZE = 10;
+/** 기본 페이지 크기 — 결과 바에서 10/30/50/70/100 중 고를 수 있다 */
+const DEFAULT_PAGE_SIZE = 10;
 
 /** 조회 버튼을 눌러야 실제 요청에 반영되는 값들 */
 interface AppliedFilter {
@@ -52,7 +53,7 @@ interface AppliedFilter {
   keyword: string;
 }
 
-const toListRequest = (filter: AppliedFilter, page: number): PromptListRequest => ({
+const toListRequest = (filter: AppliedFilter, page: number, size: number): PromptListRequest => ({
   startDate: filter.startDate,
   endDate: filter.endDate,
   // 화면의 유형·카테고리는 API의 category(1-depth)·item(2-depth) 그대로다.
@@ -61,7 +62,7 @@ const toListRequest = (filter: AppliedFilter, page: number): PromptListRequest =
   searchScope: PROMPT_SEARCH_SCOPE_CODE[filter.searchScope] ?? 'ALL',
   keyword: filter.keyword.trim() || undefined,
   page,
-  size: PAGE_SIZE,
+  size,
 });
 
 /** 셀렉트 소스 — 서버 카탈로그를 그대로 쓴다 */
@@ -75,8 +76,8 @@ const fetchCategories = async () => {
   return response.data?.categories ?? [];
 };
 
-const fetchPromptRows = async (filter: AppliedFilter, page: number) => {
-  const response = await getPromptList(toListRequest(filter, page));
+const fetchPromptRows = async (filter: AppliedFilter, page: number, size: number) => {
+  const response = await getPromptList(toListRequest(filter, page, size));
 
   if (response.error) {
     throw new Error(response.error.message ?? '프롬프트 목록 조회에 실패했습니다.');
@@ -84,7 +85,7 @@ const fetchPromptRows = async (filter: AppliedFilter, page: number) => {
 
   const data = response.data;
   const totalCount = data?.totalCount ?? 0;
-  const offset = (page - 1) * PAGE_SIZE;
+  const offset = (page - 1) * size;
 
   const rows: PromptRow[] = (data?.prompts ?? []).map((item, index) => ({
     id: item.id,
@@ -102,20 +103,23 @@ const fetchPromptRows = async (filter: AppliedFilter, page: number) => {
   return { rows, totalCount };
 };
 
+/** 기본 조회기간 — 오늘부터 90일 전까지 (게시일 기준) */
+const DEFAULT_PERIOD = defaultPromptPeriod();
+
 function PromptManagementViewInner() {
-  // 조회기간은 게시일 기준 — 시작·종료 모두 오늘로 시작한다.
-  const [fromDate, setFromDate] = useState(todayDateString);
-  const [toDate, setToDate] = useState(todayDateString);
+  const [fromDate, setFromDate] = useState(DEFAULT_PERIOD.from);
+  const [toDate, setToDate] = useState(DEFAULT_PERIOD.to);
   const [typeFilter, setTypeFilter] = useState(FILTER_ALL);
   const [categoryFilter, setCategoryFilter] = useState(FILTER_ALL);
   const [searchScope, setSearchScope] = useState(FILTER_ALL);
   const [searchText, setSearchText] = useState('');
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState<number>(DEFAULT_PAGE_SIZE);
 
   // 입력 중인 필터와 실제 조회 조건을 분리한다 — 조회 버튼을 눌러야 요청이 나간다.
   const [appliedFilter, setAppliedFilter] = useState<AppliedFilter>(() => ({
-    startDate: todayDateString(),
-    endDate: todayDateString(),
+    startDate: DEFAULT_PERIOD.from,
+    endDate: DEFAULT_PERIOD.to,
     type: FILTER_ALL,
     category: FILTER_ALL,
     searchScope: FILTER_ALL,
@@ -181,14 +185,14 @@ function PromptManagementViewInner() {
   );
 
   const { data, isError, error, refetch } = useQuery(
-    ['nab', 'customer-touch', 'prompt-list', appliedFilter, page],
-    () => fetchPromptRows(appliedFilter, page),
+    ['nab', 'customer-touch', 'prompt-list', appliedFilter, page, pageSize],
+    () => fetchPromptRows(appliedFilter, page, pageSize),
     { keepPreviousData: true },
   );
 
   const rows = data?.rows ?? [];
   const totalCount = data?.totalCount ?? 0;
-  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
+  const totalPages = Math.ceil(totalCount / pageSize);
 
   /** 유형이 바뀌면 하위 카테고리 목록이 통째로 달라지므로 카테고리는 '전체'로 되돌린다. */
   const handleTypeChange = (value: string) => {
@@ -352,6 +356,12 @@ function PromptManagementViewInner() {
     closeForm();
   };
 
+  /** 페이지 크기 변경 — 보이는 구간이 통째로 달라지므로 첫 페이지부터 다시 읽는다 */
+  const handlePageSizeChange = (size: number) => {
+    setPageSize(size);
+    setPage(1);
+  };
+
   /** 조회 — 현재 입력값을 조회 조건으로 확정하고 첫 페이지부터 다시 읽는다. */
   const handleSearch = () => {
     setPage(1);
@@ -443,7 +453,8 @@ function PromptManagementViewInner() {
             <PromptTable
               rows={rows}
               total={totalCount}
-              pageSize={String(PAGE_SIZE)}
+              pageSize={pageSize}
+              onPageSizeChange={handlePageSizeChange}
               onPromptClick={handlePromptClick}
             />
             <PromptPagination page={page} totalPages={totalPages} onChange={setPage} />

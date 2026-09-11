@@ -99,6 +99,12 @@ export interface StatisticsRow {
   roomId: string;
   /** 화면 */
   screen: string;
+  /** 담당부서 — 답변이 참조한 매뉴얼의 관리주체 */
+  dept: string;
+  /** 분류 — 답변이 참조한 매뉴얼의 분류 */
+  manualClass: string;
+  /** 문서명 — 답변이 참조한 매뉴얼명 */
+  documentName: string;
   /** 코드 */
   code: string;
   /** 질문 */

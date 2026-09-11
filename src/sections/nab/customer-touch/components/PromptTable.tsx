@@ -10,8 +10,9 @@ import {
   TableRow,
   Typography,
 } from '@mui/material';
-import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import { DARK, DIVIDER, PRIMARY_ORANGE, SECONDARY } from '../../_lib/tokens';
+import PageSizeSelect from '../../_lib/PageSizeSelect';
+import type { PageSizeOption } from '../../_lib/PageSizeSelect';
 import type { PromptRow } from '../type';
 import PromptEmptyState from './PromptEmptyState';
 
@@ -20,12 +21,15 @@ const COLUMNS = ['NO', '콘텐츠 ID', '유형', '카테고리', '프롬프트�
 interface Props {
   rows: PromptRow[];
   total: number;
-  pageSize: string;
+  pageSize: number;
+  onPageSizeChange: (value: PageSizeOption) => void;
   /** 프롬프트명 클릭 — 수정 화면으로 이동한다 */
   onPromptClick: (row: PromptRow) => void;
 }
 
-export default function PromptTable({ rows, total, pageSize, onPromptClick }: Props) {
+export default function PromptTable({
+  rows, total, pageSize, onPageSizeChange, onPromptClick,
+}: Props) {
   return (
     <>
       {/* Results bar */}
@@ -34,10 +38,7 @@ export default function PromptTable({ rows, total, pageSize, onPromptClick }: Pr
           <Typography sx={{ fontSize: 14, color: SECONDARY }}>
             총 <strong style={{ color: PRIMARY_ORANGE }}>{total.toLocaleString()}</strong> 건
           </Typography>
-          <Box sx={{ pl: 2, display: 'flex', alignItems: 'center', gap: 0.5, cursor: 'pointer' }}>
-            <Typography sx={{ fontSize: 14, color: DARK }}>{pageSize}건</Typography>
-            <KeyboardArrowDownIcon sx={{ fontSize: 16, color: DARK }} />
-          </Box>
+          <PageSizeSelect value={pageSize} onChange={onPageSizeChange} />
         </Box>
       </Box>
       <Divider sx={{ borderColor: DIVIDER }} />

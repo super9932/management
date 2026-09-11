@@ -46,6 +46,13 @@ export const MANUAL_ADMIN_TYPE = {
   insuranceCommon: 'ISRN_SVC',
 } as const satisfies Record<string, AdminTypeCode>;
 
+/** 관리주체 코드 → 화면 표기(담당부서). 통계 표의 참조 문서 컬럼이 쓴다 */
+export const MANUAL_ADMIN_TYPE_LABEL: Record<AdminTypeCode, string> = {
+  UDW: '언더라이팅',
+  ISRN_ADT: '보험심사',
+  ISRN_SVC: '보험공통',
+};
+
 /** 매뉴얼 노출상태 옵션 — ManualStatus 4종 + 전체 */
 export const MANUAL_OPERATION_FILTER_OPTIONS = ['전체', '운영중', '대기중', '미운영', '오류'] as const;
 
@@ -297,3 +304,24 @@ export const SYSTEM_SETTING_TOASTS = {
   saveFail: '설정 저장에 실패했습니다.',
   loadFail: '시스템 설정을 불러오지 못했습니다.',
 } as const;
+
+// ---------------------------------------------------------------- 목록 기본 조회기간
+/** 목록 기본 조회기간(일) — 오늘 포함 최근 30일 */
+export const SEARCH_PERIOD_DAYS = 30;
+
+/** 입력값 형식(yyyy-MM-dd) — 네이티브 date 인풋이 받는 형식이다. 로컬 기준이라 UTC 로 밀리지 않는다 */
+export const toInputDate = (date: Date): string => {
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+
+  return `${date.getFullYear()}-${month}-${day}`;
+};
+
+/** 기본 등록일자 구간 — 오늘 포함 최근 SEARCH_PERIOD_DAYS 일 */
+export const defaultSearchPeriod = (): { fromDate: string; toDate: string } => {
+  const today = new Date();
+  const from = new Date(today);
+  from.setDate(from.getDate() - (SEARCH_PERIOD_DAYS - 1));
+
+  return { fromDate: toInputDate(from), toDate: toInputDate(today) };
+};

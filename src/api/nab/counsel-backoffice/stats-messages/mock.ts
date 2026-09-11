@@ -28,6 +28,29 @@ export const msgeStats: MsgeStatItem[] = Array.from({ length: 35 }, (_, i) => {
     costUsd: stopped ? null : Number((0.000123 * (i + 1)).toFixed(6)),
     fdbkLikeYn: i % 4 === 0 ? 'Y' : null,
     fdbkCmmt: i % 4 === 0 ? '설명이 명확했어요' : null,
+    // 중지 턴은 참조 문서가 없고, 3턴에 한 번은 두 건을 참조한 케이스를 만든다
+    manlDocList: stopped
+      ? []
+      : [
+          {
+            nabCuslManlDcmtId: 80 + i,
+            nabCuslAdmrTypeCode: 'UDW',
+            manlClsfCode: 'ONE_SHET',
+            manlNm: `업무매뉴얼_반환 보험료의 전달 (${i + 1}).docx`,
+            downloadUrl: null,
+          },
+          ...(i % 3 === 0
+            ? [
+                {
+                  nabCuslManlDcmtId: 900 + i,
+                  nabCuslAdmrTypeCode: 'ISRN_SVC' as const,
+                  manlClsfCode: 'DPST' as const,
+                  manlNm: `보험공통_입금 처리 안내 (${i + 1}).pdf`,
+                  downloadUrl: null,
+                },
+              ]
+            : []),
+        ],
   };
 });
 
