@@ -180,7 +180,7 @@ const parseDate = (value?: string): Date | null => {
 /**
  * 드롭다운에 표시할 운영상태를 정한다 (COM_공통정의_003 3-C/3-D).
  *
- * 목록이 내려주는 상태('오류'·'미운영')는 상세 드롭다운 옵션(운영중/대기중)에 없다.
+ * 목록이 내려주는 상태('오류'·'처리중')는 상세 드롭다운 옵션(운영중/대기중)에 없다.
  * 그 경우 반영일자 미도래 또는 종료일자 도래면 '대기중', 그 사이면 '운영중'으로 계산한다.
  */
 const resolveOperationStatus = (row: DocumentDetailRow): OperationStatus => {

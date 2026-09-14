@@ -1,5 +1,5 @@
 // 문서 운영상태 (enum 금지 T-08 — as const 객체 + 유니언)
-export const OPERATION_STATUS = ['운영중', '대기중', '오류', '미운영'] as const;
+export const OPERATION_STATUS = ['운영중', '처리중', '대기중', '오류'] as const;
 export type OperationStatus = (typeof OPERATION_STATUS)[number];
 
 // 문서관리 테이블 행

@@ -14,27 +14,28 @@ export const PAGE_SIZE = 10;
 export const MANAGING_DEPT = '상품시스템팀';
 
 /** 운영상태 필터 옵션 */
-export const OPERATION_FILTER_OPTIONS = ['전체', '운영중', '오류', '미운영'] as const;
+export const OPERATION_FILTER_OPTIONS = ['전체', '운영중', '오류', '대기중'] as const;
 
 /** 검색기준 필터 옵션 */
 export const SEARCH_TYPE_OPTIONS = ['전체', '보종코드', '문서명', '등록자'] as const;
 
 // ── 약관문서 목록 API(04. 상담AI_백오피스) 연동용 ────────────────────────────
-/** 약관은 노출상태가 PENDING/ERROR/OPERATING 뿐이라 '미운영'이 없다 */
-export const TERMS_OPERATION_FILTER_OPTIONS = ['전체', '운영중', '대기중', '오류'] as const;
+/** 약관은 노출상태가 PENDING/ERROR/OPERATING 뿐이라 '대기중'(NOT_OPERATING)이 없다 */
+export const TERMS_OPERATION_FILTER_OPTIONS = ['전체', '운영중', '처리중', '오류'] as const;
 
 /** 화면 노출상태 → API status (전체는 미전송) */
 export const TERMS_STATUS_CODE: Record<string, StipulationStatus | undefined> = {
   전체: undefined,
   운영중: 'OPERATING',
-  대기중: 'PENDING',
+  처리중: 'PENDING',
   오류: 'ERROR',
 };
 
 /** API status → 화면 운영상태 칩 라벨 */
 export const TERMS_STATUS_LABEL: Record<StipulationStatus, OperationStatus> = {
   OPERATING: '운영중',
-  PENDING: '대기중',
+  // 스웨거가 PENDING 을 '처리중'(AI BE 전처리 진행 중)으로 부른다
+  PENDING: '처리중',
   ERROR: '오류',
 };
 
@@ -54,22 +55,23 @@ export const MANUAL_ADMIN_TYPE_LABEL: Record<AdminTypeCode, string> = {
 };
 
 /** 매뉴얼 노출상태 옵션 — ManualStatus 4종 + 전체 */
-export const MANUAL_OPERATION_FILTER_OPTIONS = ['전체', '운영중', '대기중', '미운영', '오류'] as const;
+export const MANUAL_OPERATION_FILTER_OPTIONS = ['전체', '운영중', '처리중', '대기중', '오류'] as const;
 
 /** 화면 노출상태 → API status (전체는 미전송) */
 export const MANUAL_STATUS_CODE: Record<string, ManualStatus | undefined> = {
   전체: undefined,
   운영중: 'OPERATING',
-  대기중: 'PENDING',
-  미운영: 'NOT_OPERATING',
+  처리중: 'PENDING',
+  대기중: 'NOT_OPERATING',
   오류: 'ERROR',
 };
 
 /** API status → 화면 운영상태 칩 라벨 */
 export const MANUAL_STATUS_LABEL: Record<ManualStatus, OperationStatus> = {
   OPERATING: '운영중',
-  PENDING: '대기중',
-  NOT_OPERATING: '미운영',
+  // PENDING 은 전처리 진행 중, NOT_OPERATING 은 반영일자 미도래·종료일자 도래다
+  PENDING: '처리중',
+  NOT_OPERATING: '대기중',
   ERROR: '오류',
 };
 
@@ -84,7 +86,7 @@ export const MANUAL_CLASS_LABEL: Record<ManualClassCode, string> = {
   ISRN_UNDN: '보험심사',
   PLAN: '기획',
   DPST: '입금',
-  RE_OTPY: '재지급',
+  RE_OTPY: '제지급',
   CTCN: '계약변경',
   CNTR_SUPT: '센터지원',
 };
