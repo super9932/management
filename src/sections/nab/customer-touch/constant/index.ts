@@ -63,17 +63,17 @@ export const SERVICE_TOGGLES: ServiceToggleItem[] = [
   {
     key: 'AI_MESSAGE_GENERATION',
     label: 'AI 메시지 생성',
-    helper: 'OFF 설정 시 어드민 등록된 기본 발송 메시지로 대체, [문자하기] 버튼 클릭 시 FP 직접 입력 없이 문자앱 바로 호출',
-  },
-  {
-    key: 'AI_CONTENT_SEARCH',
-    label: 'AI 콘텐츠 검색',
-    helper: 'OFF 설정 시 기존 콘텐츠 키워드 검색으로 대체',
+    helper: 'OFF 설정 시 AI 로딩 화면으로 진입하지 않고 문자앱 즉시 호출',
   },
   {
     key: 'AI_CUSTOMER_RECOMMEND',
     label: 'AI 고객 추천',
-    helper: 'OFF 설정 시 진입 플로팅 버튼 미노출',
+    helper: "OFF 설정 시 탭 메뉴 'AI고객추천'이 '고객추천'으로 변경되며, 문자앱 즉시 호출",
+  },
+  {
+    key: 'AI_CONTENT_SEARCH',
+    label: 'AI 콘텐츠 검색',
+    helper: 'OFF 설정 시 기존 키워드 검색 사용',
   },
 ];
 
