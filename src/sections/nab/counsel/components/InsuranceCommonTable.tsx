@@ -187,13 +187,14 @@ export default function InsuranceCommonTable({
                     {row.documentName}
                   </Link>
                 </TableCell>
-                <TableCell align="center" sx={{ ...bodyCellSx, whiteSpace: 'nowrap' }}>
+                {/* 등록자·반영/종료일자는 내용만 왼쪽 정렬한다 (헤더는 가운데 그대로) */}
+                <TableCell align="left" sx={{ ...bodyCellSx, whiteSpace: 'nowrap' }}>
                   <Typography sx={{ fontSize: 14, color: DARK }}>{row.registrantName}</Typography>
                   <Typography sx={{ fontSize: 14, color: SECONDARY }}>{row.registrantDept}</Typography>
                 </TableCell>
                 <TableCell align="center" sx={{ ...bodyCellSx, whiteSpace: 'nowrap' }}>{row.registeredAt}</TableCell>
-                <TableCell align="center" sx={{ ...bodyCellSx, whiteSpace: 'nowrap' }}>
-                  <Typography sx={{ fontSize: 14, color: DARK }}>{row.effectiveStart}</Typography>
+                <TableCell align="left" sx={{ ...bodyCellSx, whiteSpace: 'nowrap' }}>
+                  <Typography sx={{ fontSize: 14, color: DARK }}>{`${row.effectiveStart} ~`}</Typography>
                   <Typography sx={{ fontSize: 14, color: SECONDARY }}>{row.effectiveEnd}</Typography>
                 </TableCell>
                 <TableCell align="center" sx={bodyCellSx}>
