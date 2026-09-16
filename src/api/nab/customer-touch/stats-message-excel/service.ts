@@ -1,5 +1,6 @@
 import axiosInstance from '../../../../utils/axios';
 import { NAB_CUSTOMER_TOUCH_API } from '../../_lib/path';
+import { repairMangledBinary } from '../../_lib/binary';
 
 import type { StatsMessageExcelRequest, StatsMessageExcelResponse } from './dto';
 
@@ -12,5 +13,6 @@ export const downloadStatsMessageExcel = async (data: StatsMessageExcelRequest) 
   const response = await axiosInstance.post<StatsMessageExcelResponse>(url, data, {
     responseType: 'blob',
   });
-  return response.data;
+  // 바이패스 계층이 문자셋 변환으로 망가뜨린 경우에만 원래 바이트로 되돌린다
+  return repairMangledBinary(response.data);
 };
