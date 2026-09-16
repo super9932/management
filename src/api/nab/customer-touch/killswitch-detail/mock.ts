@@ -2,7 +2,7 @@ import { http, HttpResponse } from 'msw';
 
 import { NAB_CUSTOMER_TOUCH_API } from '../../_lib/path';
 
-import { killSwitches } from '../killswitch-list/mock';
+import { killSwitches } from '../killswitch-fixture';
 import type { KillSwitchDetailRequest } from './dto';
 
 export const killSwitchDetailHandlers = [

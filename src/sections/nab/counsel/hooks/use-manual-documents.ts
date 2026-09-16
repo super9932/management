@@ -6,6 +6,8 @@ import type {
   AdminTypeCode,
   ManualItem,
   ManualListRequest,
+  ManualSortBy,
+  SortDirection,
 } from '../../../../api/nab/counsel-backoffice';
 import {
   DOCUMENT_DETAIL_TOASTS,
@@ -13,6 +15,7 @@ import {
   MANUAL_STATUS_CODE,
   MANUAL_STATUS_LABEL,
   PAGE_SIZE,
+  manualClassCode,
   defaultSearchPeriod,
 } from '../constant';
 import type { UnderwritingManualRow } from '../type';
@@ -29,12 +32,23 @@ import { useAuthContext } from 'src/auth/hooks';
 interface AppliedFilter {
   fromDate: string;
   toDate: string;
+  /** 분류 표기('전체'면 조건 미적용) */
+  classFilter: string;
   operationFilter: string;
   keyword: string;
 }
 
+/** 정렬 조건 — 표 헤더 화살표로 바꾼다. 서버 기본값과 같은 '번호 내림차순'에서 시작한다 */
+interface AppliedSort {
+  sortBy: ManualSortBy;
+  sortDir: SortDirection;
+}
+
+const DEFAULT_SORT: AppliedSort = { sortBy: 'nabCuslManlDcmtId', sortDir: 'DESC' };
+
 const DEFAULT_FILTER: AppliedFilter = {
   ...defaultSearchPeriod(),
+  classFilter: '전체',
   operationFilter: '전체',
   keyword: '',
 };
@@ -57,14 +71,19 @@ const toDisplayDateTime = (value: string | null): string =>
 const toListRequest = (
   adminType: AdminTypeCode,
   filter: AppliedFilter,
+  sort: AppliedSort,
   page: number,
   size: number,
 ): ManualListRequest => ({
   nabCuslAdmrTypeCode: adminType,
   rgstDttmFrom: toApiDate(filter.fromDate),
   rgstDttmTo: toApiDate(filter.toDate),
+  // '전체'면 undefined 라 조건이 빠진다
+  manlClsfCode: manualClassCode(adminType, filter.classFilter),
   status: MANUAL_STATUS_CODE[filter.operationFilter],
   keyword: filter.keyword.trim() || undefined,
+  sortBy: sort.sortBy,
+  sortDir: sort.sortDir,
   page,
   size,
 });
@@ -92,10 +111,11 @@ const toManualRow = (item: ManualItem): UnderwritingManualRow => ({
 const fetchManuals = async (
   adminType: AdminTypeCode,
   filter: AppliedFilter,
+  sort: AppliedSort,
   page: number,
   size: number,
 ) => {
-  const response = await getManualList(toListRequest(adminType, filter, page, size));
+  const response = await getManualList(toListRequest(adminType, filter, sort, page, size));
 
   if (response.error) {
     throw new Error(response.error.message ?? '문서 목록 조회에 실패했습니다.');
@@ -113,17 +133,19 @@ const fetchManuals = async (
 export function useManualDocuments(adminType: AdminTypeCode) {
   const [fromDate, setFromDate] = useState(DEFAULT_FILTER.fromDate);
   const [toDate, setToDate] = useState(DEFAULT_FILTER.toDate);
+  const [classFilter, setClassFilter] = useState(DEFAULT_FILTER.classFilter);
   const [operationFilter, setOperationFilter] = useState(DEFAULT_FILTER.operationFilter);
   const [searchType, setSearchType] = useState('문서명');
   const [searchText, setSearchText] = useState(DEFAULT_FILTER.keyword);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState<number>(PAGE_SIZE);
+  const [sort, setSort] = useState<AppliedSort>(DEFAULT_SORT);
   const [appliedFilter, setAppliedFilter] = useState<AppliedFilter>(DEFAULT_FILTER);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
 
   const { data, isFetching, isError, error, refetch } = useQuery(
-    ['nab', 'counsel-backoffice', 'manual-list', adminType, appliedFilter, page, pageSize],
-    () => fetchManuals(adminType, appliedFilter, page, pageSize),
+    ['nab', 'counsel-backoffice', 'manual-list', adminType, appliedFilter, sort, page, pageSize],
+    () => fetchManuals(adminType, appliedFilter, sort, page, pageSize),
     { keepPreviousData: true },
   );
 
@@ -167,7 +189,14 @@ export function useManualDocuments(adminType: AdminTypeCode) {
   const handleSearch = () => {
     setPage(1);
     setSelectedIds(new Set());
-    setAppliedFilter({ fromDate, toDate, operationFilter, keyword: searchText });
+    setAppliedFilter({ fromDate, toDate, classFilter, operationFilter, keyword: searchText });
+  };
+
+  /** 정렬 변경 — 순서가 통째로 달라지므로 첫 페이지부터 다시 읽는다 */
+  const handleSortChange = (sortBy: ManualSortBy, sortDir: SortDirection) => {
+    setSort({ sortBy, sortDir });
+    setPage(1);
+    setSelectedIds(new Set());
   };
 
   /** 페이지 크기 변경 — 보이는 구간이 통째로 달라지므로 첫 페이지부터 다시 읽는다 */
@@ -198,6 +227,7 @@ export function useManualDocuments(adminType: AdminTypeCode) {
     // 필터 입력값
     fromDate, setFromDate,
     toDate, setToDate,
+    classFilter, setClassFilter,
     operationFilter, setOperationFilter,
     searchType, setSearchType,
     searchText, setSearchText,
@@ -216,6 +246,8 @@ export function useManualDocuments(adminType: AdminTypeCode) {
     page, setPage,
     pageSize,
     handlePageSizeChange,
+    sort,
+    handleSortChange,
     selectedIds,
     handleToggle,
     handleToggleAll,

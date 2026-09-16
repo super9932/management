@@ -540,8 +540,11 @@ export default function DocumentDetailDialog({
   };
 
   const handleSaveClick = () => {
+    // 바뀐 게 없으면 저장할 것도 없다 — 안내만 남기고 확인 모달 없이 닫는다.
+    // (팝업이 닫혀도 토스트는 본문 밖에서 렌더돼 그대로 보인다)
     if (!isDirty) {
       setToast({ message: DOCUMENT_DETAIL_TOASTS.noChanges, severity: 'error' });
+      onClose();
       return;
     }
     guardRestricted('save');
@@ -695,24 +698,6 @@ export default function DocumentDetailDialog({
                 </FormControl>
               </Box>
 
-              {/* 분류 — 문서의 관리주체 하위 값만 고를 수 있다. 바꾸면 수정이력에 남는다 */}
-              <FormControl sx={{ ...FIELD_SX }}>
-                <InputLabel shrink sx={labelSmallSx}>분류</InputLabel>
-                <Select
-                  value={form.classCode}
-                  label="분류"
-                  displayEmpty
-                  onChange={(e) => update('classCode', e.target.value as ManualClassCode)}
-                  sx={selectFieldSx}
-                >
-                  {/* 분류 도입 이전 등록분은 값이 없다 — 고를 수는 없고 표시만 한다 */}
-                  <MenuItem value="" disabled>미지정</MenuItem>
-                  {classOptions.map((code) => (
-                    <MenuItem key={code} value={code}>{MANUAL_CLASS_LABEL[code]}</MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-
               <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
                 <TextField
                   label="반영일자"
@@ -773,8 +758,26 @@ export default function DocumentDetailDialog({
               />
             </Box>
 
-            {/* 5. 등록문서 정보 */}
+            {/* 5. 등록문서 정보 — 분류는 문서 속성이라 문서명과 같은 카드에 둔다 (Figma 8433:236662) */}
             <Box sx={{ ...sectionSx, display: 'flex', flexDirection: 'column', gap: 3 }}>
+              {/* 분류 — 문서의 관리주체 하위 값만 고를 수 있다. 바꾸면 수정이력에 남는다 */}
+              <FormControl sx={{ ...FIELD_SX }}>
+                <InputLabel shrink sx={labelSmallSx}>분류</InputLabel>
+                <Select
+                  value={form.classCode}
+                  label="분류"
+                  displayEmpty
+                  onChange={(e) => update('classCode', e.target.value as ManualClassCode)}
+                  sx={selectFieldSx}
+                >
+                  {/* 분류 도입 이전 등록분은 값이 없다 — 고를 수는 없고 표시만 한다 */}
+                  <MenuItem value="" disabled>미지정</MenuItem>
+                  {classOptions.map((code) => (
+                    <MenuItem key={code} value={code}>{MANUAL_CLASS_LABEL[code]}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                 <Typography sx={labelSx}>문서명</Typography>
                 <Typography sx={strongValueSx}>{documentName}</Typography>

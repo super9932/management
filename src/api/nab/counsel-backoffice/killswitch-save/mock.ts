@@ -1,7 +1,7 @@
 import { http, HttpResponse } from 'msw';
 
 import { NAB_COUNSEL_BACKOFFICE_API } from '../../_lib/path';
-import { counselKillSwitches } from '../killswitch-list/mock';
+import { counselKillSwitches } from '../killswitch-fixture';
 
 import type { CounselKillSwitchSaveRequest } from './dto';
 

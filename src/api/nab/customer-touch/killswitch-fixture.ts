@@ -1,10 +1,9 @@
-import { http, HttpResponse } from 'msw';
+import type { KillSwitchItem } from './types';
 
-import { NAB_CUSTOMER_TOUCH_API } from '../../_lib/path';
-
-import type { KillSwitchListRequest } from './dto';
-import type { KillSwitchItem } from '../types';
-
+/**
+ * 킬스위치 목 데이터 — 상세·저장·체크 핸들러가 함께 쓰는 씨앗 값이다.
+ * 목록 API 모듈을 걷어내면서 픽스처만 남겼다.
+ */
 export const killSwitches: KillSwitchItem[] = [
   {
     featureCode: 'AI_MESSAGE_GENERATION',
@@ -42,19 +41,4 @@ export const killSwitches: KillSwitchItem[] = [
     updatedAt: '2026-06-20T02:00:00',
     createdAt: '2026-05-02T09:00:00',
   },
-];
-
-export const killSwitchListHandlers = [
-  http.post(`/api${NAB_CUSTOMER_TOUCH_API.killSwitchList}`, async ({ request }) => {
-    const body = (await request.json().catch(() => ({}))) as KillSwitchListRequest;
-    const keyword = body.keyword?.trim().toLowerCase();
-    const list = keyword
-      ? killSwitches.filter(
-          (k) =>
-            k.featureCode.toLowerCase().includes(keyword) ||
-            k.featureName.toLowerCase().includes(keyword)
-        )
-      : killSwitches;
-    return HttpResponse.json({ data: { killSwitches: list }, message: 'OK' });
-  }),
 ];

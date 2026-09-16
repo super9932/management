@@ -83,7 +83,7 @@ export const MANUAL_SEARCH_TYPE_OPTIONS = ['문서명'] as const;
 export const MANUAL_CLASS_LABEL: Record<ManualClassCode, string> = {
   ONE_SHET: '원시트',
   BSWR_MANL: '업무매뉴얼',
-  ISRN_UNDN: '보험심사',
+  ISRN_UNDN: '심사',
   PLAN: '기획',
   DPST: '입금',
   RE_OTPY: '제지급',
@@ -160,6 +160,10 @@ export const COUNSEL_SCREEN_LABEL: Record<string, string> = {
   '02': '고객계약관리',
   '03': '신계약상담',
 };
+
+/** 통계 목록 결과 바 안내 (DAS_통계정보_001) — 변경 이력이 조회 결과에 어떻게 반영되는지 */
+export const STATISTICS_RESULT_NOTICE =
+  '조회 기간 중 변경사항이 발생한 경우, 변경 전 데이터는 당시 정보로 유지되고 변경시점 이후부터 변경된 정보가 반영됩니다.';
 
 /** 통계 화면 토스트 */
 export const STATISTICS_TOASTS = {
@@ -326,4 +330,15 @@ export const defaultSearchPeriod = (): { fromDate: string; toDate: string } => {
   from.setDate(from.getDate() - (SEARCH_PERIOD_DAYS - 1));
 
   return { fromDate: toInputDate(from), toDate: toInputDate(today) };
+};
+
+/**
+ * 내일 날짜(yyyy-MM-dd) — 문서 반영일자는 익일 00:00부터 선택할 수 있다(COM_공통정의_006).
+ * 등록 팝업의 반영/종료일자 기본값이자 선택 가능한 하한이다.
+ */
+export const tomorrowInputDate = (): string => {
+  const date = new Date();
+  date.setDate(date.getDate() + 1);
+
+  return toInputDate(date);
 };

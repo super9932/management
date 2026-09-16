@@ -32,6 +32,18 @@ export interface DocumentFilterProps {
   operationFilterOptions?: readonly string[];
   /** 검색기준 셀렉트 노출 여부 (기본: true) */
   showSearchType?: boolean;
+  /**
+   * 조건을 한 줄에 모두 놓을지 (기본: false → 2행).
+   * 판매기간이 붙는 보험약관은 한 줄에 안 들어가 2행을 쓰고, 매뉴얼 화면은 한 줄이다
+   * (Figma 5850:152747 · 11424:86632).
+   */
+  singleRow?: boolean;
+  /** 분류 셀렉트 노출 여부 — 관리주체 하위 분류를 가진 매뉴얼 화면에서만 쓴다 (기본: false) */
+  showClassFilter?: boolean;
+  /** 분류 옵션 — '전체' + 그 관리주체의 분류 표기 */
+  classFilterOptions?: readonly string[];
+  classFilter?: string;
+  onClassFilterChange?: (v: string) => void;
   /** 판매기간 구간 노출 여부 — 판매일자를 가진 보험약관 문서에서만 쓴다 (기본: false) */
   showSalePeriod?: boolean;
   /** 판매시작일 하한 (showSalePeriod 일 때만 사용) */
@@ -41,6 +53,8 @@ export interface DocumentFilterProps {
   saleToDate?: string;
   onSaleToDateChange?: (v: string) => void;
 }
+
+const labelSx = { fontSize: 12, fontWeight: 700, color: SECONDARY } as const;
 
 const selectSx = {
   fontSize: 14,
@@ -136,102 +150,151 @@ export default function DocumentFilter({
   searchTypeOptions = SEARCH_TYPE_OPTIONS,
   operationFilterOptions = OPERATION_FILTER_OPTIONS,
   showSearchType = true,
+  singleRow = false,
+  showClassFilter = false,
+  classFilterOptions = [],
+  classFilter = '',
+  onClassFilterChange,
   showSalePeriod = false,
   saleFromDate = '',
   onSaleFromDateChange,
   saleToDate = '',
   onSaleToDateChange,
 }: DocumentFilterProps) {
+  const classField = showClassFilter && (
+    <FormControl sx={{ width: FIELD_WIDTH, ...FIELD_SX }}>
+      <InputLabel shrink sx={labelSx}>분류</InputLabel>
+      <Select
+        value={classFilter}
+        label="분류"
+        onChange={(e) => onClassFilterChange?.(e.target.value)}
+        sx={selectSx}
+      >
+        {classFilterOptions.map((opt) => (
+          <MenuItem key={opt} value={opt}>{opt}</MenuItem>
+        ))}
+      </Select>
+    </FormControl>
+  );
+
+  const salePeriodField = showSalePeriod && (
+    <DateRangeField
+      label="판매기간"
+      from={saleFromDate}
+      onFromChange={(v) => onSaleFromDateChange?.(v)}
+      fromPlaceholder="판매 시작일"
+      to={saleToDate}
+      onToChange={(v) => onSaleToDateChange?.(v)}
+      toPlaceholder="판매 종료일"
+    />
+  );
+
+  const registeredPeriodField = (
+    <DateRangeField
+      label="등록일자"
+      from={fromDate}
+      onFromChange={onFromDateChange}
+      fromPlaceholder="등록 시작일"
+      to={toDate}
+      onToChange={onToDateChange}
+      toPlaceholder="등록 종료일"
+    />
+  );
+
+  const statusField = (
+    <FormControl sx={{ width: FIELD_WIDTH, ...FIELD_SX }}>
+      <InputLabel shrink sx={labelSx}>운영상태</InputLabel>
+      <Select
+        value={operationFilter}
+        label="운영상태"
+        onChange={(e) => onOperationFilterChange(e.target.value)}
+        sx={selectSx}
+      >
+        {operationFilterOptions.map((opt) => (
+          <MenuItem key={opt} value={opt}>{opt}</MenuItem>
+        ))}
+      </Select>
+    </FormControl>
+  );
+
+  const searchTypeField = showSearchType && (
+    <FormControl sx={{ width: FIELD_WIDTH, flexShrink: 0, ...FIELD_SX }}>
+      <InputLabel shrink sx={labelSx}>검색기준</InputLabel>
+      <Select
+        value={searchType}
+        label="검색기준"
+        onChange={(e) => onSearchTypeChange(e.target.value)}
+        sx={selectSx}
+      >
+        {searchTypeOptions.map((opt) => (
+          <MenuItem key={opt} value={opt}>{opt}</MenuItem>
+        ))}
+      </Select>
+    </FormControl>
+  );
+
+  const searchField = (
+    <TextField
+      sx={{ flex: 1, minWidth: 240, ...FIELD_SX }}
+      placeholder="검색어를 입력해주세요"
+      value={searchText}
+      onChange={(e) => onSearchTextChange(e.target.value)}
+      onKeyDown={(e) => e.key === 'Enter' && onSearch()}
+      InputProps={{
+        startAdornment: (
+          <InputAdornment position="start">
+            <SearchIcon sx={{ fontSize: 20, color: DISABLED, opacity: 0.3 }} />
+          </InputAdornment>
+        ),
+      }}
+    />
+  );
+
+  const searchButton = (
+    <Button
+      variant="contained"
+      onClick={onSearch}
+      sx={{
+        height: 48, px: 2, borderRadius: 2, bgcolor: 'var(--nab-button)', color: 'white',
+        fontSize: 15, fontWeight: 400, whiteSpace: 'nowrap', flexShrink: 0,
+        boxShadow: 'none', '&:hover': { bgcolor: 'var(--nab-button-hover)', boxShadow: 'none' },
+      }}
+    >
+      조회
+    </Button>
+  );
+
+  // 한 줄 배치 — 매뉴얼 화면 (Figma 5850:152747)
+  if (singleRow) {
+    return (
+      <Box sx={{ px: 2.5, py: 3, display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
+        {classField}
+        {salePeriodField}
+        {registeredPeriodField}
+        {statusField}
+        {searchTypeField}
+        {searchField}
+        {searchButton}
+      </Box>
+    );
+  }
+
+  // 2행 배치 — 판매기간까지 붙는 보험약관 화면 (Figma 11424:86632)
   return (
     <Box sx={{ px: 2.5, py: 3, display: 'flex', flexDirection: 'column', gap: 2 }}>
-      {/* 1행 — 기간·상태 조건 */}
+      {/* 1행 — 분류·기간·상태 조건 */}
       <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
-        {/* 판매기간 — 비워두면 조건을 걸지 않는다 */}
-        {showSalePeriod && (
-          <DateRangeField
-            label="판매기간"
-            from={saleFromDate}
-            onFromChange={(v) => onSaleFromDateChange?.(v)}
-            fromPlaceholder="판매 시작일"
-            to={saleToDate}
-            onToChange={(v) => onSaleToDateChange?.(v)}
-            toPlaceholder="판매 종료일"
-          />
-        )}
-
-        <DateRangeField
-          label="등록일자"
-          from={fromDate}
-          onFromChange={onFromDateChange}
-          fromPlaceholder="등록 시작일"
-          to={toDate}
-          onToChange={onToDateChange}
-          toPlaceholder="등록 종료일"
-        />
-
-        {/* 운영상태 */}
-        <FormControl sx={{ width: FIELD_WIDTH, ...FIELD_SX }}>
-          <InputLabel shrink sx={{ fontSize: 12, fontWeight: 700, color: SECONDARY }}>운영상태</InputLabel>
-          <Select
-            value={operationFilter}
-            label="운영상태"
-            onChange={(e) => onOperationFilterChange(e.target.value)}
-            sx={selectSx}
-          >
-            {operationFilterOptions.map((opt) => (
-              <MenuItem key={opt} value={opt}>{opt}</MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+        {classField}
+        {salePeriodField}
+        {registeredPeriodField}
+        {statusField}
       </Box>
 
       {/* 2행 — 검색어 + 조회 */}
       <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-        {/* 검색기준 */}
-        {showSearchType && (
-          <FormControl sx={{ width: FIELD_WIDTH, flexShrink: 0, ...FIELD_SX }}>
-            <InputLabel shrink sx={{ fontSize: 12, fontWeight: 700, color: SECONDARY }}>검색기준</InputLabel>
-            <Select
-              value={searchType}
-              label="검색기준"
-              onChange={(e) => onSearchTypeChange(e.target.value)}
-              sx={selectSx}
-            >
-              {searchTypeOptions.map((opt) => (
-                <MenuItem key={opt} value={opt}>{opt}</MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        )}
-
-        {/* 검색어 */}
-        <TextField
-          sx={{ flex: 1, minWidth: 240, ...FIELD_SX }}
-          placeholder="검색어를 입력해주세요"
-          value={searchText}
-          onChange={(e) => onSearchTextChange(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && onSearch()}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon sx={{ fontSize: 20, color: DISABLED, opacity: 0.3 }} />
-              </InputAdornment>
-            ),
-          }}
-        />
-
-        {/* 조회 */}
-        <Button
-          variant="contained"
-          onClick={onSearch}
-          sx={{
-            height: 48, px: 2, borderRadius: 2, bgcolor: 'var(--nab-button)', color: 'white',
-            fontSize: 15, fontWeight: 400, whiteSpace: 'nowrap', flexShrink: 0,
-            boxShadow: 'none', '&:hover': { bgcolor: 'var(--nab-button-hover)', boxShadow: 'none' },
-          }}
-        >
-          조회
-        </Button>
+        {searchTypeField}
+        {searchField}
+        {searchButton}
       </Box>
     </Box>
   );

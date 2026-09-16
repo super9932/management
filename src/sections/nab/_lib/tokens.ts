@@ -29,6 +29,16 @@ export const FIELD_SX = {
   '& .MuiInputBase-input': { color: 'var(--nab-text-primary)' },
 } as const;
 
+/**
+ * 표 헤더의 정렬 라벨 — 정렬 가능한 컬럼은 화살표를 늘 보여 주고(옅게),
+ * 현재 정렬 중인 컬럼만 진하게 표시한다 (Figma 5673:177605).
+ */
+export const SORT_LABEL_SX = {
+  '& .MuiTableSortLabel-icon': { opacity: 0.4, fontSize: 18 },
+  '&.Mui-active .MuiTableSortLabel-icon': { opacity: 1, color: 'var(--nab-text-primary)' },
+  '&.Mui-active': { color: 'var(--nab-text-primary)' },
+} as const;
+
 /** :root에 주입되는 라이트 모드 CSS 변수 값 */
 export const NAB_VARS_LIGHT = {
   '--nab-primary': '#fa6600',

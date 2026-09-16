@@ -33,7 +33,12 @@ import {
   defaultSearchPeriod,
 } from '../constant';
 import { deleteStipulation, getStipulationList } from '../../../../api/nab/counsel-backoffice';
-import type { StipulationItem, StipulationListRequest } from '../../../../api/nab/counsel-backoffice';
+import type {
+  SortDirection,
+  StipulationItem,
+  StipulationListRequest,
+  StipulationSortBy,
+} from '../../../../api/nab/counsel-backoffice';
 import { useAuthContext } from 'src/auth/hooks';
 
 /** 조회 버튼을 눌러야 실제 요청에 반영되는 값들 */
@@ -48,6 +53,14 @@ interface AppliedFilter {
   searchType: string;
   keyword: string;
 }
+
+/** 정렬 조건 — 표 헤더 화살표로 바꾼다. 서버 기본값과 같은 '번호 내림차순'에서 시작한다 */
+interface AppliedSort {
+  sortBy: StipulationSortBy;
+  sortDir: SortDirection;
+}
+
+const DEFAULT_SORT: AppliedSort = { sortBy: 'nabCuslIsrnStplDcmtId', sortDir: 'DESC' };
 
 const DEFAULT_FILTER: AppliedFilter = {
   ...defaultSearchPeriod(),
@@ -72,6 +85,7 @@ const toDisplayDate = (value: string | null): string =>
 
 const toListRequest = (
   filter: AppliedFilter,
+  sort: AppliedSort,
   page: number,
   size: number,
 ): StipulationListRequest => ({
@@ -82,6 +96,8 @@ const toListRequest = (
   status: TERMS_STATUS_CODE[filter.operationFilter],
   searchType: TERMS_SEARCH_TYPE_CODE[filter.searchType],
   keyword: filter.keyword.trim() || undefined,
+  sortBy: sort.sortBy,
+  sortDir: sort.sortDir,
   page,
   size,
 });
@@ -102,8 +118,13 @@ const toDocumentRow = (item: StipulationItem): DocumentRow => ({
   operationStatus: TERMS_STATUS_LABEL[item.status],
 });
 
-const fetchStipulations = async (filter: AppliedFilter, page: number, size: number) => {
-  const response = await getStipulationList(toListRequest(filter, page, size));
+const fetchStipulations = async (
+  filter: AppliedFilter,
+  sort: AppliedSort,
+  page: number,
+  size: number,
+) => {
+  const response = await getStipulationList(toListRequest(filter, sort, page, size));
 
   if (response.error) {
     throw new Error(response.error.message ?? '약관문서 목록 조회에 실패했습니다.');
@@ -127,6 +148,7 @@ function InsuranceTermsViewInner() {
   const [searchText, setSearchText] = useState(DEFAULT_FILTER.keyword);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState<number>(PAGE_SIZE);
+  const [sort, setSort] = useState<AppliedSort>(DEFAULT_SORT);
   const [appliedFilter, setAppliedFilter] = useState<AppliedFilter>(DEFAULT_FILTER);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [registerOpen, setRegisterOpen] = useState(false);
@@ -176,8 +198,8 @@ function InsuranceTermsViewInner() {
   );
 
   const { data, isError, error, refetch } = useQuery(
-    ['nab', 'counsel-backoffice', 'stipulation-list', appliedFilter, page, pageSize],
-    () => fetchStipulations(appliedFilter, page, pageSize),
+    ['nab', 'counsel-backoffice', 'stipulation-list', appliedFilter, sort, page, pageSize],
+    () => fetchStipulations(appliedFilter, sort, page, pageSize),
     { keepPreviousData: true },
   );
 
@@ -192,6 +214,13 @@ function InsuranceTermsViewInner() {
     setAppliedFilter({
       fromDate, toDate, saleFromDate, saleToDate, operationFilter, searchType, keyword: searchText,
     });
+  };
+
+  /** 정렬 변경 — 순서가 통째로 달라지므로 첫 페이지부터 다시 읽는다 */
+  const handleSortChange = (sortBy: StipulationSortBy, sortDir: SortDirection) => {
+    setSort({ sortBy, sortDir });
+    setPage(1);
+    setSelectedIds(new Set());
   };
 
   /** 페이지 크기 변경 — 보이는 구간이 통째로 달라지므로 첫 페이지부터 다시 읽는다 */
@@ -282,6 +311,9 @@ function InsuranceTermsViewInner() {
             onToggle={handleToggle}
             onToggleAll={handleToggleAll}
             onDocumentClick={setDetailRow}
+            sortBy={sort.sortBy}
+            sortDir={sort.sortDir}
+            onSortChange={handleSortChange}
           />
         </Box>
 

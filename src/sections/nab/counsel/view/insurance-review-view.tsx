@@ -18,7 +18,7 @@ import DocumentPagination from '../components/DocumentPagination';
 import {
   MANUAL_ADMIN_TYPE,
   MANUAL_OPERATION_FILTER_OPTIONS,
-  MANUAL_SEARCH_TYPE_OPTIONS,
+  manualClassFilterOptions,
 } from '../constant';
 import { useManualDocuments } from '../hooks/use-manual-documents';
 import { DOCUMENT_ALERTS, DOCUMENT_DETAIL_TOASTS } from '../constant';
@@ -32,6 +32,7 @@ function InsuranceReviewViewInner() {
   const {
     fromDate, setFromDate,
     toDate, setToDate,
+    classFilter, setClassFilter,
     operationFilter, setOperationFilter,
     searchType, setSearchType,
     searchText, setSearchText,
@@ -40,6 +41,7 @@ function InsuranceReviewViewInner() {
     isError, error, refetch,
     page, setPage,
     pageSize, handlePageSizeChange,
+    sort, handleSortChange,
     selectedIds, handleToggle, handleToggleAll, hasSelection,
     deleteSelected, isDeleting,
   } = useManualDocuments(MANUAL_ADMIN_TYPE.insuranceReview);
@@ -94,7 +96,12 @@ function InsuranceReviewViewInner() {
           onSearchTextChange={setSearchText}
           onSearch={handleSearch}
           operationFilterOptions={MANUAL_OPERATION_FILTER_OPTIONS}
-          searchTypeOptions={MANUAL_SEARCH_TYPE_OPTIONS}
+          singleRow
+          showClassFilter
+          classFilterOptions={manualClassFilterOptions(MANUAL_ADMIN_TYPE.insuranceReview)}
+          classFilter={classFilter}
+          onClassFilterChange={setClassFilter}
+          showSearchType={false}
         />
         {isError && (
           <Alert
@@ -120,6 +127,9 @@ function InsuranceReviewViewInner() {
             onToggle={handleToggle}
             onToggleAll={handleToggleAll}
             onDocumentClick={setDetailRow}
+            sortBy={sort.sortBy}
+            sortDir={sort.sortDir}
+            onSortChange={handleSortChange}
           />
         </Box>
 

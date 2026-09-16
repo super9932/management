@@ -25,6 +25,7 @@ import {
   MANUAL_CLASS_LABEL,
   MANUAL_REGISTER_TOASTS,
   TIME_OPTIONS,
+  tomorrowInputDate,
 } from '../constant';
 import { checkAttachments, isRestrictedWorkTime, toApiDateTime } from '../lib/document-attachment';
 import { saveManual } from '../../../../api/nab/counsel-backoffice';
@@ -57,11 +58,18 @@ const ALERT_PRESET: Record<AlertKey, { title: string; message: string; confirmLa
   restrictedTime: DOCUMENT_ALERTS.restrictedTime,
 };
 
-/** 반영/종료 일시 초기값 — 변경 여부(dirty) 판정 기준 */
+/**
+ * 반영/종료 일시 초기값 — 변경 여부(dirty) 판정 기준.
+ *
+ * 반영일자는 익일 00:00 부터만 고를 수 있어 기본값도 내일로 둔다(종료일자도 같은 날에서 시작).
+ * 모듈 로드 시 한 번 계산하므로 자정을 넘겨 열어 둔 탭에서는 새로고침해야 갱신된다.
+ */
+const EARLIEST_DATE = tomorrowInputDate();
+
 const INITIAL_SCHEDULE = {
-  effectiveDate: '2026-01-01',
+  effectiveDate: EARLIEST_DATE,
   effectiveTime: '00:00',
-  endDate: '2026-01-01',
+  endDate: EARLIEST_DATE,
   endTime: '24:00',
   noEndDate: true,
 } as const;
@@ -122,6 +130,12 @@ export default function DocumentRegisterDialog({ open, title, adminType, onClose
     if (hasOversize) {
       setAlert('fileSize');
     }
+  };
+
+  /** 반영일자 변경 — 종료일자가 그보다 앞서면 함께 끌어올린다 */
+  const handleEffectiveDateChange = (value: string) => {
+    setEffectiveDate(value);
+    setEndDate((prev) => (prev < value ? value : prev));
   };
 
   const resetForm = () => {
@@ -302,8 +316,9 @@ export default function DocumentRegisterDialog({ open, title, adminType, onClose
                 label="반영일자"
                 type="date"
                 value={effectiveDate}
-                onChange={(e) => setEffectiveDate(e.target.value)}
+                onChange={(e) => handleEffectiveDateChange(e.target.value)}
                 InputLabelProps={{ shrink: true }}
+                inputProps={{ min: EARLIEST_DATE }}
                 sx={{ ...FIELD_SX, width: noEndDate ? 332 : undefined, flex: noEndDate ? 'none' : 1 }}
               />
               <FormControl sx={{ flex: 1, ...FIELD_SX }}>
@@ -321,6 +336,7 @@ export default function DocumentRegisterDialog({ open, title, adminType, onClose
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
                     InputLabelProps={{ shrink: true }}
+                    inputProps={{ min: effectiveDate }}
                     sx={{ ...FIELD_SX, flex: 1 }}
                   />
                   <FormControl sx={{ flex: 1, ...FIELD_SX }}>

@@ -10,7 +10,7 @@ import {
 } from '@mui/material';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import { NabThemeScope } from '../../_lib/NabThemeScope';
-import { CARD_SHADOW, DARK, DISABLED, PRIMARY_ORANGE } from '../../_lib/tokens';
+import { CARD_SHADOW, DARK, DISABLED } from '../../_lib/tokens';
 import SystemSettingToggleRow from '../components/SystemSettingToggleRow';
 import DocumentAlertDialog from '../components/DocumentAlertDialog';
 import DocumentToast from '../components/DocumentToast';
@@ -40,10 +40,12 @@ import { useAuthContext } from 'src/auth/hooks';
 const toMaintenanceOn = (ispcAcmpYn: string): boolean => ispcAcmpYn === 'Y';
 
 function SystemSettingViewInner() {
-  /** 화면에서 조작 중인 값 */
+  /**
+   * 화면 토글 = 서버에 저장된 값.
+   * 저장 버튼이 따로 없고 토글 조작이 곧 저장이라(DAS_시스템설정_001 1-A),
+   * 저장이 끝나기 전까지는 값을 바꾸지 않는다 — 취소하면 그대로 남아야 한다.
+   */
   const [maintenanceOn, setMaintenanceOn] = useState(false);
-  /** 서버에 저장돼 있는 값 — 변경 여부 판단 기준 */
-  const [savedOn, setSavedOn] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [toast, setToast] = useState<{ message: string; severity: DocumentToastSeverity }>({
     message: '',
@@ -74,7 +76,6 @@ function SystemSettingViewInner() {
   useEffect(() => {
     if (data) {
       setMaintenanceOn(toMaintenanceOn(data.ispcAcmpYn));
-      setSavedOn(toMaintenanceOn(data.ispcAcmpYn));
     }
   }, [data]);
 
@@ -95,7 +96,7 @@ function SystemSettingViewInner() {
     },
     {
       onSuccess: (nextOn) => {
-        setSavedOn(nextOn);
+        setMaintenanceOn(nextOn);
         setToast({
           message: nextOn
             ? SYSTEM_SETTING_TOASTS.maintenanceOn
@@ -116,14 +117,14 @@ function SystemSettingViewInner() {
   );
 
   const isBusy = isFetching || saveMutation.isLoading;
-  const isDirty = maintenanceOn !== savedOn;
 
   /**
-   * 저장 (1-A) — ON 으로 바꿔 저장할 때만 확인 팝업을 띄운다.
-   * OFF 는 별도 얼럿 없이 바로 처리하고 서비스가 정상 운영된다.
+   * 토글 조작 = 저장 (1-A).
+   * ON 으로 바꿀 때만 확인 팝업을 띄우고, OFF 는 별도 얼럿 없이 바로 처리해 서비스가 정상 운영된다.
+   * 화면 값은 저장이 성공해야 바뀐다 — 팝업에서 취소하면 ON 으로 넘어가지 않는다.
    */
-  const handleSave = () => {
-    if (maintenanceOn) {
+  const handleToggle = (nextOn: boolean) => {
+    if (nextOn) {
       setConfirmOpen(true);
       return;
     }
@@ -172,25 +173,8 @@ function SystemSettingViewInner() {
             helper={SYSTEM_SETTING_TEXT.toggleHelper}
             checked={maintenanceOn}
             disabled={isBusy || isError}
-            onChange={setMaintenanceOn}
+            onChange={handleToggle}
           />
-        </Box>
-
-        {/* 저장 — 값이 바뀌었을 때만 활성화 */}
-        <Box sx={{ p: 2.5, display: 'flex', justifyContent: 'flex-end' }}>
-          <Button
-            variant="contained"
-            disabled={isBusy || isError || !isDirty}
-            onClick={handleSave}
-            sx={{
-              height: 48, px: 2, minWidth: 64, borderRadius: 2,
-              bgcolor: PRIMARY_ORANGE, color: 'white',
-              fontSize: 15, fontWeight: 400, boxShadow: 'none',
-              '&:hover': { bgcolor: 'var(--nab-primary-hover)', boxShadow: 'none' },
-            }}
-          >
-            {saveMutation.isLoading ? '저장 중…' : '저장'}
-          </Button>
         </Box>
       </Card>
 

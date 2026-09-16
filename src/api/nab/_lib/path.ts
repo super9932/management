@@ -12,17 +12,12 @@ const withBase = (path: string) => `${BASE_PATH}${path}` as const;
 
 export const NAB_CUSTOMER_TOUCH_API = {
   // ── 고객터치AI · 관리자 · 통계 ─────────────────────────────────────────────
-  statsSummary: withBase('/v1/get/customer/admin/touch/stats/summary'),
-  statsMessages: withBase('/v1/get/customer/admin/touch/stats/messages'),
-  statsExcel: withBase('/v1/post/customer/admin/touch/stats/excel'),
-  statsAggregate: withBase('/v1/post/customer/admin/touch/stats/aggregate'),
 
   // ── 고객터치AI · 관리자 · 서비스통계(일자별 큐브) ───────────────────────────
   statsMessageDaily: withBase('/v1/get/customer/admin/touch/stats/message/daily'),
   statsSearchDaily: withBase('/v1/get/customer/admin/touch/stats/search/daily'),
   statsMessageExcel: withBase('/v1/post/customer/admin/touch/stats/message/excel'),
   statsSearchExcel: withBase('/v1/post/customer/admin/touch/stats/search/excel'),
-  statsRecompute: withBase('/v1/post/customer/admin/touch/stats/recompute'),
 
   // ── 고객터치AI · 관리자 · 프롬프트 ─────────────────────────────────────────
   promptCreate: withBase('/v1/post/customer/admin/touch/message/prompt'),
@@ -31,19 +26,13 @@ export const NAB_CUSTOMER_TOUCH_API = {
   promptGet: withBase('/v1/get/customer/admin/touch/message/prompt'),
   promptList: withBase('/v1/get/customer/admin/touch/message/prompt/list'),
   promptCategories: withBase('/v1/get/customer/admin/touch/message/prompt/categories'),
-  promptSlots: withBase('/v1/get/customer/admin/touch/message/prompt/slots'),
-  promptDuplicate: withBase('/v1/get/customer/admin/touch/message/prompt/duplicate'),
 
   // ── 고객터치AI · 관리자 · Kill-Switch ──────────────────────────────────────
   killSwitchSave: withBase('/v1/post/customer/admin/touch/killswitch/save'),
-  killSwitchList: withBase('/v1/get/customer/admin/touch/killswitch/list'),
   killSwitchDetail: withBase('/v1/get/customer/admin/touch/killswitch/detail'),
   killSwitchCheck: withBase('/v1/get/customer/admin/touch/killswitch/check'),
 
   // ── 고객터치AI · 관리자 · NAH 콘텐츠 ───────────────────────────────────────
-  contentNahGet: withBase('/v1/get/customer/admin/touch/content/nah'),
-  contentNahRegister: withBase('/v1/post/customer/admin/touch/content/nah'),
-  contentNahUpdate: withBase('/v1/post/customer/admin/touch/content/nah/update'),
 } as const;
 
 export type NabCustomerTouchApiKey = keyof typeof NAB_CUSTOMER_TOUCH_API;
@@ -57,22 +46,19 @@ export const NAB_COUNSEL_BACKOFFICE_API = {
   manualList: withBase('/v1/get/counsel/admin/manual/list'),
   manualDetail: withBase('/v1/get/counsel/admin/manual/detail'),
   manualHistoryList: withBase('/v1/get/counsel/admin/manual/history/list'),
-  manualSave: withBase('/v1/post/counsel/admin/manual/save'),
+  // 앞단이 멀티파트를 file/upload 패턴 경로에서만 받는다 (종전 /manual/save 는 전환 기간 한정)
+  manualSave: withBase('/v1/post/counsel/admin/manual/file/upload/save'),
   manualUpdate: withBase('/v1/post/counsel/admin/manual/update'),
   manualDelete: withBase('/v1/delete/counsel/admin/manual'),
-  manualInitLoad: withBase('/v1/post/counsel/admin/manual/init-load'),
-  manualResend: withBase('/v1/post/counsel/admin/manual/resend'),
 
   // ── 상담AI · 백오피스 · 약관 ───────────────────────────────────────────────
   stipulationList: withBase('/v1/get/counsel/admin/stipulation/list'),
   stipulationDetail: withBase('/v1/get/counsel/admin/stipulation/detail'),
-  stipulationSave: withBase('/v1/post/counsel/admin/stipulation/save'),
+  // 앞단이 멀티파트를 file/upload 패턴 경로에서만 받는다 (종전 /stipulation/save 는 전환 기간 한정)
+  stipulationSave: withBase('/v1/post/counsel/admin/stipulation/file/upload/save'),
   stipulationDelete: withBase('/v1/delete/counsel/admin/stipulation'),
-  stipulationInitLoad: withBase('/v1/post/counsel/admin/stipulation/init-load'),
-  stipulationResend: withBase('/v1/post/counsel/admin/stipulation/resend'),
 
   // ── 상담AI · 백오피스 · 점검 Kill-Switch ───────────────────────────────────
-  killSwitchList: withBase('/v1/get/counsel/admin/killswitch/list'),
   killSwitchDetail: withBase('/v1/get/counsel/admin/killswitch/detail'),
   killSwitchSave: withBase('/v1/post/counsel/admin/killswitch/save'),
 } as const;

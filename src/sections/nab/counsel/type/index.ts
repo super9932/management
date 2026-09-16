@@ -29,6 +29,8 @@ export interface InsuranceReviewRow {
   /** 행 식별자 (표시용 no와 별개) */
   id: number;
   no: number;
+  /** 분류 (관리주체 하위) — 분류 도입 이전 등록분은 '-' */
+  category: string;
   documentName: string;
   /** 등록자 이름(사번) */
   registrantName: string;
@@ -47,6 +49,8 @@ export interface InsuranceCommonRow {
   /** 행 식별자 (표시용 no와 별개) */
   id: number;
   no: number;
+  /** 분류 (관리주체 하위) — 분류 도입 이전 등록분은 '-' */
+  category: string;
   documentName: string;
   /** 등록자 이름(사번) */
   registrantName: string;

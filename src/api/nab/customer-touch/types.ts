@@ -105,18 +105,3 @@ export type StatsFpType = 'ALL' | 'HGS' | 'GA' | 'LIFELAB';
 /** 서비스통계 페이지 크기 — 이 5종 외 값은 400이다 */
 export type StatsPageSize = 10 | 30 | 50 | 70 | 100;
 
-/** NAH 콘텐츠 색인 상태 — description 비동기 생성 진행 상태 */
-export type ContentStatus = 'processing' | 'created' | 'updating' | 'updated';
-
-/** NAH 콘텐츠 키워드 쌍 */
-export interface KeywordPairItem {
-  category: string;
-  name: string;
-}
-
-/** NAH 콘텐츠 등록/수정 공통 응답 */
-export interface ContentWriteResult {
-  contentId: string;
-  ok: boolean;
-  contentStatus: ContentStatus;
-}
