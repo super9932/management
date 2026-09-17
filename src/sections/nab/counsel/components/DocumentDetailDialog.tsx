@@ -60,7 +60,7 @@ import { useAuthContext } from 'src/auth/hooks';
 /**
  * 문서 상세 팝업 (Figma COM_공통정의_003).
  *
- * 보험심사·보험공통·언더라이팅 매뉴얼 상세가 같은 구조를 쓴다(화면별 차이는 title 뿐).
+ * 보험심사·보험공통·언더라이팅 문서 상세가 같은 구조를 쓴다(화면별 차이는 title 뿐).
  * 보험약관 문서 상세는 UI가 달라 별도 컴포넌트(InsuranceTermsDetailDialog)로 둔다.
  */
 

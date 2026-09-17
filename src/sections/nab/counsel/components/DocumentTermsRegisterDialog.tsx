@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import type { DragEvent } from 'react';
 import { useMutation, useQueryClient } from 'react-query';
 import {
   Box,
@@ -10,7 +11,7 @@ import {
 import CloseIcon from '@mui/icons-material/Close';
 import CancelIcon from '@mui/icons-material/Cancel';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
-import { DARK, DISABLED, DIVIDER, SECONDARY } from '../../_lib/tokens';
+import { DARK, DISABLED, DIVIDER, PRIMARY_ORANGE, SECONDARY } from '../../_lib/tokens';
 import {
   DOCUMENT_ALERTS,
   TERMS_FILENAME_MISMATCH_MESSAGE,
@@ -57,12 +58,39 @@ interface FileSlotProps {
   emptyText: string;
   file: File | null;
   onRemove: () => void;
+  /** 이 슬롯에 파일을 떨어뜨렸을 때 — 검사는 받는 쪽에서 한다 */
+  onDropFile: (file: File) => void;
 }
 
-/** 파일명 헤더 + 단일 파일 행/빈 안내 (약관 PDF·CSV 공용) */
-function FileSlotBox({ emptyText, file, onRemove }: FileSlotProps) {
+/**
+ * 파일명 헤더 + 단일 파일 행/빈 안내 (약관 PDF·CSV 공용).
+ * 박스 전체가 드롭 영역이라 파일이 이미 있어도 끌어다 놓으면 교체된다.
+ */
+function FileSlotBox({ emptyText, file, onRemove, onDropFile }: FileSlotProps) {
+  const [dragOver, setDragOver] = useState(false);
+
+  const handleDrop = (event: DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    setDragOver(false);
+
+    const dropped = event.dataTransfer.files?.[0];
+    if (dropped) {
+      onDropFile(dropped);
+    }
+  };
+
   return (
-    <Box sx={{ border: `1px solid ${DIVIDER}`, borderRadius: 2, overflow: 'hidden' }}>
+    <Box
+      onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+      onDragLeave={() => setDragOver(false)}
+      onDrop={handleDrop}
+      sx={{
+        border: `1px solid ${dragOver ? PRIMARY_ORANGE : DIVIDER}`,
+        borderRadius: 2,
+        overflow: 'hidden',
+        bgcolor: dragOver ? 'var(--nab-row-hover)' : 'transparent',
+      }}
+    >
       <Box sx={{ bgcolor: 'var(--nab-header-bg)', py: 2, textAlign: 'center' }}>
         <Typography sx={{ fontSize: 14, fontWeight: 700, color: SECONDARY }}>파일명</Typography>
       </Box>
@@ -76,7 +104,12 @@ function FileSlotBox({ emptyText, file, onRemove }: FileSlotProps) {
           </IconButton>
         </Box>
       ) : (
-        <Box sx={{ px: 5, py: 3.5, textAlign: 'center', borderTop: `1px dashed var(--nab-border)` }}>
+        <Box
+          sx={{
+            px: 5, py: 3.5, textAlign: 'center',
+            borderTop: `1px dashed ${dragOver ? PRIMARY_ORANGE : 'var(--nab-border)'}`,
+          }}
+        >
           <Typography sx={{ fontSize: 14, color: DISABLED }}>{emptyText}</Typography>
         </Box>
       )}
@@ -157,16 +190,9 @@ export default function DocumentTermsRegisterDialog({ open, onClose, onSubmit }:
 
   /**
    * 파일 첨부 — 확장자·용량을 검사하고 통과한 것만 담는다 (3-A, 5-A).
-   * 같은 파일을 다시 고를 수 있도록 input value 는 매번 비운다.
+   * 파일 선택 버튼과 드래그 앤 드롭이 같은 검사를 타도록 File 단위로 분리했다.
    */
-  const handleFileChange = (slot: FileSlot, input: HTMLInputElement) => {
-    const file = input.files?.[0] ?? null;
-    input.value = '';
-
-    if (!file) {
-      return;
-    }
-
+  const acceptFile = (slot: FileSlot, file: File) => {
     // 지원하지 않는 확장자 → MOD_파일형식_001
     if (!file.name.toLowerCase().endsWith(`.${slot}`)) {
       setAlert('fileFormat');
@@ -185,6 +211,16 @@ export default function DocumentTermsRegisterDialog({ open, onClose, onSubmit }:
     } catch {
       // 첨부 처리 중 오류 → MOD_첨부오류_001
       setAlert('fileError');
+    }
+  };
+
+  /** 파일 선택 — 같은 파일을 다시 고를 수 있도록 input value 는 매번 비운다 */
+  const handleFileChange = (slot: FileSlot, input: HTMLInputElement) => {
+    const file = input.files?.[0] ?? null;
+    input.value = '';
+
+    if (file) {
+      acceptFile(slot, file);
     }
   };
 
@@ -290,6 +326,7 @@ export default function DocumentTermsRegisterDialog({ open, onClose, onSubmit }:
               emptyText="약관 PDF 파일을 직접 첨부해 주세요"
               file={pdfFile}
               onRemove={() => setFile('pdf', null)}
+              onDropFile={(file) => acceptFile('pdf', file)}
             />
             <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
               <input
@@ -311,6 +348,7 @@ export default function DocumentTermsRegisterDialog({ open, onClose, onSubmit }:
               emptyText="약관 CSV 파일을 직접 첨부해 주세요"
               file={csvFile}
               onRemove={() => setFile('csv', null)}
+              onDropFile={(file) => acceptFile('csv', file)}
             />
             <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
               <input

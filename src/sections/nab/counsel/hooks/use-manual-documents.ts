@@ -24,7 +24,7 @@ import { useAuthContext } from 'src/auth/hooks';
 /**
  * 매뉴얼문서 목록 조회 (POST /v1/get/counsel/admin/manual/list).
  *
- * 언더라이팅 매뉴얼·보험심사 문서·보험공통 문서가 같은 API를 쓰고
+ * 언더라이팅 문서·보험심사 문서·보험공통 문서가 같은 API를 쓰고
  * 관리주체(nabCuslAdmrTypeCode)로만 갈린다 — UDW / ISRN_ADT / ISRN_SVC.
  */
 
@@ -91,7 +91,7 @@ const toListRequest = (
 /**
  * 목록 API 항목을 화면 행으로 옮긴다.
  *
- * 반환 타입에 category가 있어 언더라이팅 매뉴얼 표에 그대로 쓰고,
+ * 반환 타입에 category가 있어 언더라이팅 문서 표에 그대로 쓰고,
  * 보험심사·보험공통 표에는 category 없는 타입으로 전달돼도 문제 없다.
  */
 const toManualRow = (item: ManualItem): UnderwritingManualRow => ({

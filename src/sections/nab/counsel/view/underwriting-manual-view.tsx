@@ -75,10 +75,10 @@ function UnderwritingManualViewInner() {
         <Breadcrumbs separator={<NavigateNextIcon sx={{ fontSize: 14 }} />} sx={{ mb: 1 }}>
           <Typography sx={{ fontSize: 14, color: DARK, cursor: 'pointer' }}>FP 비서</Typography>
           <Typography sx={{ fontSize: 14, color: DARK, cursor: 'pointer' }}>상담 Plus AI</Typography>
-          <Typography sx={{ fontSize: 14, color: DISABLED }}>언더라이팅 매뉴얼</Typography>
+          <Typography sx={{ fontSize: 14, color: DISABLED }}>언더라이팅 문서</Typography>
         </Breadcrumbs>
         <Typography variant="h4" sx={{ fontWeight: 700, color: DARK, fontSize: 24 }}>
-          언더라이팅 매뉴얼
+          언더라이팅 문서
         </Typography>
       </Box>
 
@@ -179,7 +179,7 @@ function UnderwritingManualViewInner() {
       <DocumentRegisterDialog
         open={registerOpen}
         adminType={MANUAL_ADMIN_TYPE.underwriting}
-        title="언더라이팅 매뉴얼 등록"
+        title="언더라이팅 문서 등록"
         onClose={() => setRegisterOpen(false)}
       />
 

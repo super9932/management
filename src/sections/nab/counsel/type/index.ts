@@ -64,7 +64,7 @@ export interface InsuranceCommonRow {
   operationStatus: OperationStatus;
 }
 
-// 언더라이팅 매뉴얼 테이블 행 (보험공통 구조 + 분류 컬럼)
+// 언더라이팅 문서 테이블 행 (보험공통 구조 + 분류 컬럼)
 export interface UnderwritingManualRow {
   /** 행 식별자 (표시용 no와 별개) */
   id: number;
