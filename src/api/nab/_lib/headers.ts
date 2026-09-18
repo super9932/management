@@ -14,3 +14,13 @@ export const withEmnb = <T extends object>(data: T, emnb: string): T & { emnb: s
   ...data,
   emnb,
 });
+
+/**
+ * 멀티파트 meta 파트의 파일명.
+ *
+ * FormData 에 Blob 을 파일명 없이 넣으면 브라우저가 `filename="blob"` 으로 내보낸다.
+ * 서버 앞단 중간 레이어가 그 파트를 파일로 인정하지 않고 떨어뜨려 Spring 이
+ * "필수 파트가 없습니다 : meta" 로 400 을 되돌리는 사례가 있었다.
+ * 확장자가 있는 파일명을 직접 지정해 curl `-F meta=@meta.json` 과 같은 모양으로 맞춘다.
+ */
+export const META_PART_FILENAME = 'meta.json';

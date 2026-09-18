@@ -86,7 +86,7 @@ export const MANUAL_CLASS_LABEL: Record<ManualClassCode, string> = {
   ISRN_UNDN: '심사',
   PLAN: '기획',
   DPST: '입금',
-  RE_OTPY: '제지급',
+  RE_OTPY: '재지급',
   CTCN: '계약변경',
   CNTR_SUPT: '센터지원',
 };
@@ -191,6 +191,8 @@ export const TERMS_FILENAME_MISMATCH_MESSAGE =
 /** 매뉴얼 등록 결과 토스트 */
 export const MANUAL_REGISTER_TOASTS = {
   missingFile: '첨부할 파일을 등록해 주세요.',
+  /** 등록 API 는 meta.emnb 를 필수로 받는다 — 로그인 컨텍스트에 사번이 없으면 호출 전에 끊는다 */
+  missingEmnb: '로그인 정보에서 사번을 확인할 수 없어 등록할 수 없습니다.',
   saveSuccess: '문서가 등록되었습니다.',
   saveFail: '문서 등록에 실패했습니다.',
 } as const;
@@ -198,6 +200,8 @@ export const MANUAL_REGISTER_TOASTS = {
 /** 약관 등록 유효성 검사 실패 토스트 (COM_공통정의_006 6-B) */
 export const TERMS_REGISTER_TOASTS = {
   missingFile: 'PDF와 CSV 파일을 모두 첨부해 주세요.',
+  /** 등록 API 는 meta.emnb 를 필수로 받는다 — 로그인 컨텍스트에 사번이 없으면 호출 전에 끊는다 */
+  missingEmnb: '로그인 정보에서 사번을 확인할 수 없어 등록할 수 없습니다.',
   saveSuccess: '문서가 등록되었습니다.',
   saveFail: '문서 등록에 실패했습니다.',
 } as const;

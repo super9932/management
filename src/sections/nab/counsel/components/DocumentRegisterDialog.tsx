@@ -29,6 +29,7 @@ import {
 } from '../constant';
 import { checkAttachments, isRestrictedWorkTime, toApiDateTime } from '../lib/document-attachment';
 import { saveManual } from '../../../../api/nab/counsel-backoffice';
+import { toApiErrorMessage, toApiResponseErrorMessage } from '../../../../api/nab/_lib/error';
 import type { AdminTypeCode, ManualClassCode } from '../../../../api/nab/counsel-backoffice';
 import DocumentAlertDialog from './DocumentAlertDialog';
 import DocumentToast from './DocumentToast';
@@ -170,9 +171,18 @@ export default function DocumentRegisterDialog({ open, title, adminType, onClose
   /**
    * 문서 등록 — 등록 API 는 파일 1건당 문서 1건이라 첨부한 수만큼 순차로 올린다.
    * 일부만 실패하면 실패 건수를 알리고 모달을 유지한다.
+   *
+   * 실패 사유는 서버 메시지를 그대로 들고 올라간다. 예전처럼 파일명만 모아 두면
+   * 사번 누락 같은 원인이 '문서 등록에 실패했습니다.' 한 줄로 뭉개져 원인을 찾을 수 없다.
    */
   const saveMutation = useMutation(
     async () => {
+      // emnb 는 등록 API 필수값이라(minLength 1) 비어 있으면 서버가 400 으로 되돌린다.
+      // 로그인 컨텍스트에 사번이 없는 환경을 바로 알 수 있게 호출 전에 끊는다.
+      if (!emnb) {
+        throw new Error(MANUAL_REGISTER_TOASTS.missingEmnb);
+      }
+
       const meta = {
         nabCuslAdmrTypeCode: adminType,
         manlClsfCode: classCode,
@@ -181,27 +191,36 @@ export default function DocumentRegisterDialog({ open, title, adminType, onClose
         ...(noEndDate ? {} : { valdEndDttm: toApiDateTime(endDate, endTime) }),
       };
 
-      const failed: string[] = [];
+      const failed: { name: string; reason: string }[] = [];
 
       for (const file of files) {
         try {
           // eslint-disable-next-line no-await-in-loop
           const response = await saveManual({ file, meta }, emnb);
 
+          // 200 응답에도 error 가 실려 온다 (공통 엔벨로프)
           if (response.error) {
-            failed.push(file.name);
+            failed.push({
+              name: file.name,
+              reason: toApiResponseErrorMessage(response.error, MANUAL_REGISTER_TOASTS.saveFail),
+            });
           }
-        } catch {
-          failed.push(file.name);
+        } catch (uploadError) {
+          failed.push({
+            name: file.name,
+            reason: toApiErrorMessage(uploadError, MANUAL_REGISTER_TOASTS.saveFail),
+          });
         }
       }
 
       if (failed.length > 0) {
-        throw new Error(
-          failed.length === files.length
-            ? MANUAL_REGISTER_TOASTS.saveFail
-            : `${failed.length}건 등록에 실패했습니다. (${failed.join(', ')})`,
-        );
+        // 사유가 한 가지면 한 번만 적는다 (여러 파일이 같은 이유로 실패하는 경우가 대부분)
+        const reasons = Array.from(new Set(failed.map((item) => item.reason)));
+        const summary = failed.length === files.length
+          ? MANUAL_REGISTER_TOASTS.saveFail
+          : `${failed.length}건 등록에 실패했습니다. (${failed.map((item) => item.name).join(', ')})`;
+
+        throw new Error(`${summary} ${reasons.join(' / ')}`);
       }
     },
     {

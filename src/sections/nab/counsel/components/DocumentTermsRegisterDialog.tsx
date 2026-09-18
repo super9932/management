@@ -19,6 +19,7 @@ import {
 } from '../constant';
 import { MAX_ATTACHMENT_SIZE, isRestrictedWorkTime, toBaseName } from '../lib/document-attachment';
 import { saveStipulation } from '../../../../api/nab/counsel-backoffice';
+import { toApiErrorMessage, toApiResponseErrorMessage } from '../../../../api/nab/_lib/error';
 import DocumentAlertDialog from './DocumentAlertDialog';
 import DocumentToast from './DocumentToast';
 import type { DocumentToastSeverity } from './DocumentToast';
@@ -150,10 +151,16 @@ export default function DocumentTermsRegisterDialog({ open, onClose, onSubmit }:
   /** 문서 등록 — 약관은 PDF·CSV 를 한 쌍으로 올린다 */
   const saveMutation = useMutation(
     async ({ pdf, csv }: { pdf: File; csv: File }) => {
+      // emnb 는 등록 API 필수값이라(minLength 1) 비어 있으면 서버가 400 으로 되돌린다
+      if (!emnb) {
+        throw new Error(TERMS_REGISTER_TOASTS.missingEmnb);
+      }
+
       const response = await saveStipulation({ pdfFile: pdf, csvFile: csv }, emnb);
 
+      // 200 응답에도 error 가 실려 온다 — 사유는 error.details 에만 있는 경우가 많다
       if (response.error) {
-        throw new Error(response.error.message ?? TERMS_REGISTER_TOASTS.saveFail);
+        throw new Error(toApiResponseErrorMessage(response.error, TERMS_REGISTER_TOASTS.saveFail));
       }
     },
     {
@@ -164,9 +171,10 @@ export default function DocumentTermsRegisterDialog({ open, onClose, onSubmit }:
         onClose();
       },
       // 실패 시 모달을 유지해 첨부한 파일을 다시 쓸 수 있게 한다
+      // axios 는 4xx 를 상태코드로 먼저 reject 해 서버 메시지가 묻힌다 — 엔벨로프에서 다시 꺼낸다
       onError: (error) => {
         setToast({
-          message: (error as Error)?.message || TERMS_REGISTER_TOASTS.saveFail,
+          message: toApiErrorMessage(error, TERMS_REGISTER_TOASTS.saveFail),
           severity: 'error',
         });
       },

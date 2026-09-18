@@ -1,6 +1,6 @@
 import axiosInstance from '../../../../utils/axios';
 import { NAB_COUNSEL_BACKOFFICE_API } from '../../_lib/path';
-import { withEmnb } from '../../_lib/headers';
+import { META_PART_FILENAME, withEmnb } from '../../_lib/headers';
 
 import type { ApiResponse } from '../types';
 import type { ManualSaveRequest, ManualSaveResponse } from './dto';
@@ -18,7 +18,11 @@ export const saveManual = async ({ file, meta }: ManualSaveRequest, emnb: string
   if (file) formData.append('file', file);
   // 사번도 meta 파트 안에 들어간다 (별도 폼 필드가 아니다)
   const metaWithEmnb = withEmnb(meta, emnb);
-  formData.append('meta', new Blob([JSON.stringify(metaWithEmnb)], { type: 'application/json' }));
+  formData.append(
+    'meta',
+    new Blob([JSON.stringify(metaWithEmnb)], { type: 'application/json' }),
+    META_PART_FILENAME,
+  );
 
   const response = await axiosInstance.post<ApiResponse<ManualSaveResponse>>(url, formData, {
     // axiosInstance 기본 헤더가 application/json 이라 그대로 두면 boundary 가 빠져 서버가 파싱하지 못한다.

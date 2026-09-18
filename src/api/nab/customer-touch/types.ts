@@ -5,10 +5,22 @@
 
 // ── 응답 엔벨로프 ────────────────────────────────────────────────────────────
 
+/**
+ * 검증 실패 상세 한 건.
+ * error.message 는 ' 요청 값이 올바르지 않습니다.' 처럼 공통 문구라 실제 원인은 여기에만 있다
+ * (스테이징 확인: emnb 누락 → details[0] = { field: 'emnb', message: '사번은(는) 필수입니다.' }).
+ */
+export interface ApiErrorDetail {
+  /** 문제가 된 요청 필드명 */
+  field?: string;
+  /** 사용자에게 보여줄 수 있는 사유 */
+  message?: string;
+}
+
 export interface ApiError {
   code?: string;
   message?: string;
-  details?: unknown[];
+  details?: ApiErrorDetail[];
 }
 
 export interface PageInfo {

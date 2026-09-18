@@ -36,7 +36,7 @@ export type AdminTypeCode = 'UDW' | 'ISRN_ADT' | 'ISRN_SVC';
  *
  * - UDW      : ONE_SHET 원시트 / BSWR_MANL 업무매뉴얼
  * - ISRN_ADT : ISRN_UNDN 보험심사
- * - ISRN_SVC : PLAN 기획 / DPST 입금 / RE_OTPY 제지급 / CTCN 계약변경 / CNTR_SUPT 센터지원
+ * - ISRN_SVC : PLAN 기획 / DPST 입금 / RE_OTPY 재지급 / CTCN 계약변경 / CNTR_SUPT 센터지원
  */
 export type ManualClassCode =
   | 'ONE_SHET'

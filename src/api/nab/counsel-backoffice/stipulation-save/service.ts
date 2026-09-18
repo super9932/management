@@ -1,6 +1,6 @@
 import axiosInstance from '../../../../utils/axios';
 import { NAB_COUNSEL_BACKOFFICE_API } from '../../_lib/path';
-import { withEmnb } from '../../_lib/headers';
+import { META_PART_FILENAME, withEmnb } from '../../_lib/headers';
 
 import type { ApiResponse } from '../types';
 import type { StipulationSaveRequest, StipulationSaveResponse } from './dto';
@@ -19,6 +19,7 @@ export const saveStipulation = async ({ pdfFile, csvFile }: StipulationSaveReque
   formData.append(
     'meta',
     new Blob([JSON.stringify(withEmnb({}, emnb))], { type: 'application/json' }),
+    META_PART_FILENAME,
   );
 
   const response = await axiosInstance.post<ApiResponse<StipulationSaveResponse>>(url, formData, {
