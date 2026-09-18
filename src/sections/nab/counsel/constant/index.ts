@@ -86,7 +86,7 @@ export const MANUAL_CLASS_LABEL: Record<ManualClassCode, string> = {
   ISRN_UNDN: '심사',
   PLAN: '기획',
   DPST: '입금',
-  RE_OTPY: '재지급',
+  RE_OTPY: '제지급',
   CTCN: '계약변경',
   CNTR_SUPT: '센터지원',
 };
@@ -100,6 +100,13 @@ export const MANUAL_CLASS_BY_ADMIN_TYPE: Record<AdminTypeCode, ManualClassCode[]
   ISRN_ADT: ['ISRN_UNDN'],
   ISRN_SVC: ['PLAN', 'DPST', 'RE_OTPY', 'CTCN', 'CNTR_SUPT'],
 };
+
+/**
+ * API 분류코드 → 화면 표기. 모르는 코드는 원문 그대로 둔다.
+ * 수정이력처럼 관리주체를 모르는 자리에서도 쓴다.
+ */
+export const manualClassLabel = (code: string): string =>
+  MANUAL_CLASS_LABEL[code as ManualClassCode] ?? code;
 
 /** 분류 필터 옵션 — '전체' + 그 관리주체의 분류 표기 */
 export const manualClassFilterOptions = (adminType: AdminTypeCode): string[] => [

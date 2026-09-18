@@ -2,8 +2,17 @@ import type { PageRequest } from '../types';
 
 /** POST /v1/get/counsel/admin/manual/history/list — 매뉴얼문서수정이력목록조회 */
 
-/** 변경된 속성. 원천 컬럼ID를 그대로 내려주며 화면 라벨 매핑은 FE 가 한다 */
-export type ManualHistoryColumnId = 'VALD_STAR_DTTM' | 'VALD_END_DTTM' | 'MANL_CLSF_CODE';
+/**
+ * 변경된 속성. 원천 컬럼ID를 그대로 내려주며 화면 라벨 매핑은 FE 가 한다.
+ *
+ * ⚠️ 분류 컬럼ID 는 스웨거가 MANL_CLSF_CODE 라고 적어 뒀지만 스테이징 실제 응답은
+ * NAB_MANL_CLSF_CODE 다(문서ID 161 확인). 어느 쪽이 와도 깨지지 않게 둘 다 받는다.
+ */
+export type ManualHistoryColumnId =
+  | 'VALD_STAR_DTTM'
+  | 'VALD_END_DTTM'
+  | 'NAB_MANL_CLSF_CODE'
+  | 'MANL_CLSF_CODE';
 
 export interface ManualHistoryRequest extends PageRequest {
   nabCuslManlDcmtId: number;

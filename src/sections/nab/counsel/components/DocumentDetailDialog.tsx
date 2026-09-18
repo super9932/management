@@ -36,6 +36,7 @@ import {
   MANUAL_CLASS_BY_ADMIN_TYPE,
   MANUAL_CLASS_LABEL,
   MANUAL_STATUS_LABEL,
+  manualClassLabel,
   OPERATION_STATUS_OPTIONS,
   TIME_OPTIONS,
 } from '../constant';
@@ -247,12 +248,19 @@ const detailToForm = (detail: ManualDetailResponse): OperationForm => ({
   noEndDate: detail.valdEndDttm === null,
 });
 
-/** 변경된 속성(원천 컬럼ID) → 화면 라벨. 매핑은 FE 몫이다 */
+/**
+ * 변경된 속성(원천 컬럼ID) → 화면 라벨. 매핑은 FE 몫이다.
+ * 분류는 스웨거(MANL_CLSF_CODE)와 실제 응답(NAB_MANL_CLSF_CODE)이 달라 둘 다 받는다.
+ */
 const HISTORY_COLUMN_LABEL: Record<string, string> = {
   VALD_STAR_DTTM: '반영일자',
   VALD_END_DTTM: '종료일자',
-  MANL_CLSF_CODE: '분류',
+  NAB_MANL_CLSF_CODE: '문서분류',
+  MANL_CLSF_CODE: '문서분류',
 };
+
+/** 값이 일시가 아니라 분류코드로 오는 컬럼 — 한글 표기로 바꿔 보여준다 */
+const CLASS_CODE_COLUMNS = new Set(['NAB_MANL_CLSF_CODE', 'MANL_CLSF_CODE']);
 
 /** 이력 값 'yyyy-MM-dd HH:mm:ss' → 'YYYY.MM.DD HH:MM'. null 은 무기한(미지정) */
 const toHistoryValue = (value: string | null): string => {
@@ -274,7 +282,11 @@ const toHistoryEntries = (items: ManualHistoryItem[]): ReviewHistoryEntry[] => {
 
   items.forEach((item, index) => {
     const key = `${item.aplyDttm}|${item.rgsrNm}`;
-    const change = `${HISTORY_COLUMN_LABEL[item.chngClmnId] ?? item.chngClmnId} : ${toHistoryValue(item.chngBefoVal)} → ${toHistoryValue(item.chngAftrVal)}`;
+    // 분류 이력은 값이 코드('ONE_SHET')라 일시 포맷 대신 한글 표기로 바꾼다
+    const formatValue = CLASS_CODE_COLUMNS.has(item.chngClmnId)
+      ? (value: string | null) => (value ? manualClassLabel(value) : '미지정')
+      : toHistoryValue;
+    const change = `${HISTORY_COLUMN_LABEL[item.chngClmnId] ?? item.chngClmnId} : ${formatValue(item.chngBefoVal)} → ${formatValue(item.chngAftrVal)}`;
     const entry = grouped.get(key);
 
     if (entry) {
@@ -683,19 +695,17 @@ export default function DocumentDetailDialog({
                   InputLabelProps={{ shrink: true }}
                   sx={readOnlyFieldSx}
                 />
-                <FormControl sx={{ flex: 1, ...FIELD_SX }}>
-                  <InputLabel shrink sx={labelSmallSx}>운영상태</InputLabel>
-                  <Select
-                    value={form.operationStatus}
-                    label="운영상태"
-                    onChange={(e) => update('operationStatus', e.target.value as OperationStatus)}
-                    sx={selectFieldSx}
-                  >
-                    {OPERATION_STATUS_OPTIONS.map((opt) => (
-                      <MenuItem key={opt} value={opt}>{opt}</MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
+                {/*
+                  운영상태는 처리상태·유효기간으로 서버가 계산하는 값이라 직접 고를 수 없다.
+                  (수정 API 도 받지 않는다) 문서번호와 같은 읽기전용 표기로 둔다.
+                */}
+                <TextField
+                  label="운영상태"
+                  value={form.operationStatus}
+                  disabled
+                  InputLabelProps={{ shrink: true }}
+                  sx={readOnlyFieldSx}
+                />
               </Box>
 
               <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
