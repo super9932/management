@@ -185,11 +185,12 @@ export default function DocumentTable({
                   />
                 </TableCell>
                 <TableCell align="center" sx={{ ...bodyCellSx, whiteSpace: 'nowrap' }}>{row.no.toLocaleString()}</TableCell>
-                <TableCell align="center" sx={{ ...bodyCellSx, width: PRODUCT_CODE_WIDTH, maxWidth: PRODUCT_CODE_WIDTH }}>
+                {/* 보종코드는 여러 개가 실려 길어진다 — 두 줄까지 왼쪽으로 흘리고 넘치면 말줄임(툴팁) */}
+                <TableCell align="left" sx={{ ...bodyCellSx, width: PRODUCT_CODE_WIDTH, maxWidth: PRODUCT_CODE_WIDTH }}>
                   <EllipsisText
                     text={row.productCodes}
                     maxWidth={PRODUCT_CODE_WIDTH - CELL_PADDING_X}
-                    align="center"
+                    lines={2}
                   />
                 </TableCell>
                 {/* 판매기간 — 시작일에 물결을 붙이고, 종료일이 없으면 아랫줄을 아예 그리지 않는다 */}

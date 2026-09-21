@@ -16,8 +16,9 @@ export const NAB_CUSTOMER_TOUCH_API = {
   // ── 고객터치AI · 관리자 · 서비스통계(일자별 큐브) ───────────────────────────
   statsMessageDaily: withBase('/v1/get/customer/admin/touch/stats/message/daily'),
   statsSearchDaily: withBase('/v1/get/customer/admin/touch/stats/search/daily'),
-  statsMessageExcel: withBase('/v1/post/customer/admin/touch/stats/message/excel'),
-  statsSearchExcel: withBase('/v1/post/customer/admin/touch/stats/search/excel'),
+  // 앞단이 바이너리 응답을 file/download 패턴 경로에서만 내보낸다 (종전 /stats/*/excel 은 404)
+  statsMessageExcel: withBase('/v1/post/customer/admin/touch/stats/message/file/download/excel'),
+  statsSearchExcel: withBase('/v1/post/customer/admin/touch/stats/search/file/download/excel'),
 
   // ── 고객터치AI · 관리자 · 프롬프트 ─────────────────────────────────────────
   promptCreate: withBase('/v1/post/customer/admin/touch/message/prompt'),
@@ -40,12 +41,15 @@ export type NabCustomerTouchApiKey = keyof typeof NAB_CUSTOMER_TOUCH_API;
 export const NAB_COUNSEL_BACKOFFICE_API = {
   // ── 상담AI · 백오피스 · 통계 ───────────────────────────────────────────────
   statsMessageList: withBase('/v1/get/counsel/admin/statistics/message/list'),
-  statsMessageExcel: withBase('/v1/get/counsel/admin/statistics/message/excel'),
+  // 앞단이 바이너리 응답을 file/download 패턴 경로에서만 내보낸다 (종전 /statistics/message/excel 은 404)
+  statsMessageExcel: withBase('/v1/get/counsel/admin/statistics/message/file/download/excel'),
 
   // ── 상담AI · 백오피스 · 매뉴얼 ─────────────────────────────────────────────
   manualList: withBase('/v1/get/counsel/admin/manual/list'),
   manualDetail: withBase('/v1/get/counsel/admin/manual/detail'),
   manualHistoryList: withBase('/v1/get/counsel/admin/manual/history/list'),
+  // 분류 원장은 서버 enum 이라 요청 본문이 없다 — 관리주체별 분류는 FE 가 걸러 쓴다
+  manualClsfList: withBase('/v1/get/counsel/admin/manual/clsf/list'),
   // 앞단이 멀티파트를 file/upload 패턴 경로에서만 받는다 (종전 /manual/save 는 전환 기간 한정)
   manualSave: withBase('/v1/post/counsel/admin/manual/file/upload/save'),
   manualUpdate: withBase('/v1/post/counsel/admin/manual/update'),

@@ -5,6 +5,7 @@ import { statsExcelHandlers } from './stats-excel/mock';
 import { manualListHandlers } from './manual-list/mock';
 import { manualDetailHandlers } from './manual-detail/mock';
 import { manualHistoryHandlers } from './manual-history/mock';
+import { manualClsfListHandlers } from './manual-clsf-list/mock';
 import { manualSaveHandlers } from './manual-save/mock';
 import { manualUpdateHandlers } from './manual-update/mock';
 import { manualDeleteHandlers } from './manual-delete/mock';
@@ -24,6 +25,7 @@ export const counselBackofficeHandlers = [
   ...manualListHandlers,
   ...manualDetailHandlers,
   ...manualHistoryHandlers,
+  ...manualClsfListHandlers,
   ...manualSaveHandlers,
   ...manualUpdateHandlers,
   ...manualDeleteHandlers,

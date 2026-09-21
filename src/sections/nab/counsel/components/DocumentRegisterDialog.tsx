@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useMutation, useQueryClient } from 'react-query';
 import {
   Box,
@@ -21,13 +21,12 @@ import { DARK, DISABLED, DIVIDER, FIELD_SX, PRIMARY_ORANGE, SECONDARY } from '..
 import {
   DOCUMENT_ACCEPT,
   DOCUMENT_ALERTS,
-  MANUAL_CLASS_BY_ADMIN_TYPE,
-  MANUAL_CLASS_LABEL,
   MANUAL_REGISTER_TOASTS,
   TIME_OPTIONS,
   tomorrowInputDate,
 } from '../constant';
 import { checkAttachments, isRestrictedWorkTime, toApiDateTime } from '../lib/document-attachment';
+import { useManualClasses } from '../hooks/use-manual-classes';
 import { saveManual } from '../../../../api/nab/counsel-backoffice';
 import { toApiErrorMessage, toApiResponseErrorMessage } from '../../../../api/nab/_lib/error';
 import type { AdminTypeCode, ManualClassCode } from '../../../../api/nab/counsel-backoffice';
@@ -93,8 +92,15 @@ export default function DocumentRegisterDialog({ open, title, adminType, onClose
   const [files, setFiles] = useState<File[]>([]);
   const [dragOver, setDragOver] = useState(false);
   // 분류는 관리주체 하위 값이라 관리주체마다 후보가 다르다 (등록 API 필수값)
-  const classOptions = MANUAL_CLASS_BY_ADMIN_TYPE[adminType];
-  const [classCode, setClassCode] = useState<ManualClassCode>(classOptions[0]);
+  const { codes: classOptions, label: classLabel } = useManualClasses(adminType);
+  const [classCode, setClassCode] = useState<ManualClassCode | ''>('');
+
+  // 분류 목록이 도착하면 첫 후보를 기본값으로 세운다 (셀렉트가 빈 채로 열리지 않게)
+  useEffect(() => {
+    if (!classCode && classOptions.length > 0) {
+      setClassCode(classOptions[0] ?? '');
+    }
+  }, [classOptions, classCode]);
   const [alert, setAlert] = useState<AlertKey | null>(null);
   const [toast, setToast] = useState<{ message: string; severity: DocumentToastSeverity }>({
     message: '',
@@ -146,7 +152,7 @@ export default function DocumentRegisterDialog({ open, title, adminType, onClose
     setEndDate(INITIAL_SCHEDULE.endDate);
     setEndTime(INITIAL_SCHEDULE.endTime);
     setNoEndDate(INITIAL_SCHEDULE.noEndDate);
-    setClassCode(classOptions[0]);
+    setClassCode(classOptions[0] ?? '');
   };
 
   const handleRemove = (target: File) => {
@@ -181,6 +187,10 @@ export default function DocumentRegisterDialog({ open, title, adminType, onClose
       // 로그인 컨텍스트에 사번이 없는 환경을 바로 알 수 있게 호출 전에 끊는다.
       if (!emnb) {
         throw new Error(MANUAL_REGISTER_TOASTS.missingEmnb);
+      }
+
+      if (!classCode) {
+        throw new Error('분류를 선택해주세요.');
       }
 
       const meta = {
@@ -323,7 +333,7 @@ export default function DocumentRegisterDialog({ open, title, adminType, onClose
               sx={selectFieldSx}
             >
               {classOptions.map((code) => (
-                <MenuItem key={code} value={code}>{MANUAL_CLASS_LABEL[code]}</MenuItem>
+                <MenuItem key={code} value={code}>{classLabel(code)}</MenuItem>
               ))}
             </Select>
           </FormControl>

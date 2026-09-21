@@ -14,18 +14,25 @@ interface Props {
   /** 내용 영역 최대 폭(px) — 컬럼 폭에서 셀 좌우 여백을 뺀 값 */
   maxWidth: number;
   align?: 'left' | 'center';
+  /** 최대 줄 수 (기본 1). 2 이상이면 그 줄까지 흘려 쓰고 넘치면 말줄임한다 */
+  lines?: number;
 }
 
-export default function EllipsisText({ text, maxWidth, align = 'left' }: Props) {
+export default function EllipsisText({ text, maxWidth, align = 'left', lines = 1 }: Props) {
   const ref = useRef<HTMLElement>(null);
   const [truncated, setTruncated] = useState(false);
 
   // 실제로 잘린 칸에만 툴팁을 붙인다 — 다 보이는 값까지 툴팁이 뜨면 방해가 된다
   useLayoutEffect(() => {
     const el = ref.current;
+    if (!el) {
+      setTruncated(false);
+      return;
+    }
 
-    setTruncated(el ? el.scrollWidth > el.clientWidth : false);
-  }, [text, maxWidth]);
+    // 한 줄은 가로로, 여러 줄은 세로로 넘친다
+    setTruncated(lines > 1 ? el.scrollHeight > el.clientHeight : el.scrollWidth > el.clientWidth);
+  }, [text, maxWidth, lines]);
 
   return (
     <Tooltip
@@ -53,9 +60,19 @@ export default function EllipsisText({ text, maxWidth, align = 'left' }: Props) 
           maxWidth,
           overflow: 'hidden',
           textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
           // 셀보다 좁아졌을 때도 가운데 정렬을 유지한다
           mx: align === 'center' ? 'auto' : 0,
+          ...(lines > 1
+            // 여러 줄 말줄임은 line-clamp 로만 된다 (textOverflow 는 한 줄 전용)
+            ? {
+              display: '-webkit-box',
+              WebkitBoxOrient: 'vertical',
+              WebkitLineClamp: lines,
+              whiteSpace: 'normal',
+              // 구분자 없이 길게 이어진 값도 칸 안에서 접히게 한다
+              wordBreak: 'break-word',
+            }
+            : { whiteSpace: 'nowrap' }),
         }}
       >
         {text}

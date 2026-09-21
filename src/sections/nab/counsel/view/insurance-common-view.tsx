@@ -18,7 +18,6 @@ import DocumentPagination from '../components/DocumentPagination';
 import {
   MANUAL_ADMIN_TYPE,
   MANUAL_OPERATION_FILTER_OPTIONS,
-  manualClassFilterOptions,
 } from '../constant';
 import { useManualDocuments } from '../hooks/use-manual-documents';
 import { DOCUMENT_ALERTS, DOCUMENT_DETAIL_TOASTS } from '../constant';
@@ -32,7 +31,7 @@ function InsuranceCommonViewInner() {
   const {
     fromDate, setFromDate,
     toDate, setToDate,
-    classFilter, setClassFilter,
+    classFilter, setClassFilter, classFilterOptions,
     operationFilter, setOperationFilter,
     searchType, setSearchType,
     searchText, setSearchText,
@@ -98,7 +97,7 @@ function InsuranceCommonViewInner() {
           operationFilterOptions={MANUAL_OPERATION_FILTER_OPTIONS}
           singleRow
           showClassFilter
-          classFilterOptions={manualClassFilterOptions(MANUAL_ADMIN_TYPE.insuranceCommon)}
+          classFilterOptions={classFilterOptions}
           classFilter={classFilter}
           onClassFilterChange={setClassFilter}
           showSearchType={false}

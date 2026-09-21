@@ -79,7 +79,13 @@ export const MANUAL_STATUS_LABEL: Record<ManualStatus, OperationStatus> = {
 export const MANUAL_SEARCH_TYPE_OPTIONS = ['문서명'] as const;
 
 // ── 매뉴얼 분류 ──────────────────────────────────────────────────────────────
-/** API 분류코드 → 화면 표기 */
+/**
+ * 분류 원장은 서버(매뉴얼분류전체목록조회)가 갖고 있고 화면은 useManualClasses 로 받아 쓴다.
+ * 아래 두 상수는 그 응답이 오기 전·실패했을 때 셀렉트가 비지 않도록 쓰는 대비값이다.
+ * 표기가 서버와 다르면 서버 쪽이 맞다.
+ */
+
+/** API 분류코드 → 화면 표기 (대비값) */
 export const MANUAL_CLASS_LABEL: Record<ManualClassCode, string> = {
   ONE_SHET: '원시트',
   BSWR_MANL: '업무매뉴얼',
@@ -92,34 +98,14 @@ export const MANUAL_CLASS_LABEL: Record<ManualClassCode, string> = {
 };
 
 /**
- * 관리주체별 선택 가능한 분류.
- * 관리주체에 속하지 않는 코드를 보내면 서버가 거절하므로 셀렉트 후보를 여기서 좁힌다.
+ * 관리주체별 선택 가능한 분류 (대비값).
+ * 관리주체에 속하지 않는 코드를 보내면 서버가 거절하므로 셀렉트 후보를 좁혀 둔다.
  */
 export const MANUAL_CLASS_BY_ADMIN_TYPE: Record<AdminTypeCode, ManualClassCode[]> = {
   UDW: ['ONE_SHET', 'BSWR_MANL'],
   ISRN_ADT: ['ISRN_UNDN'],
   ISRN_SVC: ['PLAN', 'DPST', 'RE_OTPY', 'CTCN', 'CNTR_SUPT'],
 };
-
-/**
- * API 분류코드 → 화면 표기. 모르는 코드는 원문 그대로 둔다.
- * 수정이력처럼 관리주체를 모르는 자리에서도 쓴다.
- */
-export const manualClassLabel = (code: string): string =>
-  MANUAL_CLASS_LABEL[code as ManualClassCode] ?? code;
-
-/** 분류 필터 옵션 — '전체' + 그 관리주체의 분류 표기 */
-export const manualClassFilterOptions = (adminType: AdminTypeCode): string[] => [
-  '전체',
-  ...MANUAL_CLASS_BY_ADMIN_TYPE[adminType].map((code) => MANUAL_CLASS_LABEL[code]),
-];
-
-/** 화면 표기 → API 분류코드 ('전체'는 미전송) */
-export const manualClassCode = (
-  adminType: AdminTypeCode,
-  label: string,
-): ManualClassCode | undefined =>
-  MANUAL_CLASS_BY_ADMIN_TYPE[adminType].find((code) => MANUAL_CLASS_LABEL[code] === label);
 
 /** 약관 검색기준 — API에 '전체' 옵션이 없다 */
 export const TERMS_SEARCH_TYPE_OPTIONS = ['문서명', '보종코드'] as const;

@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from 'react-query';
 import { deleteManual, getManualList } from '../../../../api/nab/counsel-backoffice';
 import type {
   AdminTypeCode,
+  ManualClassCode,
   ManualItem,
   ManualListRequest,
   ManualSortBy,
@@ -11,13 +12,13 @@ import type {
 } from '../../../../api/nab/counsel-backoffice';
 import {
   DOCUMENT_DETAIL_TOASTS,
-  MANUAL_CLASS_LABEL,
   MANUAL_STATUS_CODE,
   MANUAL_STATUS_LABEL,
   PAGE_SIZE,
-  manualClassCode,
   defaultSearchPeriod,
 } from '../constant';
+import { useManualClasses } from './use-manual-classes';
+import type { ManualClasses } from './use-manual-classes';
 import type { UnderwritingManualRow } from '../type';
 import { useAuthContext } from 'src/auth/hooks';
 
@@ -74,12 +75,13 @@ const toListRequest = (
   sort: AppliedSort,
   page: number,
   size: number,
+  toClassCode: (label: string) => ManualClassCode | undefined,
 ): ManualListRequest => ({
   nabCuslAdmrTypeCode: adminType,
   rgstDttmFrom: toApiDate(filter.fromDate),
   rgstDttmTo: toApiDate(filter.toDate),
   // '전체'면 undefined 라 조건이 빠진다
-  manlClsfCode: manualClassCode(adminType, filter.classFilter),
+  manlClsfCode: toClassCode(filter.classFilter),
   status: MANUAL_STATUS_CODE[filter.operationFilter],
   keyword: filter.keyword.trim() || undefined,
   sortBy: sort.sortBy,
@@ -94,11 +96,14 @@ const toListRequest = (
  * 반환 타입에 category가 있어 언더라이팅 문서 표에 그대로 쓰고,
  * 보험심사·보험공통 표에는 category 없는 타입으로 전달돼도 문제 없다.
  */
-const toManualRow = (item: ManualItem): UnderwritingManualRow => ({
+const toManualRow = (
+  item: ManualItem,
+  classLabel: (code: string) => string,
+): UnderwritingManualRow => ({
   id: item.nabCuslManlDcmtId,
   no: item.nabCuslManlDcmtId,
   // 분류 도입 이전 등록분은 manlClsfCode 가 null 로 내려온다
-  category: item.manlClsfCode ? MANUAL_CLASS_LABEL[item.manlClsfCode] : '-',
+  category: item.manlClsfCode ? classLabel(item.manlClsfCode) : '-',
   documentName: item.manlNm,
   registrantName: item.rgsrNm,
   registrantDept: item.rgstOrgnNm,
@@ -114,15 +119,18 @@ const fetchManuals = async (
   sort: AppliedSort,
   page: number,
   size: number,
+  classes: ManualClasses,
 ) => {
-  const response = await getManualList(toListRequest(adminType, filter, sort, page, size));
+  const response = await getManualList(
+    toListRequest(adminType, filter, sort, page, size, classes.toCode),
+  );
 
   if (response.error) {
     throw new Error(response.error.message ?? '문서 목록 조회에 실패했습니다.');
   }
 
   return {
-    rows: (response.data?.manlDocList ?? []).map(toManualRow),
+    rows: (response.data?.manlDocList ?? []).map((item) => toManualRow(item, classes.label)),
     // 페이징 정보는 본문이 아니라 공통 엔벨로프의 page 필드에 담긴다
     totalElements: response.page?.totalElements ?? 0,
     totalPages: response.page?.totalPages ?? 0,
@@ -131,6 +139,8 @@ const fetchManuals = async (
 
 /** 세 화면이 공유하는 목록 조회 상태 — 필터 입력값·조회 조건·페이지·선택을 함께 관리한다 */
 export function useManualDocuments(adminType: AdminTypeCode) {
+  // 분류 표기·코드는 서버 목록에서 온다 (관리주체로 좁힌 값)
+  const classes = useManualClasses(adminType);
   const [fromDate, setFromDate] = useState(DEFAULT_FILTER.fromDate);
   const [toDate, setToDate] = useState(DEFAULT_FILTER.toDate);
   const [classFilter, setClassFilter] = useState(DEFAULT_FILTER.classFilter);
@@ -145,8 +155,9 @@ export function useManualDocuments(adminType: AdminTypeCode) {
 
   const { data, isFetching, isError, error, refetch } = useQuery(
     ['nab', 'counsel-backoffice', 'manual-list', adminType, appliedFilter, sort, page, pageSize],
-    () => fetchManuals(adminType, appliedFilter, sort, page, pageSize),
-    { keepPreviousData: true },
+    () => fetchManuals(adminType, appliedFilter, sort, page, pageSize, classes),
+    // 분류 목록이 도착하기 전에는 하드코딩 표기로 그리다가, 오면 그 표기로 다시 매핑한다
+    { keepPreviousData: true, enabled: !classes.isLoading },
   );
 
   const rows = data?.rows ?? [];
@@ -228,6 +239,8 @@ export function useManualDocuments(adminType: AdminTypeCode) {
     fromDate, setFromDate,
     toDate, setToDate,
     classFilter, setClassFilter,
+    /** 분류 셀렉트 옵션 — 이 관리주체의 분류만 서버 목록에서 추린 것 */
+    classFilterOptions: classes.filterOptions,
     operationFilter, setOperationFilter,
     searchType, setSearchType,
     searchText, setSearchText,

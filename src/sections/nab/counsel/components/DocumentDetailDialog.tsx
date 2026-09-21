@@ -33,13 +33,11 @@ import {
 import {
   DOCUMENT_ALERTS,
   DOCUMENT_DETAIL_TOASTS,
-  MANUAL_CLASS_BY_ADMIN_TYPE,
-  MANUAL_CLASS_LABEL,
   MANUAL_STATUS_LABEL,
-  manualClassLabel,
   OPERATION_STATUS_OPTIONS,
   TIME_OPTIONS,
 } from '../constant';
+import { useManualClasses } from '../hooks/use-manual-classes';
 import { isRestrictedWorkTime, toApiDateTime } from '../lib/document-attachment';
 import DocumentAlertDialog from './DocumentAlertDialog';
 import DocumentToast from './DocumentToast';
@@ -277,14 +275,17 @@ const toHistoryValue = (value: string | null): string => {
  * API 는 변경된 속성마다 한 행이라, 한 번의 수정(=같은 적용일시)이 여러 행으로 나뉜다.
  * 화면은 수정 단위로 접히므로 적용일시 기준으로 모으고 최신순으로 정렬한다.
  */
-const toHistoryEntries = (items: ManualHistoryItem[]): ReviewHistoryEntry[] => {
+const toHistoryEntries = (
+  items: ManualHistoryItem[],
+  classLabel: (code: string) => string,
+): ReviewHistoryEntry[] => {
   const grouped = new Map<string, ReviewHistoryEntry>();
 
   items.forEach((item, index) => {
     const key = `${item.aplyDttm}|${item.rgsrNm}`;
     // 분류 이력은 값이 코드('ONE_SHET')라 일시 포맷 대신 한글 표기로 바꾼다
     const formatValue = CLASS_CODE_COLUMNS.has(item.chngClmnId)
-      ? (value: string | null) => (value ? manualClassLabel(value) : '미지정')
+      ? (value: string | null) => (value ? classLabel(value) : '미지정')
       : toHistoryValue;
     const change = `${HISTORY_COLUMN_LABEL[item.chngClmnId] ?? item.chngClmnId} : ${formatValue(item.chngBefoVal)} → ${formatValue(item.chngAftrVal)}`;
     const entry = grouped.get(key);
@@ -297,8 +298,7 @@ const toHistoryEntries = (items: ManualHistoryItem[]): ReviewHistoryEntry[] => {
     grouped.set(key, {
       id: index,
       changedAt: toHistoryValue(item.aplyDttm),
-      // TODO: 목록 API 가 수정자 사번을 주지 않아 이름만 노출한다(스펙은 '이름(사번)').
-      editor: item.rgsrNm,
+      editor: toPersonLabel(item.rgsrNm, item.chnrEmnb),
       changes: [change],
     });
   });
@@ -390,9 +390,9 @@ export default function DocumentDetailDialog({
   }, [detail]);
 
   // 분류 후보는 문서의 관리주체 하위로 좁힌다. 상세 도착 전에는 비워 둔다.
-  const classOptions = detail?.nabCuslAdmrTypeCode
-    ? MANUAL_CLASS_BY_ADMIN_TYPE[detail.nabCuslAdmrTypeCode]
-    : [];
+  const { codes: classOptions, label: classLabel } = useManualClasses(
+    detail?.nabCuslAdmrTypeCode ?? undefined,
+  );
 
   // 쓰기 API 는 작업자 사번을 요청 본문 emnb 필드로 받는다
   const { user } = useAuthContext();
@@ -505,7 +505,10 @@ export default function DocumentDetailDialog({
     { enabled: open && row !== null },
   );
 
-  const history = useMemo(() => toHistoryEntries(historyItems ?? []), [historyItems]);
+  const history = useMemo(
+    () => toHistoryEntries(historyItems ?? [], classLabel),
+    [historyItems, classLabel],
+  );
 
   // 팝업이 닫힌 뒤에도 토스트는 남아야 해서, 본문만 조건부로 렌더한다.
   if (!row || !form || !baseline) {
@@ -783,7 +786,7 @@ export default function DocumentDetailDialog({
                   {/* 분류 도입 이전 등록분은 값이 없다 — 고를 수는 없고 표시만 한다 */}
                   <MenuItem value="" disabled>미지정</MenuItem>
                   {classOptions.map((code) => (
-                    <MenuItem key={code} value={code}>{MANUAL_CLASS_LABEL[code]}</MenuItem>
+                    <MenuItem key={code} value={code}>{classLabel(code)}</MenuItem>
                   ))}
                 </Select>
               </FormControl>

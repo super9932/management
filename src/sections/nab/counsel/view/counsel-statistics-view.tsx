@@ -20,10 +20,10 @@ import StatisticsTable from '../components/StatisticsTable';
 import DocumentPagination from '../components/DocumentPagination';
 import DocumentToast from '../components/DocumentToast';
 import type { DocumentToastSeverity } from '../components/DocumentToast';
+import { useManualClasses } from '../hooks/use-manual-classes';
 import {
   COUNSEL_SCREEN_LABEL,
   MANUAL_ADMIN_TYPE_LABEL,
-  MANUAL_CLASS_LABEL,
   PAGE_SIZE,
   STATISTICS_TOASTS,
 } from '../constant';
@@ -124,7 +124,11 @@ const toListRequest = (filter: AppliedFilter, page: number, size: number): MsgeS
 });
 
 /** 통계 API 항목을 화면 행으로 옮긴다 */
-const toStatisticsRow = (item: MsgeStatItem, index: number): StatisticsRow => {
+const toStatisticsRow = (
+  item: MsgeStatItem,
+  index: number,
+  classLabel: (code: string) => string,
+): StatisticsRow => {
   // 참조 문서는 배열이라 컬럼 3개(담당부서·분류·문서명)가 같은 목록을 나눠 쓴다
   const manualDocs = item.manlDocList ?? [];
 
@@ -146,7 +150,7 @@ const toStatisticsRow = (item: MsgeStatItem, index: number): StatisticsRow => {
         ? MANUAL_ADMIN_TYPE_LABEL[doc.nabCuslAdmrTypeCode] ?? doc.nabCuslAdmrTypeCode
         : null),
     manualClass: joinManualField(manualDocs, (doc) =>
-      doc.manlClsfCode ? MANUAL_CLASS_LABEL[doc.manlClsfCode] ?? doc.manlClsfCode : null),
+      doc.manlClsfCode ? classLabel(doc.manlClsfCode) : null),
     documentName: joinManualField(manualDocs, (doc) => doc.manlNm),
     code: orDash(item.rcmdQustId),
     question: item.qustCntn,
@@ -159,7 +163,12 @@ const toStatisticsRow = (item: MsgeStatItem, index: number): StatisticsRow => {
   };
 };
 
-const fetchStatistics = async (filter: AppliedFilter, page: number, size: number) => {
+const fetchStatistics = async (
+  filter: AppliedFilter,
+  page: number,
+  size: number,
+  classLabel: (code: string) => string,
+) => {
   const response = await getMsgeStatList(toListRequest(filter, page, size));
 
   if (response.error) {
@@ -167,7 +176,8 @@ const fetchStatistics = async (filter: AppliedFilter, page: number, size: number
   }
 
   return {
-    rows: (response.data?.msgeStatList ?? []).map(toStatisticsRow),
+    rows: (response.data?.msgeStatList ?? []).map((item, index) =>
+      toStatisticsRow(item, index, classLabel)),
     // 페이징 정보는 본문이 아니라 공통 엔벨로프의 page 필드에 담긴다
     totalElements: response.page?.totalElements ?? 0,
     totalPages: response.page?.totalPages ?? 0,
@@ -185,10 +195,13 @@ function CounselStatisticsViewInner() {
     severity: 'success',
   });
 
+  // 참조 문서의 분류 표기는 서버 분류 목록에서 가져온다 (관리주체를 가리지 않고 전체)
+  const { label: classLabel, isLoading: isClassLoading } = useManualClasses();
+
   const { data, isError, error, refetch } = useQuery(
     ['nab', 'counsel-backoffice', 'statistics-message-list', appliedFilter, page, pageSize],
-    () => fetchStatistics(appliedFilter, page, pageSize),
-    { keepPreviousData: true },
+    () => fetchStatistics(appliedFilter, page, pageSize, classLabel),
+    { keepPreviousData: true, enabled: !isClassLoading },
   );
 
   const rows = data?.rows ?? [];

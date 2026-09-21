@@ -11,6 +11,7 @@ const history: ManualHistoryItem[] = [
     chngAftrVal: '2026-09-01 00:00:00',
     rgstOrgnNm: '언더라이팅팀',
     rgsrNm: '김한화',
+    chnrEmnb: '2190099',
     aplyDttm: '2026-07-27 14:00:00',
   },
   {
@@ -20,6 +21,7 @@ const history: ManualHistoryItem[] = [
     chngAftrVal: null,
     rgstOrgnNm: '언더라이팅팀',
     rgsrNm: '이생명',
+    chnrEmnb: '2220258',
     aplyDttm: '2026-07-20 09:10:00',
   },
 ];
