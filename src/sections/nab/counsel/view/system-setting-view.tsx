@@ -143,8 +143,8 @@ function SystemSettingViewInner() {
       {/* Breadcrumb + Title */}
       <Box sx={{ mb: 5, pt: 3 }}>
         <Breadcrumbs separator={<NavigateNextIcon sx={{ fontSize: 14 }} />} sx={{ mb: 1 }}>
-          <Typography sx={{ fontSize: 14, color: DARK, cursor: 'pointer' }}>FP 비서</Typography>
-          <Typography sx={{ fontSize: 14, color: DARK, cursor: 'pointer' }}>상담 Plus AI</Typography>
+          <Typography sx={{ fontSize: 14, color: DARK, cursor: 'pointer' }}>FP AI 비서관리</Typography>
+          <Typography sx={{ fontSize: 14, color: DARK, cursor: 'pointer' }}>상담AI</Typography>
           <Typography sx={{ fontSize: 14, color: DISABLED }}>시스템 설정</Typography>
         </Breadcrumbs>
         <Typography variant="h4" sx={{ fontWeight: 700, color: DARK, fontSize: 24 }}>

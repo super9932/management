@@ -84,7 +84,7 @@ export interface UnderwritingManualRow {
   operationStatus: OperationStatus;
 }
 
-// 상담 Plus AI 통계 관리 테이블 행 (넓은 통계 테이블)
+// 상담AI 통계 관리 테이블 행 (넓은 통계 테이블)
 export interface StatisticsRow {
   id: number;
   /** 일시 */

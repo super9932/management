@@ -380,8 +380,8 @@ function PromptManagementViewInner() {
       {/* Breadcrumb + Title */}
       <Box sx={{ mb: 5, pt: 3 }}>
         <Breadcrumbs separator={<NavigateNextIcon sx={{ fontSize: 14 }} />} sx={{ mb: 1 }}>
-          <Typography sx={{ fontSize: 14, color: DARK, cursor: 'pointer' }}>AI 비서</Typography>
-          <Typography sx={{ fontSize: 14, color: DARK, cursor: 'pointer' }}>고객 Plus AI 관리</Typography>
+          <Typography sx={{ fontSize: 14, color: DARK, cursor: 'pointer' }}>FP AI 비서관리</Typography>
+          <Typography sx={{ fontSize: 14, color: DARK, cursor: 'pointer' }}>고객AI</Typography>
           <Typography sx={{ fontSize: 14, color: DISABLED }}>프롬프트 관리</Typography>
         </Breadcrumbs>
         <Typography variant="h4" sx={{ fontWeight: 700, color: DARK, fontSize: 24 }}>

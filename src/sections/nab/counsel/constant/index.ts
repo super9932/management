@@ -146,7 +146,7 @@ export const RESTRICTED_WORK_HOUR_END = 24;
 /** 보험공통 문서 관리 부서 */
 export const COMMON_MANAGING_DEPT = '보험서비스팀';
 
-// ---------------------------------------------------------------- 상담 Plus AI 통계
+// ---------------------------------------------------------------- 상담AI 통계
 /** 화면 구분 코드 → 표시명 (통계 API 는 코드만 내려주고 변환은 FE 몫) */
 export const COUNSEL_SCREEN_LABEL: Record<string, string> = {
   '01': '타겟고객발굴',

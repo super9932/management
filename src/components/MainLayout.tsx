@@ -20,10 +20,10 @@ function buildNavSections(pathname: string): NavSection[] {
   const isActive = (path: string) => pathname === path;
   return [
     {
-      header: 'AI 비서',
+      header: 'FP AI 비서관리',
       items: [
         {
-          label: '고객 Plus AI 관리',
+          label: '고객AI',
           defaultExpanded: true,
           children: [
             { label: '서비스 관리', icon: <DescriptionOutlinedIcon sx={{ fontSize: 20 }} />, active: isActive('/service-management'), disabled: false, path: '/service-management' },
@@ -32,7 +32,7 @@ function buildNavSections(pathname: string): NavSection[] {
           ],
         },
         {
-          label: '상담 Plus AI',
+          label: '상담AI',
           defaultExpanded: true,
           children: [
             { label: '통계 관리', icon: <BarChartOutlinedIcon sx={{ fontSize: 20 }} />, active: isActive('/counsel-statistics'), disabled: false, path: '/counsel-statistics' },
@@ -46,7 +46,7 @@ function buildNavSections(pathname: string): NavSection[] {
             { label: '시스템 설정', icon: <SettingsIcon sx={{ fontSize: 20 }} />, active: isActive('/system-setting'), disabled: false, path: '/system-setting' },
           ],
         },
-        { label: '세일즈 Plus AI', children: [] },
+        { label: '세일즈AI', children: [] },
       ],
     },
   ];
