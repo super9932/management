@@ -11,10 +11,17 @@ export const killSwitchDetailHandlers = [
     const found = killSwitches.find((k) => k.featureCode === body.featureCode);
 
     if (!found) {
+      // 미등록 기능코드는 HTTP 200 + error 봉투다
       return HttpResponse.json({
-        error: { code: 'KS_NOT_FOUND', message: '존재하지 않는 기능코드입니다.' },
+        isSuccess: true,
+        data: null,
+        error: {
+          code: 'nxl-nab-ks-erro-001',
+          message: '해당 기능의 Kill-Switch 정보를 찾을 수 없습니다.',
+          details: [],
+        },
       });
     }
-    return HttpResponse.json({ data: { killSwitch: found }, message: 'OK' });
+    return HttpResponse.json({ data: { killSwitch: found }, isSuccess: true, message: null });
   }),
 ];

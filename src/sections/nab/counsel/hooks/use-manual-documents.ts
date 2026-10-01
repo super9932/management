@@ -105,7 +105,8 @@ const toManualRow = (
   // 분류 도입 이전 등록분은 manlClsfCode 가 null 로 내려온다
   category: item.manlClsfCode ? classLabel(item.manlClsfCode) : '-',
   documentName: item.manlNm,
-  registrantName: item.rgsrNm,
+  // '이름(사번)' 형식 (COM_공통정의_003 6-A/7-A)
+  registrantName: item.rgsrEmnb ? `${item.rgsrNm}(${item.rgsrEmnb})` : item.rgsrNm,
   registrantDept: item.rgstOrgnNm,
   registeredAt: toDisplayDate(item.rgstDttm),
   effectiveStart: toDisplayDateTime(item.valdStarDttm),

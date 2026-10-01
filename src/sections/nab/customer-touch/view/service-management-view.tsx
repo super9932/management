@@ -53,7 +53,7 @@ const fetchToggles = async (): Promise<ServiceToggleState> => {
  *
  * save는 부분 수정이 아니라 전량 교체라, 두 값을 빼고 보내면 서버에 있던 설명이 null로 지워진다.
  * check 응답은 on/off 불리언뿐이라 여기서 변경된 기능만 detail로 원본을 읽어 그대로 되돌려 보낸다.
- * 미등록 기능이면(404) 화면 라벨로 새로 만든다.
+ * 미등록 기능이면(HTTP 200 + error 봉투 nxl-nab-ks-erro-001) 화면 라벨로 새로 만든다.
  */
 const fetchSaveMeta = async (code: ServiceFeatureCode) => {
   try {

@@ -16,7 +16,6 @@ export const stipulationDetailHandlers = [
         ...found,
         pdfDcmtUrlPathNm: `https://object-storage.mock.hanwhalife.com/counsel/stpl/${found.nabCuslIsrnStplDcmtId}.pdf?mock=true`,
         csvDcmtUrlPathNm: `https://object-storage.mock.hanwhalife.com/counsel/stpl/${found.nabCuslIsrnStplDcmtId}.csv?mock=true`,
-        rgsrEmnb: '2230000',
       },
       message: 'OK',
     });

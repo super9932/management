@@ -7,6 +7,6 @@ import type { PromptUpdateRequest } from './dto';
 export const promptUpdateHandlers = [
   http.post(`/api${NAB_CUSTOMER_TOUCH_API.promptUpdate}`, async ({ request }) => {
     const body = (await request.json()) as PromptUpdateRequest;
-    return HttpResponse.json({ data: { id: body.id }, message: 'OK' });
+    return HttpResponse.json({ data: { id: body.id }, isSuccess: true, message: null });
   }),
 ];

@@ -227,7 +227,7 @@ export default function DocumentTable({
                     {row.csvDocumentName || '-'}
                   </Typography>
                 </TableCell>
-                <TableCell align="center" sx={{ ...bodyCellSx, whiteSpace: 'nowrap' }}>
+                <TableCell align="left" sx={{ ...bodyCellSx, whiteSpace: 'nowrap' }}>
                   <Typography sx={{ fontSize: 14, color: DARK }}>{row.registrantName}</Typography>
                   <Typography sx={{ fontSize: 14, color: SECONDARY }}>{row.registrantDept}</Typography>
                 </TableCell>

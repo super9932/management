@@ -14,9 +14,8 @@ export const manualDetailHandlers = [
       data: {
         ...found,
         fileUrlPathNm: `https://object-storage.mock.hanwhalife.com/counsel/manual/${found.nabCuslManlDcmtId}.docx?mock=true`,
-        rgsrEmnb: '2230000',
         lastChnrNm: found.rgsrNm,
-        lastChnrEmnb: '2230000',
+        lastChnrEmnb: found.rgsrEmnb,
         lastChnrOrgnNm: found.rgstOrgnNm,
         lastChngDttm: found.rgstDttm,
       },

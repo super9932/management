@@ -20,7 +20,7 @@ export const killSwitchSaveHandlers = [
         },
         created: false,
       },
-      message: 'OK',
+      isSuccess: true, message: null,
     });
   }),
 ];

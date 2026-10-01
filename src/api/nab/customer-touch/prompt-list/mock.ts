@@ -64,7 +64,7 @@ export const promptListHandlers = [
         page,
         size,
       },
-      message: 'OK',
+      isSuccess: true, message: null,
     });
   }),
 ];

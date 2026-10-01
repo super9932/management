@@ -23,8 +23,6 @@ export * from './manual-history/dto';
 export * from './manual-history/service';
 export * from './manual-clsf-list/dto';
 export * from './manual-clsf-list/service';
-export * from './manual-clsf-list/dto';
-export * from './manual-clsf-list/service';
 export * from './manual-save/dto';
 export * from './manual-save/service';
 export * from './manual-update/dto';

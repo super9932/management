@@ -6,7 +6,7 @@ import type { ApiResponse } from '../types';
 import type { ManualUpdateRequest, ManualUpdateResponse } from './dto';
 
 /**
- * 매뉴얼문서의 적용기간을 수정한다.
+ * 매뉴얼문서의 분류·적용기간을 수정한다.
  * valdEndDttm 을 null 로 보내면 '무기한'으로 바뀐다 — 값을 빼면 미변경이 아니라 무기한이 되므로 주의한다.
  */
 export const updateManual = async (data: ManualUpdateRequest, emnb: string) => {

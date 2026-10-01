@@ -24,6 +24,7 @@ export const stipulations: StipulationItem[] = Array.from({ length: 37 }, (_, i)
     status,
     rgstOrgnNm: '상품시스템팀',
     rgsrNm: '김한화',
+    rgsrEmnb: '2230000',
     rgstDttm: `2026-06-${day} 10:00:00`,
   };
 });

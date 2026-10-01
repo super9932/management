@@ -1,7 +1,10 @@
-/** POST /v1/post/counsel/admin/stipulation/save — 약관문서등록 (multipart/form-data) */
+/** POST /v1/post/counsel/admin/stipulation/file/upload/save — 약관문서등록 (multipart/form-data) */
 
-/** meta 파트 — 현재 담기는 값이 없다. 보내지 않아도 되고 빈 객체도 허용된다 */
-export type StipulationUploadMeta = Record<string, never>;
+/** meta 파트(필수) — 요청자(변경자) 사번만 담는다. service 가 withEmnb 로 채운다 */
+export interface StipulationUploadMeta {
+  /** 요청자(변경자) 사번 (필수) */
+  emnb: string;
+}
 
 export interface StipulationSaveRequest {
   /** 약관 PDF 파일 (Storage 보관용) */

@@ -59,6 +59,8 @@ export interface StipulationItem {
   rgstOrgnNm: string;
   /** 등록자명 */
   rgsrNm: string;
+  /** 등록자사번 */
+  rgsrEmnb: string;
   /** 등록일시(KST, yyyy-MM-dd HH:mm:ss) */
   rgstDttm: string;
 }

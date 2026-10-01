@@ -33,7 +33,7 @@ export const statsSearchDailyHandlers = [
         },
         list: dates.slice(start, start + pageSize).map((date, i) => toRow(date, start + i)),
       },
-      message: 'OK',
+      isSuccess: true, message: null,
     });
   }),
 ];

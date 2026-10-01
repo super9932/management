@@ -1,8 +1,8 @@
 import type { AdminTypeCode, ManualClassCode, ManualStatus } from '../types';
 
-/** POST /v1/post/counsel/admin/manual/save — 매뉴얼문서등록 (multipart/form-data) */
+/** POST /v1/post/counsel/admin/manual/file/upload/save — 매뉴얼문서등록 (multipart/form-data) */
 
-/** meta 파트에 JSON 으로 실리는 등록 정보 */
+/** meta 파트에 JSON 으로 실리는 등록 정보. 필수인 사번(emnb)은 service 가 withEmnb 로 채운다 */
 export interface ManualUploadMeta {
   /** 관리주체(필수). AI 서버로 보내는 값과 같다 */
   nabCuslAdmrTypeCode: AdminTypeCode;

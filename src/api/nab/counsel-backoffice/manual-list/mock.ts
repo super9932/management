@@ -39,6 +39,7 @@ export const manuals: ManualItem[] = ADMIN_TYPES.flatMap((adminType, typeIndex) 
       status,
       rgstOrgnNm: ORGN_NAMES[adminType],
       rgsrNm: '김한화',
+      rgsrEmnb: '2230000',
       rgstDttm: `2026-07-${day} 09:30:00`,
     };
   })

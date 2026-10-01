@@ -3,7 +3,7 @@ import type { CounselKillSwitchItem, YnFlag } from '../types';
 /**
  * POST /v1/post/counsel/admin/killswitch/save — 점검 Kill-Switch 저장(upsert)
  *
- * 수정자 사번은 바디로 받지 않고 토큰에서 채운다.
+ * 요청자(변경자) 사번 emnb 도 본문 필수 필드다 — service 가 withEmnb 로 채워 보낸다.
  */
 export interface CounselKillSwitchSaveRequest {
   /** 기능점검코드 (예: COUNSEL_SERVICE) */

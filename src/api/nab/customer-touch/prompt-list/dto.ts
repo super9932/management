@@ -1,6 +1,10 @@
 import type { PromptSearchScope, UseYn } from '../types';
 
-/** POST /v1/get/customer/admin/touch/message/prompt/list — 프롬프트 목록 조회 */
+/**
+ * POST /v1/get/customer/admin/touch/message/prompt/list — 프롬프트 목록 조회
+ *
+ * 등록일 기간·카테고리·항목·사용여부·검색어로 거른 목록. 본문 전문은 싣지 않고 길이만 내린다.
+ */
 
 export interface PromptListRequest {
   /** 등록일 시작(yyyy-MM-dd, 미지정 = 제한 없음) */
@@ -11,7 +15,7 @@ export interface PromptListRequest {
   category?: string;
   /** 항목 필터(2-depth, 미지정 = 전체) */
   item?: string;
-  /** 검색어 적용 범위 (미지정 = ALL) */
+  /** 검색어 적용 범위 (미지정 = ALL). MODIFIER 는 사번이 아니라 이름으로 검색한다 */
   searchScope?: PromptSearchScope;
   /** 검색어 (미지정 = 검색 안 함) */
   keyword?: string;
@@ -25,6 +29,7 @@ export interface PromptListRequest {
 
 /** 목록 행 — 단건 조회(PromptGetResponse)와 달리 본문은 길이만 내려온다 */
 export interface PromptItem {
+  /** 프롬프트ID */
   id: number;
   /** 카테고리 코드(1-depth) */
   category: string;
@@ -38,12 +43,15 @@ export interface PromptItem {
   contentLength: number;
   /** 프롬프트 해시(sha256 hex) */
   hash: string;
+  /** 등록일시(yyyy-MM-dd HH:mm:ss) */
   registeredAt: string;
+  /** 수정일시(yyyy-MM-dd HH:mm:ss) */
   updatedAt: string;
   /** 최종 수정자 사번 */
   lastChangerEmnb: string;
-  /** 최종 수정자 '이름(사번)' — 매 조회 시 코어에서 해석, 실패 시 사번만 */
+  /** 최종 수정자 '이름(사번)' — 이름은 저장하지 않고 매 조회 시 코어에서 해석한다. 해석 실패 시 사번만 */
   lastChanger: string;
+  /** 사용여부 */
   useYn: UseYn;
 }
 
@@ -51,6 +59,8 @@ export interface PromptListResponse {
   prompts: PromptItem[];
   /** 조건에 맞는 전체 건수 */
   totalCount: number;
+  /** 요청 페이지 번호(1-base) */
   page: number;
+  /** 요청 페이지 크기 */
   size: number;
 }

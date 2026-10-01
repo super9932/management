@@ -6,11 +6,10 @@ import type { MutationResponse, UseYn } from '../types';
  * 부분 수정이 아니라 **전량 교체**다. 등록(CreateRequest)과 같은 형상에 id가 추가된 형태이며,
  * 보내지 않은 필드는 "그대로 두기"가 아니라 필수값 누락(400)이 된다.
  * 슬롯 키(category/item)도 바꿀 수 있지만 옮겨 간 자리에 이미 슬롯이 있으면 409다.
- * 수정자 사번은 바디로 받지 않고 토큰(subject)에서 채운다.
+ * 저장 즉시 다음 생성 호출부터 반영된다.
  *
- * ⚠️ 스웨거 스키마 충돌: 요청 스키마가 NAH 콘텐츠 수정과 `UpdateRequest` 이름을 공유해
- * Schema 탭에는 NAH 필드(contentId/htmlData/…)로 표시된다. 실제 본문은 아래 형상이며
- * 해당 엔드포인트의 Examples가 이를 따른다.
+ * 요청자(변경자) 사번 `emnb` 는 스웨거상 필수 본문 필드지만 이 타입에는 두지 않는다 —
+ * service(updatePrompt)가 두 번째 인자로 받아 withEmnb 로 본문에 얹는다.
  */
 export interface PromptUpdateRequest {
   /** 프롬프트ID */
@@ -23,7 +22,10 @@ export interface PromptUpdateRequest {
   item: string;
   /** 프롬프트 본문 */
   content: string;
-  /** 사용여부(미지정 = Y). N이면 행은 남고 생성 주입만 멈춘다 — 삭제(DEL_YN)와는 별개 축. */
+  /**
+   * 사용여부(미지정 = Y). N이면 행은 남고 생성 주입만 멈춘다 — 삭제(DEL_YN)와는 별개 축.
+   * 필수 슬롯을 N 으로 끄면 그 생성 경로는 503 이 된다.
+   */
   useYn?: UseYn;
 }
 

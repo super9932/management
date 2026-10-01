@@ -1,9 +1,9 @@
 import type { StatsFpType } from '../types';
 
 /**
- * POST /v1/post/customer/admin/touch/stats/search/excel — AI 콘텐츠 검색 통계 엑셀 다운로드
+ * POST /v1/post/customer/admin/touch/stats/search/file/download/excel — AI 콘텐츠 검색 통계 엑셀 다운로드
  *
- * 목록과 같은 필터로 조회기간 전건을 내려받는다(페이징 없음).
+ * 목록과 같은 필터로 조회기간 전건을 xlsx 로 내려받는다(페이징 없음).
  */
 export interface StatsSearchExcelRequest {
   /** 조회 시작일(yyyy-MM-dd, 해당일 포함) */

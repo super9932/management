@@ -112,7 +112,8 @@ const toDocumentRow = (item: StipulationItem): DocumentRow => ({
   salePeriodEnd: toDisplayDate(item.saleEndDate),
   documentName: item.pdfDcmtFileNm,
   csvDocumentName: item.csvDcmtFileNm,
-  registrantName: item.rgsrNm,
+  // '이름(사번)' 형식 (COM_공통정의_003 6-A/7-A)
+  registrantName: item.rgsrEmnb ? `${item.rgsrNm}(${item.rgsrEmnb})` : item.rgsrNm,
   registrantDept: item.rgstOrgnNm,
   registeredAt: toDisplayDate(item.rgstDttm),
   operationStatus: TERMS_STATUS_LABEL[item.status],

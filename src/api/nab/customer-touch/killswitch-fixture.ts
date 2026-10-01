@@ -11,8 +11,8 @@ export const killSwitches: KillSwitchItem[] = [
     state: 'ENABLED',
     description: '고객터치 메시지 생성 기능 전체',
     updatedBy: '21914014',
-    updatedAt: '2026-07-12T15:04:11',
-    createdAt: '2026-05-02T09:00:00',
+    updatedAt: '2026-07-12T15:04:11Z',
+    createdAt: '2026-05-02T09:00:00Z',
   },
   {
     featureCode: 'AI_CONTENT_SEARCH',
@@ -20,8 +20,8 @@ export const killSwitches: KillSwitchItem[] = [
     state: 'ENABLED',
     description: 'APB 색인 기반 컨텐츠 검색',
     updatedBy: '21914014',
-    updatedAt: '2026-07-01T10:12:45',
-    createdAt: '2026-05-02T09:00:00',
+    updatedAt: '2026-07-01T10:12:45Z',
+    createdAt: '2026-05-02T09:00:00Z',
   },
   {
     featureCode: 'AI_CUSTOMER_RECOMMEND',
@@ -29,8 +29,8 @@ export const killSwitches: KillSwitchItem[] = [
     state: 'DISABLED',
     description: '점검 중 일시 중단',
     updatedBy: '21914014',
-    updatedAt: '2026-07-13T08:30:00',
-    createdAt: '2026-05-02T09:00:00',
+    updatedAt: '2026-07-13T08:30:00Z',
+    createdAt: '2026-05-02T09:00:00Z',
   },
   {
     featureCode: 'AI_STATS_AGGREGATE',
@@ -38,7 +38,7 @@ export const killSwitches: KillSwitchItem[] = [
     state: 'ENABLED',
     description: '일배치 통계 집계',
     updatedBy: '21914014',
-    updatedAt: '2026-06-20T02:00:00',
-    createdAt: '2026-05-02T09:00:00',
+    updatedAt: '2026-06-20T02:00:00Z',
+    createdAt: '2026-05-02T09:00:00Z',
   },
 ];

@@ -7,6 +7,6 @@ let nextPromptId = 1_001;
 export const promptCreateHandlers = [
   http.post(`/api${NAB_CUSTOMER_TOUCH_API.promptCreate}`, () => {
     nextPromptId += 1;
-    return HttpResponse.json({ data: { id: nextPromptId }, message: 'OK' });
+    return HttpResponse.json({ data: { id: nextPromptId }, isSuccess: true, message: null });
   }),
 ];

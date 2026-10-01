@@ -46,6 +46,8 @@ export interface ManualItem {
   rgstOrgnNm: string;
   /** 등록자명 */
   rgsrNm: string;
+  /** 등록자사번 */
+  rgsrEmnb: string;
   /** 등록일시 (KST) */
   rgstDttm: string;
 }

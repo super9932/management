@@ -1,9 +1,9 @@
 import type { StatsEntryPoint, StatsFpType, StatsGenerationMethod } from '../types';
 
 /**
- * POST /v1/post/customer/admin/touch/stats/message/excel — AI 메시지 생성 통계 엑셀 다운로드
+ * POST /v1/post/customer/admin/touch/stats/message/file/download/excel — AI 메시지 생성 통계 엑셀 다운로드
  *
- * 목록과 같은 필터로 조회기간 전건을 내려받는다(페이징 없음).
+ * 목록과 같은 필터로 조회기간 전건을 xlsx 로 내려받는다(페이징 없음). 화면 표와 같은 행·같은 값이다.
  */
 export interface StatsMessageExcelRequest {
   /** 조회 시작일(yyyy-MM-dd, 해당일 포함) */

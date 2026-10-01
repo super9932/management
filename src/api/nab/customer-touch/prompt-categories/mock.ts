@@ -12,7 +12,18 @@ export const promptCategoriesMock: PromptCategoriesResponse = {
       code: 'situation',
       label: '고객상황',
       scenario: false,
-      items: [{ item: '보험금미수령' }, { item: '만기도래' }, { item: '연금개시' }, { item: '상속인미지정' }, { item: '고객센터통화' }, { item: '청구' }, { item: '실효' }, { item: '약대활용' }, { item: '계약기념일' }, { item: '생일' }, { item: 'VIP' }],
+      items: [
+        { item: '보험금미수령', itemLabel: '보험금미수령' },
+        { item: '만기도래', itemLabel: '만기도래' },
+        { item: '연금개시', itemLabel: '연금개시' },
+        { item: '상속인미지정', itemLabel: '보험금수령인 미지정' },
+        { item: '고객센터통화', itemLabel: '고객센터통화' },
+        { item: '청구', itemLabel: '청구' },
+        { item: '실효', itemLabel: '실효' },
+        { item: '계약기념일', itemLabel: '계약기념일' },
+        { item: '생일', itemLabel: '생일' },
+        { item: 'VIP', itemLabel: 'VIP' },
+      ],
     },
     {
       code: 'relationship',
@@ -25,13 +36,13 @@ export const promptCategoriesMock: PromptCategoriesResponse = {
       code: 'message_style',
       label: '문자유형',
       scenario: false,
-      items: [{ item: '감성형' }, { item: '정보전달형' }, { item: '격식형' }],
+      items: [{ item: '보고서형' }, { item: '감성형' }, { item: '정보전달형' }, { item: '격식형' }],
     },
   ],
 };
 
 export const promptCategoriesHandlers = [
   http.post(`/api${NAB_CUSTOMER_TOUCH_API.promptCategories}`, () =>
-    HttpResponse.json({ data: promptCategoriesMock, message: 'OK' })
+    HttpResponse.json({ data: promptCategoriesMock, isSuccess: true, message: null })
   ),
 ];

@@ -3,7 +3,15 @@
  * swagger: [NAB] NEXTLAB AI 비즈니스 서비스 API — 04. 상담AI_백오피스
  */
 
-export type { ApiResponse, ApiError, PageInfo, ResponseMeta } from '../customer-touch/types';
+import type { ApiResponse as BaseApiResponse } from '../customer-touch/types';
+
+export type { ApiError, PageInfo, ResponseMeta } from '../customer-touch/types';
+
+/** 백오피스 응답 엔벨로프 — 공통 엔벨로프에 admin 전용 isSuccess 가 더 붙는다 */
+export interface ApiResponse<T> extends BaseApiResponse<T> {
+  /** admin API 전용 — 항상 true 로 응답된다 */
+  isSuccess?: boolean;
+}
 
 // ── 공통 요청 조각 ───────────────────────────────────────────────────────────
 

@@ -23,10 +23,15 @@ export interface ApiError {
   details?: ApiErrorDetail[];
 }
 
+/** 엔벨로프 페이지 정보 — 스웨거 Example 기준(pageNum 1-base) */
 export interface PageInfo {
-  number?: number;
-  size?: number;
+  /** 현재 페이지 번호(1-base) */
+  pageNum?: number;
+  /** 페이지 크기 */
+  pageSize?: number;
+  /** 전체 아이템 개수 */
   totalElements?: number;
+  /** 전체 페이지 개수 */
   totalPages?: number;
 }
 
@@ -35,6 +40,11 @@ export interface ResponseMeta {
 }
 
 export interface ApiResponse<T> {
+  /**
+   * admin API 전용 — 항상 true 로 응답된다(오류도 HTTP 상태·error 로만 구분).
+   * 성공 판정에 쓰지 말고 error 유무를 본다.
+   */
+  isSuccess?: boolean;
   data?: T;
   message?: string;
   error?: ApiError;
@@ -86,12 +96,19 @@ export type KillSwitchState = 'ENABLED' | 'DISABLED';
 
 /** killswitch save/list/detail 공용 */
 export interface KillSwitchItem {
+  /** 기능코드 */
   featureCode: string;
+  /** 기능명 */
   featureName: string;
+  /** ENABLED / DISABLED 이진값 */
   state: KillSwitchState;
+  /** 설명(차단 사유 등) */
   description: string;
+  /** 최종 변경자 사번 — 저장 요청 본문의 emnb 가 그대로 저장된다 */
   updatedBy: string;
+  /** 최종 변경일시(date-time) — ISO-8601 UTC(예: 2026-08-18T05:32:10Z). 봉투 시각(KST 문자열)과 다르다 */
   updatedAt: string;
+  /** 생성일시(date-time) — ISO-8601 UTC */
   createdAt: string;
 }
 

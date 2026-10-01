@@ -32,7 +32,7 @@ export const promptGetHandlers = [
     const body = (await request.json()) as PromptGetRequest;
     return HttpResponse.json({
       data: { ...promptDetailMock, id: body.id },
-      message: 'OK',
+      isSuccess: true, message: null,
     });
   }),
 ];
