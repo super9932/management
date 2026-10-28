@@ -48,6 +48,11 @@ export interface MsgeStatItem {
   lvl4OrgnNm: string | null;
   /** 대화방ID */
   convRoomId: string;
+  /**
+   * 사용자 메시지ID — 이 행(턴)의 질문 메시지 ID. AI 답변 메시지 ID 가 아니다.
+   * 서버는 int64 라 2^53 을 넘는 값은 JSON 파싱에서 정밀도가 깨질 수 있다 — 화면은 표시만 하므로 문자열로 바꿔 쓴다
+   */
+  userMessageId: number;
   /** 화면 구분 (01 타겟고객발굴 / 02 고객계약관리 / 03 신계약상담). 표시명 변환은 FE 공통코드가 한다 */
   cuslSrvcTypeCode: string;
   /** 추천질문ID — 방 단위 값이라 같은 방의 모든 턴에 같은 값이 온다. 질문 없이 시작한 방은 null */

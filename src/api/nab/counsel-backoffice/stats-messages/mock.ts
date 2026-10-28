@@ -19,6 +19,8 @@ export const msgeStats: MsgeStatItem[] = Array.from({ length: 35 }, (_, i) => {
     lvl3OrgnNm: '서울지역단',
     lvl4OrgnNm: '서울지점',
     convRoomId: `550e8400-e29b-41d4-a716-4466554400${String(i).padStart(2, '0')}`,
+    // 컬럼 폭(108px)보다 긴 값으로 두어 앞 말줄임('...뒤쪽')이 걸리는 케이스를 만든다
+    userMessageId: 20260713000001 + i,
     cuslSrvcTypeCode: SCREEN_CODES[i % SCREEN_CODES.length],
     rcmdQustId: i % 3 === 0 ? null : i + 1,
     qustCntn: `보험금 청구 방법 알려줘 (${i + 1})`,

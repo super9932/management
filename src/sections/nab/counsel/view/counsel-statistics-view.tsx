@@ -160,6 +160,7 @@ const toStatisticsRow = (
     cost: orDash(item.costUsd),
     feedback: item.fdbkLikeYn === 'Y' ? '좋아요' : item.fdbkLikeYn === 'N' ? '싫어요' : '-',
     feedbackReason: orDash(item.fdbkCmmt),
+    messageId: orDash(item.userMessageId),
   };
 };
 

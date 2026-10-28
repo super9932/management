@@ -125,6 +125,8 @@ export interface StatisticsRow {
   feedback: string;
   /** 피드백 사유 */
   feedbackReason: string;
+  /** 메시지(ID) — 질문 메시지 식별자. 넘치면 앞을 줄이고 뒷자리를 보여준다 */
+  messageId: string;
 }
 
 // 문서 상세 - 수정 이력 항목

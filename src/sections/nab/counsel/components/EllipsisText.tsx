@@ -16,9 +16,16 @@ interface Props {
   align?: 'left' | 'center';
   /** 최대 줄 수 (기본 1). 2 이상이면 그 줄까지 흘려 쓰고 넘치면 말줄임한다 */
   lines?: number;
+  /**
+   * 말줄임 위치 (기본 end). start 면 '...뒷부분' 으로 줄인다 — ID 처럼 뒷자리로 구분하는 값에 쓴다.
+   * 한 줄 전용이다 (line-clamp 는 앞 말줄임을 지원하지 않는다)
+   */
+  ellipsis?: 'start' | 'end';
 }
 
-export default function EllipsisText({ text, maxWidth, align = 'left', lines = 1 }: Props) {
+export default function EllipsisText({
+  text, maxWidth, align = 'left', lines = 1, ellipsis = 'end',
+}: Props) {
   const ref = useRef<HTMLElement>(null);
   const [truncated, setTruncated] = useState(false);
 
@@ -73,9 +80,12 @@ export default function EllipsisText({ text, maxWidth, align = 'left', lines = 1
               wordBreak: 'break-word',
             }
             : { whiteSpace: 'nowrap' }),
+          // CSS 에는 앞 말줄임이 없어 박스를 RTL 로 돌려 넘침·'...' 을 왼쪽에 두고,
+          // 안쪽 텍스트는 dir=ltr 로 격리해 글자 순서는 그대로 둔다
+          ...(ellipsis === 'start' && lines === 1 ? { direction: 'rtl' } : {}),
         }}
       >
-        {text}
+        {ellipsis === 'start' && lines === 1 ? <span dir="ltr">{text}</span> : text}
       </Box>
     </Tooltip>
   );

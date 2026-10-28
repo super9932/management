@@ -30,6 +30,8 @@ interface Column {
   width: number;
   /** 질문·답변처럼 남는 폭을 나눠 갖는 컬럼 — width 는 최소치로 쓴다 */
   flexible?: boolean;
+  /** 말줄임 위치 (기본 end). start 면 앞을 '...' 으로 줄이고 뒷부분을 보여준다 */
+  ellipsis?: 'start' | 'end';
 }
 
 const COLUMNS: Column[] = [
@@ -54,6 +56,8 @@ const COLUMNS: Column[] = [
   { key: 'cost', label: '비용(달러)', width: 108 },
   { key: 'feedback', label: '피드백', width: 108 },
   { key: 'feedbackReason', label: '피드백 사유', width: 108 },
+  // ID 는 뒷자리로 구분하므로 Figma(뒤 말줄임)와 달리 앞을 줄이고 뒷자리를 남긴다
+  { key: 'messageId', label: '메시지(ID)', width: 108, ellipsis: 'start' },
 ];
 
 const TABLE_MIN_WIDTH = COLUMNS.reduce((sum, col) => sum + col.width, 0);
@@ -162,6 +166,7 @@ export default function StatisticsTable({
                       text={String(row[col.key])}
                       maxWidth={col.width - CELL_PADDING_X}
                       align="center"
+                      ellipsis={col.ellipsis}
                     />
                   </TableCell>
                 ))}
