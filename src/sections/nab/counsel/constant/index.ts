@@ -45,6 +45,7 @@ export const MANUAL_ADMIN_TYPE = {
   underwriting: 'UDW',
   insuranceReview: 'ISRN_ADT',
   insuranceCommon: 'ISRN_SVC',
+  consumerProtection: 'CUST_TRST',
 } as const satisfies Record<string, AdminTypeCode>;
 
 /** 관리주체 코드 → 화면 표기(담당부서). 통계 표의 참조 문서 컬럼이 쓴다 */
@@ -52,6 +53,7 @@ export const MANUAL_ADMIN_TYPE_LABEL: Record<AdminTypeCode, string> = {
   UDW: '언더라이팅',
   ISRN_ADT: '보험심사',
   ISRN_SVC: '보험공통',
+  CUST_TRST: '소비자보호',
 };
 
 /** 매뉴얼 노출상태 옵션 — ManualStatus 4종 + 전체 */
@@ -95,6 +97,7 @@ export const MANUAL_CLASS_LABEL: Record<ManualClassCode, string> = {
   RE_OTPY: '제지급',
   CTCN: '계약변경',
   CNTR_SUPT: '센터지원',
+  CNSM_PRTC: '소비자보호',
 };
 
 /**
@@ -105,6 +108,7 @@ export const MANUAL_CLASS_BY_ADMIN_TYPE: Record<AdminTypeCode, ManualClassCode[]
   UDW: ['ONE_SHET', 'BSWR_MANL'],
   ISRN_ADT: ['ISRN_UNDN'],
   ISRN_SVC: ['PLAN', 'DPST', 'RE_OTPY', 'CTCN', 'CNTR_SUPT'],
+  CUST_TRST: ['CNSM_PRTC'],
 };
 
 /** 약관 검색기준 — API에 '전체' 옵션이 없다 */
@@ -166,6 +170,10 @@ export const STATISTICS_TOASTS = {
 // ---------------------------------------------------------------- 언더라이팅 문서
 /** 언더라이팅 문서 관리 부서 */
 export const UNDERWRITING_MANAGING_DEPT = '언더라이팅팀';
+
+// ---------------------------------------------------------------- 소비자보호 문서
+/** 소비자보호 문서 관리 부서 — 기획 확정 전 임시 표기 */
+export const CONSUMER_PROTECTION_MANAGING_DEPT = '소비자보호팀';
 
 // ---------------------------------------------------------------- 문서 등록 모달
 /** 문서 첨부 지원 형식 (input accept) */

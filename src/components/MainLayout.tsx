@@ -40,6 +40,7 @@ function buildNavSections(pathname: string): NavSection[] {
             { label: '보험심사 문서', icon: <DescriptionOutlinedIcon sx={{ fontSize: 20 }} />, active: isActive('/insurance-review'), disabled: false, path: '/insurance-review' },
             { label: '보험공통 문서', icon: <DescriptionOutlinedIcon sx={{ fontSize: 20 }} />, active: isActive('/insurance-common'), disabled: false, path: '/insurance-common' },
             { label: '언더라이팅 문서', icon: <DescriptionOutlinedIcon sx={{ fontSize: 20 }} />, active: isActive('/underwriting-manual'), disabled: false, path: '/underwriting-manual' },
+            { label: '소비자보호 문서', icon: <DescriptionOutlinedIcon sx={{ fontSize: 20 }} />, active: isActive('/consumer-protection-manual'), disabled: false, path: '/consumer-protection-manual' },
             { label: '권한 관리', icon: <SecurityOutlinedIcon sx={{ fontSize: 20 }} />, active: false, disabled: false },
             { label: '질문항목 관리', icon: <ArticleOutlinedIcon sx={{ fontSize: 20 }} />, active: false, disabled: true },
             { label: '프롬프트 관리', icon: <ArticleOutlinedIcon sx={{ fontSize: 20 }} />, active: false, disabled: true },

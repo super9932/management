@@ -14,6 +14,7 @@ const manlClsfList: ManualClsfItem[] = [
   { manlClsfCode: 'CTCN', manlClsfNm: '계약변경', nabCuslAdmrTypeCode: 'ISRN_SVC' },
   { manlClsfCode: 'CNTR_SUPT', manlClsfNm: '센터지원', nabCuslAdmrTypeCode: 'ISRN_SVC' },
   { manlClsfCode: 'ISRN_UNDN', manlClsfNm: '심사', nabCuslAdmrTypeCode: 'ISRN_ADT' },
+  { manlClsfCode: 'CNSM_PRTC', manlClsfNm: '소비자보호', nabCuslAdmrTypeCode: 'CUST_TRST' },
 ];
 
 export const manualClsfListHandlers = [

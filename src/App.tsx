@@ -7,6 +7,7 @@ import InsuranceTerms from './pages/nab/counsel/insurance-terms';
 import InsuranceReview from './pages/nab/counsel/insurance-review';
 import InsuranceCommon from './pages/nab/counsel/insurance-common';
 import UnderwritingManual from './pages/nab/counsel/underwriting-manual';
+import ConsumerProtectionManual from './pages/nab/counsel/consumer-protection-manual';
 import CounselStatistics from './pages/nab/counsel/counsel-statistics';
 import SystemSetting from './pages/nab/counsel/system-setting';
 import Statistics from './pages/nab/customer-touch/statistics';
@@ -35,6 +36,7 @@ function App() {
             <Route path="/insurance-review" element={<InsuranceReview />} />
             <Route path="/insurance-common" element={<InsuranceCommon />} />
             <Route path="/underwriting-manual" element={<UnderwritingManual />} />
+            <Route path="/consumer-protection-manual" element={<ConsumerProtectionManual />} />
             <Route path="/counsel-statistics" element={<CounselStatistics />} />
             <Route path="/system-setting" element={<SystemSetting />} />
             <Route path="/statistics" element={<Statistics />} />

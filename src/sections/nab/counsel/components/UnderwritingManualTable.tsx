@@ -60,6 +60,8 @@ interface Props {
   sortDir: SortDirection;
   onSortChange: (sortBy: ManualSortBy, sortDir: SortDirection) => void;
   onDocumentClick: (row: UnderwritingManualRow) => void;
+  /** 결과 바 우측 '관리 부서' 표기. 같은 표를 쓰는 소비자보호 문서가 바꿔 넣는다 */
+  managingDept?: string;
 }
 
 const headCellSx = {
@@ -81,7 +83,7 @@ const bodyCellSx = {
 
 export default function UnderwritingManualTable({
   rows, total, pageSize, onPageSizeChange, selectedIds, onToggle, onToggleAll, onDocumentClick,
-  sortBy, sortDir, onSortChange,
+  sortBy, sortDir, onSortChange, managingDept = UNDERWRITING_MANAGING_DEPT,
 }: Props) {
   // MUI 는 소문자 방향을 쓴다
   const sortDirection = sortDir === 'ASC' ? 'asc' : 'desc';
@@ -109,7 +111,7 @@ export default function UnderwritingManualTable({
           <PageSizeSelect value={pageSize} onChange={onPageSizeChange} />
         </Box>
         <Typography sx={{ fontSize: 14, color: SECONDARY }}>
-          관리 부서 : {UNDERWRITING_MANAGING_DEPT}
+          관리 부서 : {managingDept}
         </Typography>
       </Box>
       <Divider sx={{ borderColor: DIVIDER }} />

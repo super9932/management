@@ -36,8 +36,12 @@ export type SortDirection = 'ASC' | 'DESC';
 
 // ── 공통 코드 ────────────────────────────────────────────────────────────────
 
-/** 매뉴얼 관리주체 — 화면이 관리주체 단위로 나뉜다 */
-export type AdminTypeCode = 'UDW' | 'ISRN_ADT' | 'ISRN_SVC';
+/**
+ * 매뉴얼 관리주체 — 화면이 관리주체 단위로 나뉜다.
+ *
+ * CUST_TRST 는 소비자보호 문서 — BE 가 정한 코드다. 2026-10-28 기준 stg 스웨거 enum 에는 아직 반영되지 않았다.
+ */
+export type AdminTypeCode = 'UDW' | 'ISRN_ADT' | 'ISRN_SVC' | 'CUST_TRST';
 
 /**
  * 매뉴얼 분류 — 관리주체 하위 분류다. 관리주체에 속하지 않는 코드를 보내면 거절된다.
@@ -45,6 +49,7 @@ export type AdminTypeCode = 'UDW' | 'ISRN_ADT' | 'ISRN_SVC';
  * - UDW      : ONE_SHET 원시트 / BSWR_MANL 업무매뉴얼
  * - ISRN_ADT : ISRN_UNDN 보험심사
  * - ISRN_SVC : PLAN 기획 / DPST 입금 / RE_OTPY 제지급 / CTCN 계약변경 / CNTR_SUPT 센터지원
+ * - CUST_TRST: CNSM_PRTC 소비자보호
  */
 export type ManualClassCode =
   | 'ONE_SHET'
@@ -54,7 +59,8 @@ export type ManualClassCode =
   | 'DPST'
   | 'RE_OTPY'
   | 'CTCN'
-  | 'CNTR_SUPT';
+  | 'CNTR_SUPT'
+  | 'CNSM_PRTC';
 
 /** Y/N 플래그 */
 export type YnFlag = 'Y' | 'N';

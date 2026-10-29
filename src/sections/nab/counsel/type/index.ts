@@ -84,6 +84,9 @@ export interface UnderwritingManualRow {
   operationStatus: OperationStatus;
 }
 
+// 소비자보호 문서 테이블 행 — 언더라이팅 문서와 같은 구조·같은 API 라 타입을 공유한다
+export type ConsumerProtectionManualRow = UnderwritingManualRow;
+
 // 상담AI 통계 관리 테이블 행 (넓은 통계 테이블)
 export interface StatisticsRow {
   id: number;

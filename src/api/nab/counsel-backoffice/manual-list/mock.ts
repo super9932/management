@@ -5,19 +5,21 @@ import { NAB_COUNSEL_BACKOFFICE_API } from '../../_lib/path';
 import type { AdminTypeCode, ManualClassCode, ManualStatus } from '../types';
 import type { ManualItem, ManualListRequest } from './dto';
 
-const ADMIN_TYPES: AdminTypeCode[] = ['UDW', 'ISRN_ADT', 'ISRN_SVC'];
+const ADMIN_TYPES: AdminTypeCode[] = ['UDW', 'ISRN_ADT', 'ISRN_SVC', 'CUST_TRST'];
 const STATUSES: ManualStatus[] = ['OPERATING', 'PENDING', 'NOT_OPERATING', 'ERROR'];
 /** 관리주체별 분류 후보 — 실제 API 도 관리주체 하위 코드만 허용한다 */
 const CLASS_CODES: Record<AdminTypeCode, ManualClassCode[]> = {
   UDW: ['ONE_SHET', 'BSWR_MANL'],
   ISRN_ADT: ['ISRN_UNDN'],
   ISRN_SVC: ['PLAN', 'DPST', 'RE_OTPY', 'CTCN', 'CNTR_SUPT'],
+  CUST_TRST: ['CNSM_PRTC'],
 };
 
 const ORGN_NAMES: Record<AdminTypeCode, string> = {
   UDW: '언더라이팅팀',
   ISRN_ADT: '보험심사팀',
   ISRN_SVC: '보험서비스팀',
+  CUST_TRST: '소비자보호팀',
 };
 
 /** 관리주체별 8건씩 — 목록/상세/이력 목이 같은 원본을 공유한다 */
